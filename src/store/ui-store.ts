@@ -19,8 +19,8 @@ export const useUIStore = create<UIState>()(
   persist(
     (set) => ({
       sidebarOpen: true,
-      theme: 'dark',
-      accentColor: '239 84% 67%', // Default Indigo
+      theme: 'light',
+      accentColor: '25 95% 53%', // Default Orange
       commandPaletteOpen: false,
 
       toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
