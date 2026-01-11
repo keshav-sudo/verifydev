@@ -16,9 +16,9 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Default Primary (Indigo) - Will be overridden by user choice */
-    --primary: 239 84% 67%;
-    --primary-foreground: 210 40% 98%;
+    /* Default Primary (Orange) - Energetic & Professional */
+    --primary: 25 95% 53%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
