@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { 
@@ -145,43 +145,36 @@ export function ProjectAnalysisProgress({
         </p>
       )}
 
-      {/* Analysis stages animation */}
+      {/* Analysis stages animation - simplified for mobile */}
       {config.animate && (
-        <AnimatePresence>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex items-center gap-2 text-xs text-muted-foreground mt-2"
+        <div className="flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground mt-2 overflow-hidden">
+          <motion.span
+            animate={{ opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="flex items-center gap-1 shrink-0"
           >
-            <motion.div
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="flex items-center gap-1"
-            >
-              <Code2 className="h-3 w-3" />
-              <span>Code Analysis</span>
-            </motion.div>
-            <span>•</span>
-            <motion.div
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-              className="flex items-center gap-1"
-            >
-              <Sparkles className="h-3 w-3" />
-              <span>AI Processing</span>
-            </motion.div>
-            <span>•</span>
-            <motion.div
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity, delay: 1 }}
-              className="flex items-center gap-1"
-            >
-              <Zap className="h-3 w-3" />
-              <span>Calculating Aura</span>
-            </motion.div>
-          </motion.div>
-        </AnimatePresence>
+            <Code2 className="h-3 w-3" />
+            <span className="hidden sm:inline">Code</span>
+          </motion.span>
+          <span className="text-muted-foreground/50">→</span>
+          <motion.span
+            animate={{ opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
+            className="flex items-center gap-1 shrink-0"
+          >
+            <Sparkles className="h-3 w-3" />
+            <span className="hidden sm:inline">AI</span>
+          </motion.span>
+          <span className="text-muted-foreground/50">→</span>
+          <motion.span
+            animate={{ opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1.5, repeat: Infinity, delay: 1 }}
+            className="flex items-center gap-1 shrink-0"
+          >
+            <Zap className="h-3 w-3" />
+            <span className="hidden sm:inline">Aura</span>
+          </motion.span>
+        </div>
       )}
     </motion.div>
   )

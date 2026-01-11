@@ -275,9 +275,11 @@ export default function DashboardLayout() {
           )}
         >
           {/* Background - Fixed to Main Container */}
-          <div className="absolute inset-0 bg-grid-premium opacity-40 mix-blend-overlay pointer-events-none z-0" />
-          <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full pointer-events-none z-0" />
-          <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full pointer-events-none z-0" />
+          <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+            <div className="absolute inset-0 bg-grid-premium opacity-40 mix-blend-overlay" />
+            <div className="absolute top-0 left-0 w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full -translate-x-1/2 -translate-y-1/2" />
+            <div className="absolute bottom-0 right-0 w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full translate-x-1/2 translate-y-1/2" />
+          </div>
 
           <div className={cn(
             "max-w-7xl mx-auto w-full relative z-10",

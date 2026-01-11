@@ -16,7 +16,6 @@ import {
   Github,
   Target,
   FolderGit2,
-  ChevronRight,
   Sparkles,
   Plus,
   TrendingUp,
@@ -26,7 +25,6 @@ import {
   Briefcase,
   Star,
   GitFork,
-  Clock,
   Zap,
   ExternalLink,
   CheckCircle2,
@@ -139,136 +137,80 @@ function ProjectCard({ project }: { project: any }) {
   const technologies = project.technologies || []
   const topTechs = technologies.slice(0, 3)
   
-  // Calculate time ago
-  const getTimeAgo = (date: string) => {
-    if (!date) return ''
-    const diff = Date.now() - new Date(date).getTime()
-    const minutes = Math.floor(diff / 60000)
-    if (minutes < 60) return `${minutes}m ago`
-    const hours = Math.floor(minutes / 60)
-    if (hours < 24) return `${hours}h ago`
-    const days = Math.floor(hours / 24)
-    return `${days}d ago`
-  }
-
   // Get repo name from URL or use name
   const repoName = project.repoName || project.name
 
   return (
     <div 
       onClick={() => navigate(`/projects/${project.id}`)}
-      className="group cursor-pointer rounded-xl border border-border/80 bg-gradient-to-br from-card/60 via-card/40 to-card/30 backdrop-blur-md p-5 transition-all duration-300 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/15 hover:scale-[1.01]"
-    >
-      <div className="flex items-start gap-4">
-        {/* Circular Score with Glow */}
-        <div className="relative">
-          <div className={cn(
-            "absolute inset-0 rounded-full blur-lg opacity-30 transition-opacity group-hover:opacity-50",
-            score >= 80 ? "bg-emerald-500" : score >= 50 ? "bg-primary" : "bg-amber-500"
-          )} />
-          <CircularProgress value={score} />
+      className="group cursor-pointer rounded-xl border border-border/80 bg-card/60 backdrop-blur-md p-4 transition-all duration-300 hover:border-primary/40 hover:shadow-lg overflow-hidden">
+      <div className="flex items-start gap-3">
+        {/* Score */}
+        <div className="shrink-0">
+          <CircularProgress value={score} size={44} />
         </div>
         
         {/* Project Info */}
         <div className="flex-1 min-w-0">
-          {/* GitHub Repo Name - Prominent */}
-          <div className="flex items-center gap-2.5 mb-2">
-            <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-gradient-to-br from-muted/80 to-muted/40 border border-border/50">
-              <Github className="w-4 h-4 text-foreground" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-foreground group-hover:text-primary transition-colors truncate text-base">
-                {repoName}
-              </h3>
-              {project.description && (
-                <p className="text-xs text-muted-foreground/80 truncate mt-0.5">
-                  {project.description}
-                </p>
-              )}
-            </div>
+          {/* GitHub Repo Name */}
+          <div className="flex items-center gap-2 mb-1">
+            <Github className="w-4 h-4 text-muted-foreground shrink-0" />
+            <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate text-sm">
+              {repoName}
+            </h3>
           </div>
+          {project.description && (
+            <p className="text-xs text-muted-foreground truncate mb-2">
+              {project.description}
+            </p>
+          )}
           
           {/* Language Badge */}
           {project.language && (
-            <div className="flex items-center gap-2 mb-3">
-              <span className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-gradient-to-r from-blue-500/15 to-blue-400/10 text-blue-400 border border-blue-500/20">
-                <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+            <div className="flex items-center gap-1.5 mb-2 overflow-hidden">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 shrink-0">
                 {project.language}
               </span>
-              {topTechs.length > 0 && (
-                <>
-                  {topTechs.map((tech: string, i: number) => (
-                    <span 
-                      key={i}
-                      className="text-xs px-2 py-1 rounded-full bg-muted/50 text-muted-foreground border border-border/30"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                  {technologies.length > 3 && (
-                    <span className="text-xs text-muted-foreground/60">
-                      +{technologies.length - 3}
-                    </span>
-                  )}
-                </>
-              )}
+              {topTechs.slice(0, 2).map((tech: string, i: number) => (
+                <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-muted/50 text-muted-foreground truncate">
+                  {tech}
+                </span>
+              ))}
             </div>
           )}
           
-          {/* Stats Row */}
-          <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
-            <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-500/10 hover:bg-amber-500/20 transition-colors">
-              <Star className="w-3.5 h-3.5 text-amber-500" />
-              <span className="font-medium text-amber-400">{project.stars || 0}</span>
+          {/* Stats Row - Compact */}
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Star className="w-3 h-3 text-amber-500" />
+              {project.stars || 0}
             </span>
-            <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50 hover:bg-muted transition-colors">
-              <GitFork className="w-3.5 h-3.5" />
-              <span className="font-medium">{project.forks || 0}</span>
+            <span className="flex items-center gap-1">
+              <GitFork className="w-3 h-3" />
+              {project.forks || 0}
             </span>
-            {project.analyzedAt && (
-              <span className="flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" />
-                {getTimeAgo(project.analyzedAt)}
-              </span>
-            )}
           </div>
           
-          {/* Status & Points - OR Progress */}
+          {/* Status */}
           {!isAnalyzed ? (
-             <div className="mt-2">
-               <ProjectAnalysisProgress status={project.analysisStatus} showDetails={true} />
-             </div>
+            <div className="mt-2">
+              <ProjectAnalysisProgress status={project.analysisStatus} showDetails={true} />
+            </div>
           ) : (
-            <div className="flex items-center justify-between">
-              <div className={cn(
-                "flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all",
-                "bg-gradient-to-r from-primary/20 to-primary/10 text-primary border border-primary/20"
-              )}>
-                <CheckCircle2 className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-xs px-2 py-1 rounded-full bg-green-500/10 text-green-500 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
                 Analyzed
-              </div>
-              
+              </span>
               {score > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-primary/20 to-primary/5 border border-primary/20">
-                  <Zap className="w-4 h-4 text-primary" />
-                  <span className="font-bold text-primary text-sm">+{score}</span>
-                  <span className="text-xs text-muted-foreground">Aura</span>
-                </div>
+                <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary flex items-center gap-1">
+                  <Zap className="w-3 h-3" />
+                  +{score} Aura
+                </span>
               )}
             </div>
           )}
         </div>
-        
-        {/* Arrow with animation */}
-        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted/50 group-hover:bg-primary/20 transition-all mt-6">
-          <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
-        </div>
-      </div>
-      
-      {/* View Details Hint */}
-      <div className="mt-4 pt-3 border-t border-border/30 flex items-center justify-center gap-2 text-xs text-muted-foreground group-hover:text-primary transition-colors">
-        <Sparkles className="w-3.5 h-3.5" />
-        <span>Click to view skill breakdown & details</span>
       </div>
     </div>
   )
