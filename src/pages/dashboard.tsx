@@ -117,7 +117,7 @@ function StatCard({
       {loading ? (
         <div className="h-9 w-24 bg-muted/50 animate-pulse rounded-lg mb-1" />
       ) : (
-        <div className="text-3xl font-bold text-foreground tracking-tight mb-1">
+        <div className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight mb-1 truncate">
           {typeof value === 'number' ? formatNumber(value) : value}
         </div>
       )}
@@ -394,10 +394,10 @@ export default function Dashboard() {
         
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground tracking-tight break-words">
               Welcome back, {user?.name?.split(' ')[0] || user?.username}! 👋
             </h1>
-            <p className="text-lg text-muted-foreground mt-2 max-w-xl">
+            <p className="text-sm md:text-base lg:text-lg text-muted-foreground mt-2 max-w-xl break-words">
               Your developer profile is looking great. Check your latest analysis and boost your Aura score today.
             </p>
           </div>
@@ -424,7 +424,7 @@ export default function Dashboard() {
       </motion.div>
 
       {/* ===== STATS GRID ===== */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-6 sm:mb-8">
+      <div className="grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-4 mb-6 sm:mb-8">
         <StatCard 
           icon={Sparkles} 
           label="Aura Score" 
