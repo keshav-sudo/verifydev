@@ -386,8 +386,8 @@ export default function Profile() {
                     </Badge>
                   )}
                   {/* Hire Signal Badge */}
-                  {user.hireSignal && (
-                    <HireSignalBadge signal={user.hireSignal} className="shadow-md" />
+                  {(user as any).hireSignal && (
+                    <HireSignalBadge signal={(user as any).hireSignal} className="shadow-md" />
                   )}
                 </div>
                 <p className="text-lg text-muted-foreground">@{user.username}</p>

@@ -199,9 +199,9 @@ export default function JobsPage() {
                 <Label>Min Salary (USD)</Label>
                 <Input
                   type="number"
-                  value={filters.salaryMin || ''}
+                  value={filters.minSalary || ''}
                   onChange={(e) =>
-                    handleFilterChange('salaryMin', e.target.value ? parseInt(e.target.value) : undefined)
+                    handleFilterChange('minSalary', e.target.value ? parseInt(e.target.value) : undefined)
                   }
                   placeholder="50000"
                 />
@@ -210,9 +210,9 @@ export default function JobsPage() {
                 <Label>Max Salary (USD)</Label>
                 <Input
                   type="number"
-                  value={filters.salaryMax || ''}
+                  value={(filters as any).maxSalary || ''}
                   onChange={(e) =>
-                    handleFilterChange('salaryMax', e.target.value ? parseInt(e.target.value) : undefined)
+                    handleFilterChange('minSalary', e.target.value ? parseInt(e.target.value) : undefined)
                   }
                   placeholder="150000"
                 />

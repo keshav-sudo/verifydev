@@ -5,7 +5,7 @@
  */
 
 import { get, post, del } from '../client'
-import type { Job as JobType, JobFilters, JobCategory } from '../../types/job'
+import type { Job as JobType, JobFilters } from '../../types/job'
 
 // ============================================
 // TYPES
@@ -218,6 +218,7 @@ export const getJobTypeLabel = (type: Job['type']) => {
     PART_TIME: 'Part Time',
     CONTRACT: 'Contract',
     INTERNSHIP: 'Internship',
+    FREELANCE: 'Freelance',
   }
   return labels[type]
 }
@@ -232,6 +233,7 @@ export const getJobLevelLabel = (level: Job['level']) => {
     MID: 'Mid Level',
     SENIOR: 'Senior',
     LEAD: 'Lead',
+    PRINCIPAL: 'Principal',
   }
   return labels[level]
 }

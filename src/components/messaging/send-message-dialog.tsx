@@ -68,7 +68,7 @@ export function SendMessageDialog({
             await post('/v1/messages', {
                 candidateId,
                 receiverName: candidateName,
-                senderName: recruiter?.name || recruiter?.organizationName,
+                senderName: recruiter?.name || (recruiter as any)?.organizationName || 'Recruiter',
                 subject: subject.trim(),
                 body: body.trim(),
                 jobId,

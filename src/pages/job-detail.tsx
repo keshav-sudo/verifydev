@@ -285,9 +285,9 @@ export default function JobDetail() {
               <CardContent>
                 <ul className="space-y-2">
                   {(() => {
-                    const reqs = job.requirements
-                    const reqArray = Array.isArray(reqs) ? reqs : (typeof reqs === 'string' ? reqs.split(',').map(r => r.trim()).filter(Boolean) : [])
-                    return reqArray.map((req, index) => (
+                    const reqs: string | string[] | undefined = job.requirements as string | string[] | undefined
+                    const reqArray: string[] = Array.isArray(reqs) ? reqs : (typeof reqs === 'string' ? reqs.split(',').map((r: string) => r.trim()).filter(Boolean) : [])
+                    return reqArray.map((req: string, index: number) => (
                       <li key={index} className="flex items-start gap-2">
                         <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                         <span className="text-sm">{req}</span>
@@ -306,9 +306,9 @@ export default function JobDetail() {
               <CardContent>
                 <div className="flex flex-wrap gap-2">
                   {(() => {
-                    const skills = job.skills
-                    const skillArray = Array.isArray(skills) ? skills : (typeof skills === 'string' ? skills.split(',').map(s => s.trim()).filter(Boolean) : [])
-                    return skillArray.map((skill) => (
+                    const skills: string | string[] | undefined = job.skills as string | string[] | undefined
+                    const skillArray: string[] = Array.isArray(skills) ? skills : (typeof skills === 'string' ? skills.split(',').map((s: string) => s.trim()).filter(Boolean) : [])
+                    return skillArray.map((skill: string) => (
                       <Badge key={skill} variant="secondary" className="text-sm">
                         {skill}
                       </Badge>

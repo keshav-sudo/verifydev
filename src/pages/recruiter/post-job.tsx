@@ -166,6 +166,7 @@ export default function JobPostingPage() {
         isRemote: data.isRemote,
         type: data.type,
         level: data.level,
+        category: 'ENGINEERING' as any, // Default category for dev jobs
         salaryMin: data.salaryMin,
         salaryMax: data.salaryMax,
         salaryCurrency: data.currency,
