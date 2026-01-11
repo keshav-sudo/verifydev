@@ -4,7 +4,7 @@
  * Controlled from settings
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth-store'
 import { useUserStore } from '@/store/user-store'
@@ -318,37 +318,55 @@ export default function Dashboard() {
     }
   }
 
-  // Check if any projects are currently analyzing
-  const hasAnalyzingProjects = projects.some(p => {
-    const status = p.analysisStatus?.toLowerCase()
-    return status === 'analyzing' || status === 'pending' || status === 'processing'
-  })
+  // ========== POLLING LOGIC ==========
+  // Use ref to track interval and avoid stale closures
+  const pollingRef = useRef<NodeJS.Timeout | null>(null)
+  const isPollingRef = useRef(false)
 
-  // Poll for status updates when projects are analyzing
+  // Start polling when component mounts
   useEffect(() => {
-    if (!hasAnalyzingProjects) {
-      console.log('[Polling] No analyzing projects, skipping poll')
-      return
+    // Function to check and poll
+    const checkAndPoll = async () => {
+      // Get current projects from store
+      const currentProjects = useUserStore.getState().projects
+      
+      // Check if any project needs polling
+      const needsPolling = currentProjects.some(p => {
+        const status = p.analysisStatus?.toLowerCase()
+        return status === 'analyzing' || status === 'pending' || status === 'processing'
+      })
+
+      if (needsPolling) {
+        console.log('[Poll] 🔄 Fetching updates for analyzing projects...')
+        try {
+          await useUserStore.getState().fetchProjects()
+          await useUserStore.getState().fetchAura()
+          await useUserStore.getState().fetchSkills()
+          console.log('[Poll] ✅ Update complete')
+        } catch (err) {
+          console.error('[Poll] ❌ Error:', err)
+        }
+      }
     }
 
-    console.log('[Polling] Starting poll for analyzing projects...')
-
-    const pollInterval = setInterval(async () => {
-      console.log('[Polling] Fetching latest project status...')
-      try {
-        await fetchProjects()
-        await fetchAura()
-        await fetchSkills()
-      } catch (err) {
-        console.error('[Polling] Error:', err)
-      }
-    }, 3000) // Poll every 3 seconds
+    // Initial fetch
+    if (user) {
+      console.log('[Poll] 🚀 Starting polling system...')
+      
+      // Poll every 4 seconds
+      pollingRef.current = setInterval(checkAndPoll, 4000)
+      isPollingRef.current = true
+    }
 
     return () => {
-      console.log('[Polling] Cleanup - clearing interval')
-      clearInterval(pollInterval)
+      if (pollingRef.current) {
+        console.log('[Poll] 🛑 Stopping polling...')
+        clearInterval(pollingRef.current)
+        pollingRef.current = null
+        isPollingRef.current = false
+      }
     }
-  }, [hasAnalyzingProjects]) // Only re-run when analyzing status changes
+  }, [user]) // Only depends on user
 
   const analyzedCount = projects.filter(p => p.analysisStatus?.toUpperCase() === 'COMPLETED').length
   const topSkills = skills.slice(0, 5)
