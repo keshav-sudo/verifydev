@@ -39,6 +39,8 @@ import {
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
 } from 'recharts'
+import { motion } from 'framer-motion'
+import { ProjectAnalysisProgress } from '@/components/project-analysis-progress'
 
 // ============================================
 // CIRCULAR PROGRESS - Like the screenshot
@@ -231,26 +233,30 @@ function ProjectCard({ project }: { project: any }) {
             )}
           </div>
           
-          {/* Status & Points */}
-          <div className="flex items-center justify-between">
-            <div className={cn(
-              "flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all",
-              isAnalyzed 
-                ? "bg-gradient-to-r from-primary/20 to-primary/10 text-primary border border-primary/20" 
-                : "bg-gradient-to-r from-amber-500/20 to-amber-500/10 text-amber-500 border border-amber-500/20"
-            )}>
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              {isAnalyzed ? 'Analyzed' : 'Pending'}
-            </div>
-            
-            {score > 0 && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-primary/20 to-primary/5 border border-primary/20">
-                <Zap className="w-4 h-4 text-primary" />
-                <span className="font-bold text-primary text-sm">+{score}</span>
-                <span className="text-xs text-muted-foreground">Aura</span>
+          {/* Status & Points - OR Progress */}
+          {!isAnalyzed ? (
+             <div className="mt-2">
+               <ProjectAnalysisProgress status={project.analysisStatus} showDetails={true} />
+             </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <div className={cn(
+                "flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all",
+                "bg-gradient-to-r from-primary/20 to-primary/10 text-primary border border-primary/20"
+              )}>
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Analyzed
               </div>
-            )}
-          </div>
+              
+              {score > 0 && (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-primary/20 to-primary/5 border border-primary/20">
+                  <Zap className="w-4 h-4 text-primary" />
+                  <span className="font-bold text-primary text-sm">+{score}</span>
+                  <span className="text-xs text-muted-foreground">Aura</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
         
         {/* Arrow with animation */}
@@ -373,38 +379,47 @@ export default function Dashboard() {
   const recentActivity = aura?.recentGains?.slice(0, 4) || []
 
   return (
-    <div className="min-h-screen pb-12">
+    <div className="min-h-screen pb-12 animate-in fade-in duration-500">
       
-      {/* ===== HEADER ===== */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-            Welcome back, {user?.name?.split(' ')[0] || user?.username}! 👋
-          </h1>
-          <p className="text-muted-foreground mt-1.5">
-            Here's your developer profile overview
-          </p>
-        </div>
+      {/* ===== HERO SECTION ===== */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative rounded-3xl overflow-hidden p-8 mb-8 border border-primary/10 shadow-2xl shadow-primary/5"
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent backdrop-blur-3xl" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-32 -mt-32" />
         
-        <div className="flex items-center gap-3">
-          <Button 
-            variant="outline" 
-            size="default"
-            className="gap-2"
-            onClick={handleSync}
-            disabled={isSyncing}
-          >
-            <RefreshCw className={cn("w-4 h-4", isSyncing && "animate-spin")} />
-            Sync
-          </Button>
-          <Link to="/projects/new">
-            <Button size="default" className="gap-2">
-              <Plus className="w-4 h-4" />
-              Add Project
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">
+              Welcome back, {user?.name?.split(' ')[0] || user?.username}! 👋
+            </h1>
+            <p className="text-lg text-muted-foreground mt-2 max-w-xl">
+              Your developer profile is looking great. Check your latest analysis and boost your Aura score today.
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              size="lg"
+              className="gap-2 bg-background/50 backdrop-blur border-primary/20 hover:bg-primary/10"
+              onClick={handleSync}
+              disabled={isSyncing}
+            >
+              <RefreshCw className={cn("w-4 h-4", isSyncing && "animate-spin")} />
+              Sync Data
             </Button>
-          </Link>
+            <Link to="/projects/new">
+              <Button size="lg" className="gap-2 shadow-lg shadow-primary/25">
+                <Plus className="w-5 h-5" />
+                Add Project
+              </Button>
+            </Link>
+          </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* ===== STATS GRID ===== */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-6 sm:mb-8">
