@@ -101,9 +101,9 @@ function StatCard({
   loading?: boolean
 }) {
   return (
-    <div className="group rounded-xl border border-border/60 bg-card/40 backdrop-blur-md p-5 transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5">
+    <div className="group rounded-xl border border-border/60 bg-card/40 backdrop-blur-md p-4 sm:p-5 transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 min-w-0 overflow-hidden">
       <div className="flex items-start justify-between mb-3">
-        <div className="p-2.5 rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-110">
+        <div className="p-2.5 rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-110 shrink-0">
           <Icon className="w-5 h-5" />
         </div>
         {trend !== undefined && trend > 0 && (
@@ -530,8 +530,8 @@ export default function Dashboard() {
                   <RefreshCw className="w-6 h-6 text-muted-foreground animate-spin" />
                 </div>
               ) : projects.length > 0 ? (
-                projects.slice(0, 3).map((project: any) => (
-                  <div key={project.id} className="min-w-[280px] max-w-[85vw] sm:min-w-[320px] lg:min-w-0 snap-center lg:snap-align-none shrink-0">
+                projects.map((project: any) => (
+                  <div key={project.id} className="w-[85vw] max-w-[300px] shrink-0 snap-center">
                     <ProjectCard project={project} />
                   </div>
                 ))
