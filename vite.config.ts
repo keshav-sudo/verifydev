@@ -26,35 +26,39 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: 'dist',
-      sourcemap: false, // Disable sourcemaps for production
+      sourcemap: false,
       minify: 'terser',
       terserOptions: {
         compress: {
-          drop_console: true, // Remove console logs
+          drop_console: true,
           drop_debugger: true,
+        },
+        // Allow eval for Lottie (it's safe in this context)
+        mangle: {
+          safari10: true,
         },
       },
       rollupOptions: {
         output: {
           manualChunks: {
-            // Core React
             'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-            // UI Components
             'ui-radix': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-toast', '@radix-ui/react-select'],
-            // Charts (lazy load)
             'charts': ['recharts'],
-            // Lottie (lazy load)
             'lottie': ['@lottiefiles/react-lottie-player'],
-            // Framer Motion
             'motion': ['framer-motion'],
           },
-          // Optimize chunk names
           chunkFileNames: 'assets/[name]-[hash].js',
           entryFileNames: 'assets/[name]-[hash].js',
           assetFileNames: 'assets/[name]-[hash].[ext]',
         },
+        // Suppress eval warnings for Lottie
+        onwarn(warning, warn) {
+          if (warning.code === 'EVAL' && warning.id?.includes('lottie')) {
+            return
+          }
+          warn(warning)
+        },
       },
-      // Increase chunk size warning limit
       chunkSizeWarningLimit: 1000,
     },
   }
