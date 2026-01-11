@@ -22,6 +22,8 @@ import {
   getLanguageColor,
   cn
 } from '@/lib/utils'
+import { useMultiProjectPolling } from '@/hooks/use-project-polling'
+import { ProjectAnalysisProgress } from '@/components/project-analysis-progress'
 import type { Project } from '@/types'
 import {
   Plus,
@@ -368,6 +370,19 @@ export default function Projects() {
       setSelectedProjects(new Set(filteredProjects.map(p => p.id)))
     }
   }
+
+  // Real-time polling for analyzing projects
+  const analyzingProjects = useMemo(() => 
+    filteredProjects
+      .filter(p => p.analysisStatus === 'analyzing' || p.analysisStatus === 'pending')
+      .map(p => p.id),
+    [filteredProjects]
+  )
+
+  useMultiProjectPolling({
+    projectIds: analyzingProjects,
+    enabled: analyzingProjects.length > 0
+  })
 
   return (
     <div className="space-y-6">
@@ -939,8 +954,17 @@ export default function Projects() {
                           </p>
                         )}
                         
-                        {/* Tags */}
-                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                        {/* Project Analysis Status or Tags */}
+                        {!isAnalyzed ? (
+                          <div className="mb-3 mt-2">
+                            <ProjectAnalysisProgress 
+                              status={project.analysisStatus!} 
+                              showDetails={true} 
+                            />
+                          </div>
+                        ) : (
+                          /* Tags */
+                          <div className="flex flex-wrap items-center gap-2 mb-3">
                           {project.language && (
                             <span className="flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
                               <span 
@@ -959,6 +983,7 @@ export default function Projects() {
                             </span>
                           ))}
                         </div>
+                        )}
                         
                         {/* Stats Row */}
                         <div className="flex items-center gap-3 text-xs text-muted-foreground">

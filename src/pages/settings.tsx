@@ -314,12 +314,12 @@ export default function Settings() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="lg:w-64 flex-shrink-0"
+          className="lg:w-64 flex-shrink-0 w-full"
         >
-          <div className="sticky top-6 space-y-4">
+          <div className="lg:sticky lg:top-6 space-y-4">
             <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-lg">
               <CardContent className="p-2">
-                <nav className="space-y-1">
+                <nav className="flex lg:flex-col overflow-x-auto lg:overflow-visible space-x-2 lg:space-x-0 lg:space-y-1 pb-2 lg:pb-0 scrollbar-thin scrollbar-thumb-primary/10">
                   {sections.map((section, idx) => (
                     <motion.button
                       key={section.id}
@@ -330,7 +330,7 @@ export default function Settings() {
                       whileHover={{ x: 4, transition: { duration: 0.2 } }}
                       whileTap={{ scale: 0.98 }}
                       className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+                        "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap lg:w-full flex-shrink-0",
                         activeSection === section.id
                           ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-md shadow-primary/30"
                           : "hover:bg-muted/80 text-muted-foreground hover:text-foreground",
@@ -344,13 +344,13 @@ export default function Settings() {
                   
                   {/* Job Preferences Link */}
                   {!isRecruiter && (
-                    <Link to="/settings/job-preferences">
+                    <Link to="/settings/job-preferences" className="flex-shrink-0 lg:w-full">
                       <motion.div
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.35 }}
                         whileHover={{ x: 4, transition: { duration: 0.2 } }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-muted/80 text-muted-foreground hover:text-foreground border border-border/50 mt-2"
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-muted/80 text-muted-foreground hover:text-foreground border border-border/50 lg:mt-2 whitespace-nowrap"
                       >
                         <Code2 className="h-4 w-4" />
                         Job Preferences
@@ -361,11 +361,12 @@ export default function Settings() {
               </CardContent>
             </Card>
             
-            {/* Profile Completion */}
+            {/* Profile Completion - Desktop Only */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
+              className="hidden lg:block"
             >
               <Card className="border-border/50 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl shadow-lg">
                 <CardContent className="p-4">

@@ -311,7 +311,7 @@ export default function MessagesPage() {
 
                 <div className="flex flex-1 relative z-10 overflow-hidden">
                     {/* Left Panel - Conversations List */}
-                    <div className="w-80 border-r border-border/50 flex flex-col bg-muted/10">
+                    <div className={`w-full md:w-80 border-r border-border/50 flex flex-col bg-muted/10 ${selectedUserId ? 'hidden md:flex' : 'flex'}`}>
                         {/* Search */}
                         <div className="p-4 border-b border-border/50">
                             <div className="relative">
@@ -401,7 +401,7 @@ export default function MessagesPage() {
                     </div>
 
                     {/* Right Panel - Chat Thread */}
-                    <div className="flex-1 flex flex-col">
+                    <div className={`flex-1 flex-col ${!selectedUserId ? 'hidden md:flex' : 'flex'}`}>
                         {selectedUserId && selectedContact ? (
                             <>
                                 {/* Chat Header */}
