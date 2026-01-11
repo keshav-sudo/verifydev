@@ -4,7 +4,7 @@
  * Controlled from settings
  */
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth-store'
 import { useUserStore } from '@/store/user-store'
@@ -319,27 +319,36 @@ export default function Dashboard() {
   }
 
   // Check if any projects are currently analyzing
-  const analyzingProjects = useMemo(() => 
-    projects.filter(p => {
-      const status = p.analysisStatus?.toLowerCase()
-      return status === 'analyzing' || status === 'pending' || status === 'processing'
-    }),
-    [projects]
-  )
+  const hasAnalyzingProjects = projects.some(p => {
+    const status = p.analysisStatus?.toLowerCase()
+    return status === 'analyzing' || status === 'pending' || status === 'processing'
+  })
 
   // Poll for status updates when projects are analyzing
   useEffect(() => {
-    if (analyzingProjects.length === 0) return
+    if (!hasAnalyzingProjects) {
+      console.log('[Polling] No analyzing projects, skipping poll')
+      return
+    }
+
+    console.log('[Polling] Starting poll for analyzing projects...')
 
     const pollInterval = setInterval(async () => {
-      await fetchProjects()
-      // Also refresh aura and skills as they may have updated
-      await fetchAura()
-      await fetchSkills()
+      console.log('[Polling] Fetching latest project status...')
+      try {
+        await fetchProjects()
+        await fetchAura()
+        await fetchSkills()
+      } catch (err) {
+        console.error('[Polling] Error:', err)
+      }
     }, 3000) // Poll every 3 seconds
 
-    return () => clearInterval(pollInterval)
-  }, [analyzingProjects.length, fetchProjects, fetchAura, fetchSkills])
+    return () => {
+      console.log('[Polling] Cleanup - clearing interval')
+      clearInterval(pollInterval)
+    }
+  }, [hasAnalyzingProjects]) // Only re-run when analyzing status changes
 
   const analyzedCount = projects.filter(p => p.analysisStatus?.toUpperCase() === 'COMPLETED').length
   const topSkills = skills.slice(0, 5)

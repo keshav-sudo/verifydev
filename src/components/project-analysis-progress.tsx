@@ -39,7 +39,7 @@ const statusConfig = {
     color: 'text-blue-500',
     bgColor: 'bg-blue-500/10',
     progress: 50,
-    description: 'AI analyzing your code...',
+    description: 'Engine analyzing your code...',
     animate: true,
   },
   processing: {
@@ -160,7 +160,7 @@ export function ProjectAnalysisProgress({
             className="flex items-center gap-1"
           >
             <Sparkles className="h-3 w-3" />
-            <span className="hidden sm:inline">AI</span>
+            <span className="hidden sm:inline">Engine</span>
           </motion.span>
           <span>→</span>
           <motion.span
