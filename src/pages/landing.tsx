@@ -438,7 +438,7 @@ export default function LandingPage() {
               {/* Main Heading - ULTRA Premium Typography */}
               <motion.h1 
                 variants={fadeInUp}
-                className="text-5xl md:text-7xl lg:text-8xl font-bold mb-8 leading-[1.1] tracking-tight"
+                className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold mb-6 sm:mb-8 leading-[1.1] tracking-tight"
               >
                 <motion.span 
                   className="block bg-gradient-to-r from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent"
@@ -465,7 +465,7 @@ export default function LandingPage() {
               {/* Subheading */}
               <motion.p 
                 variants={fadeInUp}
-                className="text-xl md:text-2xl text-muted-foreground max-w-xl lg:max-w-none mb-12 leading-relaxed"
+                className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-xl lg:max-w-none mb-8 sm:mb-12 leading-relaxed px-2 sm:px-0"
               >
                 AI-powered code analysis that creates a <span className="text-foreground font-medium">verified profile</span> of your actual abilities.
                 <br className="hidden md:block" />
@@ -475,7 +475,7 @@ export default function LandingPage() {
               {/* CTA Buttons */}
               <motion.div 
                 variants={fadeInUp}
-                className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start items-center mb-16"
+                className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center lg:justify-start items-center mb-10 sm:mb-16 px-4 sm:px-0"
               >
                 {isAuthenticated ? (
                   <Link to="/dashboard">
@@ -487,16 +487,18 @@ export default function LandingPage() {
                 ) : (
                   <>
                     <Link to="/get-started">
-                      <Button size="lg" className="relative overflow-hidden group px-10 py-7 text-lg rounded-xl bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 hover:scale-105 transition-all duration-300 shadow-xl shadow-primary/25 hover:shadow-primary/40 btn-shine">
+                      <Button size="lg" className="relative overflow-hidden group px-6 sm:px-10 py-5 sm:py-7 text-base sm:text-lg rounded-xl bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 hover:scale-105 transition-all duration-300 shadow-xl shadow-primary/25 hover:shadow-primary/40 btn-shine w-full sm:w-auto">
                         <Github className="mr-2 h-5 w-5" />
-                        Get Verified — It's Free
+                        <span className="hidden sm:inline">Get Verified — It's Free</span>
+                        <span className="sm:hidden">Get Verified Free</span>
                         <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                       </Button>
                     </Link>
-                    <Link to="/get-started">
-                      <Button size="lg" variant="outline" className="px-10 py-7 text-lg rounded-2xl border-2 hover:bg-primary/5 hover:scale-105 hover:border-primary/50 transition-all">
+                    <Link to="/get-started" className="w-full sm:w-auto">
+                      <Button size="lg" variant="outline" className="px-6 sm:px-10 py-5 sm:py-7 text-base sm:text-lg rounded-2xl border-2 hover:bg-primary/5 hover:scale-105 hover:border-primary/50 transition-all w-full">
                         <Building className="mr-2 h-5 w-5" />
-                        I'm Hiring Developers
+                        <span className="hidden sm:inline">I'm Hiring Developers</span>
+                        <span className="sm:hidden">Hire Developers</span>
                       </Button>
                     </Link>
                   </>
@@ -525,9 +527,9 @@ export default function LandingPage() {
               variants={scaleIn}
               className="relative"
             >
-                {/* Floating Cards */}
+                {/* Floating Cards - Hidden on mobile, visible on md+ */}
                 <motion.div 
-                  className="absolute -top-8 -left-4 md:left-8 p-4 rounded-xl bg-card/90 backdrop-blur-xl border shadow-xl z-20"
+                  className="absolute -top-8 left-8 p-4 rounded-xl bg-card/90 backdrop-blur-xl border shadow-xl z-20 hidden md:block"
                   animate={{ y: [-5, 5, -5], rotate: [-2, 2, -2] }}
                   transition={{ duration: 4, repeat: Infinity }}
                 >
@@ -543,7 +545,7 @@ export default function LandingPage() {
                 </motion.div>
 
                 <motion.div 
-                  className="absolute -top-4 -right-4 md:right-8 p-4 rounded-xl bg-card/90 backdrop-blur-xl border shadow-xl z-20"
+                  className="absolute -top-4 right-8 p-4 rounded-xl bg-card/90 backdrop-blur-xl border shadow-xl z-20 hidden md:block"
                   animate={{ y: [5, -5, 5], rotate: [2, -2, 2] }}
                   transition={{ duration: 3.5, repeat: Infinity }}
                 >
@@ -559,7 +561,7 @@ export default function LandingPage() {
                 </motion.div>
 
                 <motion.div 
-                  className="absolute -bottom-4 left-1/4 p-4 rounded-xl bg-card/90 backdrop-blur-xl border shadow-xl z-20"
+                  className="absolute -bottom-4 left-1/4 p-4 rounded-xl bg-card/90 backdrop-blur-xl border shadow-xl z-20 hidden md:block"
                   animate={{ y: [-3, 3, -3], rotate: [-1, 1, -1] }}
                   transition={{ duration: 5, repeat: Infinity }}
                 >
@@ -585,7 +587,7 @@ export default function LandingPage() {
                       autoplay
                       loop
                       src="https://assets5.lottiefiles.com/packages/lf20_w51pcehl.json"
-                      style={{ height: '400px', width: '100%' }}
+                      style={{ height: '100%', width: '100%', minHeight: '250px', maxHeight: '400px' }}
                     />
                   </div>
                 </motion.div>
@@ -626,7 +628,7 @@ export default function LandingPage() {
               >
                 <motion.div
                   whileHover={{ scale: 1.05, y: -8 }}
-                  className="relative p-10 rounded-2xl bg-card/50 backdrop-blur-xl border border-border/40 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 transition-all overflow-hidden"
+                  className="relative p-6 sm:p-10 rounded-2xl bg-card/50 backdrop-blur-xl border border-border/40 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 transition-all overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   <div className="relative">

@@ -1,9 +1,9 @@
 /**
- * Dashboard Layout - PREMIUM THEME-AWARE
- * Sidebar and header that dynamically respond to accent color.
+ * Dashboard Layout - PREMIUM MOBILE-FIRST RESPONSIVE
+ * Sidebar collapses to hamburger menu on mobile.
  */
 
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth-store'
 import { useUIStore } from '@/store/ui-store'
@@ -25,6 +25,7 @@ import {
   Sparkles,
   LogOut,
   MessageSquare,
+  X,
 } from 'lucide-react'
 
 const navigation = [
@@ -41,9 +42,10 @@ const navigation = [
 
 export default function DashboardLayout() {
   const { user, logout } = useAuthStore()
-  const { sidebarOpen, toggleSidebar } = useUIStore()
+  const { sidebarOpen, toggleSidebar, setSidebarOpen } = useUIStore()
   const location = useLocation()
   const navigate = useNavigate()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -52,7 +54,20 @@ export default function DashboardLayout() {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = 0
     }
+    // Close mobile menu on navigation
+    setMobileMenuOpen(false)
   }, [location.pathname])
+
+  // Close mobile menu on resize to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setMobileMenuOpen(false)
+      }
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   const handleLogout = async () => {
     await logout()
@@ -61,31 +76,55 @@ export default function DashboardLayout() {
 
   return (
     <div className="h-screen w-full bg-background text-foreground overflow-hidden flex">
-      {/* Sidebar - Fixed to left */}
+      {/* Mobile Overlay */}
+      {mobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar - Hidden on mobile, shown on lg+ */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-40 h-full transition-all duration-300 flex flex-col',
+          'fixed inset-y-0 left-0 z-50 h-full transition-all duration-300 flex flex-col',
           'border-r-[1.5px] border-border/60 shadow-[1px_0_10px_rgba(0,0,0,0.02)]',
           'bg-white dark:bg-black',
-          sidebarOpen ? 'w-64' : 'w-20'
+          // Mobile: Slide in/out
+          'lg:translate-x-0',
+          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+          // Desktop: Expandable width
+          sidebarOpen ? 'w-72 lg:w-64' : 'w-72 lg:w-20'
         )}
       >
         {/* Logo Section */}
         <div className="flex h-16 items-center px-4 border-b border-border/50 bg-muted/5 shrink-0">
           <Link to="/dashboard" className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-bold shadow-lg shadow-primary/20 border border-primary/20">
+            <div className="flex items-center justify-center w-10 h-10 lg:w-9 lg:h-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-bold shadow-lg shadow-primary/20 border border-primary/20">
               V
             </div>
-            {sidebarOpen && (
+            {(sidebarOpen || mobileMenuOpen) && (
               <span className="font-bold text-lg tracking-tight text-foreground">VerifyDev</span>
             )}
           </Link>
+          
+          {/* Close button on mobile */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setMobileMenuOpen(false)}
+            className="ml-auto h-10 w-10 hover:bg-muted/80 rounded-lg text-muted-foreground lg:hidden"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+          
+          {/* Collapse button on desktop */}
           {sidebarOpen && (
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleSidebar}
-              className="ml-auto h-8 w-8 hover:bg-muted/80 rounded-lg text-muted-foreground"
+              className="ml-auto h-8 w-8 hover:bg-muted/80 rounded-lg text-muted-foreground hidden lg:flex"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -93,7 +132,7 @@ export default function DashboardLayout() {
           {!sidebarOpen && (
             <button
               onClick={toggleSidebar}
-              className="absolute -right-3 top-20 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-background shadow-sm hover:bg-muted transition-all"
+              className="absolute -right-3 top-20 h-6 w-6 items-center justify-center rounded-full border border-border bg-background shadow-sm hover:bg-muted transition-all hidden lg:flex"
             >
               <Menu className="h-3 w-3 text-muted-foreground" />
             </button>
@@ -101,7 +140,7 @@ export default function DashboardLayout() {
         </div>
 
         {/* Navigation - Scrollable inside sidebar */}
-        <nav className="flex-1 px-3 py-6 space-y-2.5 overflow-y-auto scrollbar-none">
+        <nav className="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto scrollbar-none">
           {navigation.map((item) => {
             const isActive = location.pathname === item.href
             return (
@@ -109,16 +148,16 @@ export default function DashboardLayout() {
                 key={item.name}
                 to={item.href}
                 className={cn(
-                  'flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 group relative',
-                  'border border-transparent',
+                  'flex items-center gap-3 rounded-xl px-4 py-3.5 lg:py-3 text-base lg:text-sm font-medium transition-all duration-200 group relative',
+                  'border border-transparent min-h-[48px] lg:min-h-0', // Touch-friendly on mobile
                   isActive
                     ? 'bg-primary/5 text-primary border-primary/20 shadow-[0_2px_10px_-3px_rgba(var(--primary),0.2)]'
-                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:border-border/30'
+                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:border-border/30 active:scale-[0.98]'
                 )}
               >
                 <item.icon className={cn("h-5 w-5 flex-shrink-0 transition-all duration-300 relative z-10", isActive ? "text-primary scale-110" : "group-hover:text-foreground border-border")} />
-                {sidebarOpen && <span className="relative z-10 transition-transform duration-200 group-hover:translate-x-1">{item.name}</span>}
-                {!sidebarOpen && isActive && (
+                {(sidebarOpen || mobileMenuOpen) && <span className="relative z-10 transition-transform duration-200 group-hover:translate-x-1">{item.name}</span>}
+                {!sidebarOpen && !mobileMenuOpen && isActive && (
                   <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-l-full" />
                 )}
               </Link>
@@ -127,37 +166,37 @@ export default function DashboardLayout() {
         </nav>
 
         {/* Aura Badge */}
-        {sidebarOpen && (
-          <div className="mx-3 mb-3 p-3 rounded-xl bg-gradient-to-r from-primary/10 to-transparent border border-primary/20 shrink-0">
+        {(sidebarOpen || mobileMenuOpen) && (
+          <div className="mx-3 mb-3 p-4 lg:p-3 rounded-xl bg-gradient-to-r from-primary/10 to-transparent border border-primary/20 shrink-0">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-xs font-medium text-muted-foreground">Aura Score</span>
+              <Sparkles className="w-5 h-5 lg:w-4 lg:h-4 text-primary" />
+              <span className="text-sm lg:text-xs font-medium text-muted-foreground">Aura Score</span>
             </div>
-            <div className="text-xl font-bold text-foreground mt-1">{user?.auraScore || 0}</div>
+            <div className="text-2xl lg:text-xl font-bold text-foreground mt-1">{user?.auraScore || 0}</div>
           </div>
         )}
 
         {/* User Profile */}
         <div className="p-4 mt-auto border-t border-border/50 bg-muted/5 shrink-0">
           {user && (
-            <div className={cn('flex flex-col gap-3', sidebarOpen ? '' : 'items-center')}>
+            <div className={cn('flex flex-col gap-3', (sidebarOpen || mobileMenuOpen) ? '' : 'items-center')}>
               <div
                 className={cn(
-                  'flex items-center gap-3 rounded-2xl p-2.5 transition-all border border-border/30 bg-card/50 shadow-sm hover:border-primary/30 hover:bg-muted/50 cursor-pointer group',
-                  sidebarOpen ? 'justify-between' : 'justify-center border-none bg-transparent shadow-none'
+                  'flex items-center gap-3 rounded-2xl p-3 lg:p-2.5 transition-all border border-border/30 bg-card/50 shadow-sm hover:border-primary/30 hover:bg-muted/50 cursor-pointer group',
+                  (sidebarOpen || mobileMenuOpen) ? 'justify-between' : 'justify-center border-none bg-transparent shadow-none'
                 )}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <Avatar className="h-10 w-10 rounded-xl border-2 border-border/50 group-hover:border-primary/30 transition-colors">
+                  <Avatar className="h-12 w-12 lg:h-10 lg:w-10 rounded-xl border-2 border-border/50 group-hover:border-primary/30 transition-colors">
                     <AvatarImage src={user.avatarUrl} alt={user.name} />
-                    <AvatarFallback className="rounded-xl bg-primary/10 text-primary text-xs font-bold">{getInitials(user.name)}</AvatarFallback>
+                    <AvatarFallback className="rounded-xl bg-primary/10 text-primary text-sm lg:text-xs font-bold">{getInitials(user.name)}</AvatarFallback>
                   </Avatar>
-                  {sidebarOpen && (
+                  {(sidebarOpen || mobileMenuOpen) && (
                     <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-bold text-foreground truncate">
+                      <span className="text-base lg:text-sm font-bold text-foreground truncate">
                         {user.name}
                       </span>
-                      <span className="text-xs text-muted-foreground truncate opacity-70">
+                      <span className="text-sm lg:text-xs text-muted-foreground truncate opacity-70">
                         @{user.username}
                       </span>
                     </div>
@@ -168,12 +207,12 @@ export default function DashboardLayout() {
                 variant="ghost"
                 onClick={handleLogout}
                 className={cn(
-                  'flex items-center gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all rounded-xl',
-                  sidebarOpen ? 'w-full justify-start px-3 py-2' : 'w-10 h-10 p-0 justify-center'
+                  'flex items-center gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all rounded-xl min-h-[48px] lg:min-h-0',
+                  (sidebarOpen || mobileMenuOpen) ? 'w-full justify-start px-4 lg:px-3 py-3 lg:py-2' : 'w-10 h-10 p-0 justify-center'
                 )}
               >
-                <LogOut className="h-4 w-4" />
-                {sidebarOpen && <span className="text-sm font-medium">Logout</span>}
+                <LogOut className="h-5 w-5 lg:h-4 lg:w-4" />
+                {(sidebarOpen || mobileMenuOpen) && <span className="text-base lg:text-sm font-medium">Logout</span>}
               </Button>
             </div>
           )}
@@ -183,17 +222,31 @@ export default function DashboardLayout() {
       {/* Main content - Fixed App Shell Layout */}
       <main
         className={cn(
-          'h-full flex-1 flex flex-col transition-all duration-300 overflow-hidden min-w-0', // STRICTLY NO WINDOW SCROLL, min-w-0 handles flex overflow
-          sidebarOpen ? 'ml-64' : 'ml-20'
+          'h-full flex-1 flex flex-col transition-all duration-300 overflow-hidden min-w-0',
+          // Mobile: Full width, Desktop: Account for sidebar
+          'ml-0 lg:ml-64',
+          !sidebarOpen && 'lg:ml-20'
         )}
       >
         {/* Header - Fixed Height */}
-        <div className="h-14 shrink-0 border-b border-border bg-background/80 backdrop-blur-md flex items-center justify-between px-6 z-30">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>{navigation.find(n => n.href === location.pathname)?.name || 'Page'}</span>
+        <div className="h-14 shrink-0 border-b border-border bg-background/80 backdrop-blur-md flex items-center justify-between px-4 lg:px-6 z-30">
+          {/* Mobile Menu Button */}
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileMenuOpen(true)}
+              className="h-10 w-10 lg:hidden rounded-xl"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+            <span className="text-sm font-medium text-muted-foreground hidden sm:block">
+              {navigation.find(n => n.href === location.pathname)?.name || 'Page'}
+            </span>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 lg:gap-4">
+            {/* Search - Hidden on small screens */}
             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-muted border border-border text-sm text-muted-foreground w-56">
               <Search className="w-4 h-4" />
               <span>Search...</span>
@@ -202,7 +255,7 @@ export default function DashboardLayout() {
             <NotificationCenter />
             {user && (
               <Link to="/profile">
-                <Avatar className="h-8 w-8 rounded-xl cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all border border-border">
+                <Avatar className="h-9 w-9 lg:h-8 lg:w-8 rounded-xl cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all border border-border">
                   <AvatarImage src={user.avatarUrl} alt={user.name} />
                   <AvatarFallback className="rounded-xl bg-primary/10 text-primary text-xs">{getInitials(user.name)}</AvatarFallback>
                 </Avatar>
@@ -216,12 +269,9 @@ export default function DashboardLayout() {
           ref={scrollRef}
           className={cn(
             "flex-1 relative bg-muted/60 dark:bg-black w-full overflow-x-hidden",
-            // Layout Logic:
-            // Chat: overflow-hidden (it scrolls internally), NO padding (edge-to-edge)
-            // Others: overflow-y-auto (this container scrolls), Standard padding
             location.pathname.startsWith('/messages') 
               ? "overflow-hidden flex flex-col" 
-              : "overflow-y-auto p-6 md:p-8"
+              : "overflow-y-auto p-4 sm:p-6 lg:p-8"
           )}
         >
           {/* Background - Fixed to Main Container */}
