@@ -131,7 +131,7 @@ export function useMultiProjectPolling({
 }) {
   const queryClient = useQueryClient()
   const intervalRef = useRef<NodeJS.Timeout>()
-  const completedRef = useRef<Set<string>>(new Set())
+  // Ref removed
 
   useEffect(() => {
     if (!enabled || projectIds.length === 0) {

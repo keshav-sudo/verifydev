@@ -32,6 +32,7 @@ const statusConfig = {
     bgColor: 'bg-muted',
     progress: 0,
     description: 'Waiting in queue...',
+    animate: false,
   },
   analyzing: {
     label: 'Analyzing',
@@ -58,6 +59,7 @@ const statusConfig = {
     bgColor: 'bg-green-500/10',
     progress: 100,
     description: 'Analysis complete!',
+    animate: false,
   },
   failed: {
     label: 'Failed',
@@ -66,6 +68,7 @@ const statusConfig = {
     bgColor: 'bg-destructive/10',
     progress: 0,
     description: 'Analysis failed. Try again.',
+    animate: false,
   },
 }
 

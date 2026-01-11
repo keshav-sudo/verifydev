@@ -385,7 +385,7 @@ export default function Dashboard() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative rounded-3xl overflow-hidden p-8 mb-8 border border-primary/10 shadow-2xl shadow-primary/5"
+        className="relative rounded-3xl overflow-hidden p-6 md:p-8 mb-8 border border-primary/10 shadow-2xl shadow-primary/5"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent backdrop-blur-3xl" />
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-32 -mt-32" />
