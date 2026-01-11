@@ -354,7 +354,7 @@ export default function LandingPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-background overflow-hidden">
+    <main className="min-h-screen bg-background overflow-hidden">
       {/* Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-2xl border-b border-border/40 shadow-sm transition-all duration-300">
         <div className="container mx-auto px-4">
@@ -910,7 +910,7 @@ export default function LandingPage() {
                         {testimonials[activeTestimonial].avatar}
                       </div>
                       <div>
-                        <h4 className="font-bold text-lg">{testimonials[activeTestimonial].name}</h4>
+                        <h3 className="font-bold text-lg">{testimonials[activeTestimonial].name}</h3>
                         <p className="text-muted-foreground">{testimonials[activeTestimonial].role}</p>
                       </div>
                       <div className="ml-auto">
@@ -1119,7 +1119,7 @@ export default function LandingPage() {
               </div>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Product</h4>
+              <h3 className="font-semibold mb-4 text-base">Product</h3>
               <ul className="space-y-3 text-muted-foreground">
                 <li><Link to="/features" className="hover:text-primary transition-colors">Features</Link></li>
                 <li><Link to="/pricing" className="hover:text-primary transition-colors">Pricing</Link></li>
@@ -1127,7 +1127,7 @@ export default function LandingPage() {
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Company</h4>
+              <h3 className="font-semibold mb-4 text-base">Company</h3>
               <ul className="space-y-3 text-muted-foreground">
                 <li><Link to="/about" className="hover:text-primary transition-colors">About</Link></li>
                 <li><Link to="/careers" className="hover:text-primary transition-colors">Careers</Link></li>
@@ -1135,7 +1135,7 @@ export default function LandingPage() {
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
+              <h3 className="font-semibold mb-4 text-base">Legal</h3>
               <ul className="space-y-3 text-muted-foreground">
                 <li><Link to="/privacy" className="hover:text-primary transition-colors">Privacy</Link></li>
                 <li><Link to="/terms" className="hover:text-primary transition-colors">Terms</Link></li>
@@ -1156,6 +1156,6 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
-    </div>
+    </main>
   )
 }
