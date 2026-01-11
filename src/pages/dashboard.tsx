@@ -131,7 +131,11 @@ function StatCard({
 function ProjectCard({ project }: { project: any }) {
   const navigate = useNavigate()
   const score = project.score || project.qualityScore || 0
-  const isAnalyzed = project.analysisStatus === 'COMPLETED'
+  const status = project.analysisStatus?.toUpperCase() || ''
+  const isAnalyzed = status === 'COMPLETED'
+  
+  // Debug log to see what status is coming
+  console.log(`[ProjectCard] ${project.name || project.repoName}: status="${project.analysisStatus}", isAnalyzed=${isAnalyzed}`)
   
   // Get technologies from project
   const technologies = project.technologies || []
