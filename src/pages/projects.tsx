@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -22,7 +22,6 @@ import {
   getLanguageColor,
   cn
 } from '@/lib/utils'
-import { useMultiProjectPolling } from '@/hooks/use-project-polling'
 import { ProjectAnalysisProgress } from '@/components/project-analysis-progress'
 import type { Project } from '@/types'
 import {
@@ -322,6 +321,24 @@ export default function Projects() {
     },
   })
 
+  // Robust Polling for Active Projects
+  useEffect(() => {
+    const projects = data?.projects || []
+    const hasAnalyzing = projects.some(p => {
+      const s = p.analysisStatus?.toLowerCase()
+      return s === 'analyzing' || s === 'pending' || s === 'processing'
+    })
+
+    if (hasAnalyzing) {
+      console.log('[Projects] 🔄 Polling for analysis updates...')
+      const interval = setInterval(() => {
+        refetch()
+        queryClient.invalidateQueries({ queryKey: ['aura'] })
+      }, 4000)
+      return () => clearInterval(interval)
+    }
+  }, [data?.projects, refetch, queryClient])
+
   const togglePinMutation = useMutation({
     mutationFn: ({ id, isPinned }: { id: string; isPinned: boolean }) =>
       post(`/v1/projects/${id}/pin`, { isPinned: !isPinned }),
@@ -372,17 +389,7 @@ export default function Projects() {
   }
 
   // Real-time polling for analyzing projects
-  const analyzingProjects = useMemo(() => 
-    filteredProjects
-      .filter(p => p.analysisStatus === 'analyzing' || p.analysisStatus === 'pending')
-      .map(p => p.id),
-    [filteredProjects]
-  )
 
-  useMultiProjectPolling({
-    projectIds: analyzingProjects,
-    enabled: analyzingProjects.length > 0
-  })
 
   return (
     <div className="space-y-6">

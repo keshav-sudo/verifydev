@@ -513,9 +513,23 @@ export default function Dashboard() {
                   {projects.length}
                 </span>
               </div>
-              <Link to="/projects" className="text-sm text-primary hover:text-primary/80 flex items-center gap-1">
-                View All <ExternalLink className="w-3 h-3" />
-              </Link>
+              <div className="flex items-center gap-3">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground" 
+                  onClick={() => {
+                    fetchProjects()
+                    fetchAura()
+                  }}
+                  disabled={isLoadingProjects}
+                >
+                  <RefreshCw className={cn("w-3.5 h-3.5", isLoadingProjects && "animate-spin")} />
+                </Button>
+                <Link to="/projects" className="text-sm text-primary hover:text-primary/80 flex items-center gap-1">
+                  View All <ExternalLink className="w-3 h-3" />
+                </Link>
+              </div>
             </div>
             
             <div className="p-3 sm:p-4">
