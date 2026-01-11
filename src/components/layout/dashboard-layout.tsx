@@ -42,7 +42,7 @@ const navigation = [
 
 export default function DashboardLayout() {
   const { user, logout } = useAuthStore()
-  const { sidebarOpen, toggleSidebar, setSidebarOpen } = useUIStore()
+  const { sidebarOpen, toggleSidebar } = useUIStore()
   const location = useLocation()
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
