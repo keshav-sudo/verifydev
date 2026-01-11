@@ -407,7 +407,7 @@ export default function Dashboard() {
       </div>
 
       {/* ===== STATS GRID ===== */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-6 sm:mb-8">
         <StatCard 
           icon={Sparkles} 
           label="Aura Score" 
@@ -436,7 +436,7 @@ export default function Dashboard() {
       </div>
 
       {/* ===== MAIN CONTENT ===== */}
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid gap-6 lg:grid-cols-3">
         
         {/* LEFT COLUMN - 2/3 */}
         <div className="lg:col-span-2 space-y-6">
@@ -505,17 +505,21 @@ export default function Dashboard() {
               </Link>
             </div>
             
-            <div className="p-4 space-y-3">
+            <div className="p-3 sm:p-4">
+              {/* Horizontal Scroll on Mobile */}
+              <div className="flex lg:flex-col gap-3 overflow-x-auto pb-2 lg:pb-0 snap-x snap-mandatory scrollbar-hide">
               {isLoadingProjects ? (
-                <div className="p-8 flex justify-center">
+                <div className="p-8 flex justify-center w-full">
                   <RefreshCw className="w-6 h-6 text-muted-foreground animate-spin" />
                 </div>
               ) : projects.length > 0 ? (
                 projects.slice(0, 3).map((project: any) => (
-                  <ProjectCard key={project.id} project={project} />
+                  <div key={project.id} className="min-w-[280px] sm:min-w-[320px] lg:min-w-0 snap-start">
+                    <ProjectCard project={project} />
+                  </div>
                 ))
               ) : (
-                <div className="p-10 text-center">
+                <div className="p-10 text-center w-full">
                   <div className="w-14 h-14 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
                     <FolderGit2 className="w-7 h-7 text-muted-foreground/50" />
                   </div>
@@ -528,6 +532,7 @@ export default function Dashboard() {
                   </Link>
                 </div>
               )}
+              </div>
             </div>
           </div>
         </div>

@@ -273,7 +273,7 @@ export default function Jobs() {
         className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
       >
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
+          <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
             <Briefcase className="h-8 w-8 text-primary" />
             Jobs
           </h1>
@@ -487,12 +487,12 @@ export default function Jobs() {
                 )}>
                   <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                   
-                  <CardContent className="p-6 relative">
+                  <CardContent className="p-4 sm:p-6 relative">
                     <div className="flex flex-col gap-4">
                       {/* Top Row */}
                       <div className="flex items-start gap-4">
                         <div className={cn(
-                          "h-14 w-14 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300",
+                          "h-10 w-10 sm:h-14 sm:w-14 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300",
                           "bg-surface-1 border border-border/50 shadow-sm group-hover:shadow-md"
                         )}>
                           {job.companyLogo ? (
@@ -505,7 +505,7 @@ export default function Jobs() {
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-y-2">
                              <div>
-                                <h3 className="text-lg font-bold text-foreground hover:text-primary transition-colors line-clamp-1">
+                               <h3 className="text-base sm:text-lg font-bold text-foreground hover:text-primary transition-colors line-clamp-1">
                                   {job.title}
                                 </h3>
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground mt-0.5">
@@ -543,7 +543,7 @@ export default function Jobs() {
                       </div>
 
                       {/* Description */}
-                      <div className="text-sm text-muted-foreground leading-relaxed pl-[4.5rem] break-words -mt-2">
+                      <div className="text-sm text-muted-foreground leading-relaxed pl-0 sm:pl-[3.5rem] break-words mt-2">
                           {job.description?.length > 150 ? (
                               <>{job.description.slice(0, 150).trim()}... <span className="ml-1 text-primary font-medium">Read more</span></>
                           ) : (
@@ -552,7 +552,7 @@ export default function Jobs() {
                       </div>
 
                       {/* Skills */}
-                      <div className="flex items-center justify-between gap-4 pl-[4.5rem] pt-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pl-0 sm:pl-[3.5rem] pt-3">
                           <div className="flex flex-wrap gap-2">
                             {(job.requiredSkills || job.skills || []).slice(0, 4).map((skill: string) => (
                                 <span key={skill} className="px-2 py-1 rounded-md bg-secondary/40 text-xs font-medium text-secondary-foreground border border-transparent group-hover:border-border/60 transition-colors">
@@ -564,6 +564,30 @@ export default function Jobs() {
                                   +{(job.requiredSkills || job.skills || []).length - 4}
                                 </span>
                             )}
+                          </div>
+                          
+                          {/* Mobile Apply Button */}
+                          <div className="flex sm:hidden items-center gap-2 w-full pt-2">
+                              <Button 
+                                  className="flex-1 h-10 rounded-lg shadow-sm hover:shadow-md transition-all gap-2 font-medium"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    applyMutation.mutate(job.id)
+                                  }}
+                              >
+                                  Quick Apply <ArrowRight className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    toggleSaveJob(job.id)
+                                  }}
+                                  className={cn("h-10 w-10 rounded-lg border-border/60 bg-transparent", isSaved && "text-yellow-500 border-yellow-500/20 bg-yellow-500/5")}
+                              >
+                                  {isSaved ? <Heart className="h-4 w-4 fill-current" /> : <BookmarkPlus className="h-4 w-4" />}
+                              </Button>
                           </div>
                           
                           <div className="hidden sm:flex items-center gap-3">
