@@ -73,7 +73,7 @@ export default function AuthPage() {
     position: ''
   })
 
-  const API_URL = import.meta.env.VITE_GATEWAY_URL || 'http://localhost'
+  const API_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_GATEWAY_URL || 'http://localhost'
 
   // Handle role switch
   const handleRoleSwitch = (newRole: UserRole) => {
