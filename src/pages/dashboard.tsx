@@ -381,7 +381,7 @@ export default function Dashboard() {
   const recentActivity = aura?.recentGains?.slice(0, 4) || []
 
   return (
-    <div className="min-h-screen pb-12 animate-in fade-in duration-500">
+    <div className="min-h-screen pb-12 animate-in fade-in duration-500 overflow-x-hidden w-full">
       
       {/* ===== HERO SECTION ===== */}
       <motion.div 
@@ -453,17 +453,17 @@ export default function Dashboard() {
       </div>
 
       {/* ===== MAIN CONTENT ===== */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-3 max-w-full">
         
         {/* LEFT COLUMN - 2/3 */}
         <div className="lg:col-span-2 space-y-6">
           
           {/* Activity Chart */}
-          <div className="rounded-xl border border-border/80 bg-card/80 backdrop-blur-xl overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-border/30">
-              <div className="flex items-center gap-2">
-                <Activity className="w-4 h-4 text-primary" />
-                <h3 className="font-semibold text-foreground">Weekly Activity</h3>
+          <div className="rounded-xl border border-border/80 bg-card/80 backdrop-blur-xl overflow-hidden w-full">
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border/30 gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <Activity className="w-4 h-4 text-primary shrink-0" />
+                <h3 className="font-semibold text-foreground truncate">Weekly Activity</h3>
               </div>
               <span className="text-xs text-muted-foreground">Aura points earned</span>
             </div>
@@ -508,11 +508,11 @@ export default function Dashboard() {
           </div>
 
           {/* Projects */}
-          <div className="rounded-xl border border-border/80 bg-card/80 backdrop-blur-xl overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-border/30">
-              <div className="flex items-center gap-3">
-                <FolderGit2 className="w-4 h-4 text-primary" />
-                <h3 className="font-semibold text-foreground">Your Projects</h3>
+          <div className="rounded-xl border border-border/80 bg-card/80 backdrop-blur-xl overflow-hidden w-full">
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border/30 gap-2">
+              <div className="flex items-center gap-3 min-w-0">
+                <FolderGit2 className="w-4 h-4 text-primary shrink-0" />
+                <h3 className="font-semibold text-foreground truncate">Your Projects</h3>
                 <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                   {projects.length}
                 </span>
