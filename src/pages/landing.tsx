@@ -311,6 +311,7 @@ function AuroraBackground() {
       />
       <motion.div 
         className="aurora-layer aurora-3"
+        style={{ willChange: 'transform' }}
         animate={{ 
           scale: [1, 1.2, 1],
         }}
@@ -938,6 +939,8 @@ export default function LandingPage() {
                 <button
                   key={index}
                   onClick={() => setActiveTestimonial(index)}
+                  aria-label={`View testimonial ${index + 1}`}
+                  aria-current={index === activeTestimonial}
                   className={`h-3 rounded-full transition-all duration-300 ${
                     index === activeTestimonial 
                       ? 'bg-primary w-10' 
@@ -1107,10 +1110,10 @@ export default function LandingPage() {
                 Revolutionizing how developers prove their skills and find their dream jobs. Your code tells your story.
               </p>
               <div className="flex gap-4">
-                <a href="https://github.com" className="w-10 h-10 rounded-xl bg-card border border-border hover:border-primary/50 flex items-center justify-center text-muted-foreground hover:text-primary transition-all">
+                <a href="https://github.com" aria-label="Visit our GitHub" className="w-10 h-10 rounded-xl bg-card border border-border hover:border-primary/50 flex items-center justify-center text-muted-foreground hover:text-primary transition-all">
                   <Github className="w-5 h-5" />
                 </a>
-                <a href="https://twitter.com" className="w-10 h-10 rounded-xl bg-card border border-border hover:border-primary/50 flex items-center justify-center text-muted-foreground hover:text-primary transition-all">
+                <a href="https://twitter.com" aria-label="Visit our Twitter" className="w-10 h-10 rounded-xl bg-card border border-border hover:border-primary/50 flex items-center justify-center text-muted-foreground hover:text-primary transition-all">
                   <Globe className="w-5 h-5" />
                 </a>
               </div>

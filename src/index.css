@@ -448,6 +448,9 @@
     mix-blend-mode: screen;
     filter: blur(100px);
     animation: aurora-drift 20s ease-in-out infinite;
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
   }
 
   .aurora-1 {

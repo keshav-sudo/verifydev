@@ -4,8 +4,6 @@ import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // Load env file based on `mode` in the current working directory.
-  // Set the third parameter to '' to load all env regardless of the `VITE_` prefix.
   const env = loadEnv(mode, process.cwd(), '')
   const target = env.VITE_API_URL || env.VITE_GATEWAY_URL || 'http://localhost:80'
 
@@ -28,16 +26,36 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: 'dist',
-      sourcemap: true,
+      sourcemap: false, // Disable sourcemaps for production
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: true, // Remove console logs
+          drop_debugger: true,
+        },
+      },
       rollupOptions: {
         output: {
           manualChunks: {
-            vendor: ['react', 'react-dom', 'react-router-dom'],
-            ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-toast'],
-            charts: ['recharts'],
+            // Core React
+            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+            // UI Components
+            'ui-radix': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-toast', '@radix-ui/react-select'],
+            // Charts (lazy load)
+            'charts': ['recharts'],
+            // Lottie (lazy load)
+            'lottie': ['@lottiefiles/react-lottie-player'],
+            // Framer Motion
+            'motion': ['framer-motion'],
           },
+          // Optimize chunk names
+          chunkFileNames: 'assets/[name]-[hash].js',
+          entryFileNames: 'assets/[name]-[hash].js',
+          assetFileNames: 'assets/[name]-[hash].[ext]',
         },
       },
+      // Increase chunk size warning limit
+      chunkSizeWarningLimit: 1000,
     },
   }
 })
