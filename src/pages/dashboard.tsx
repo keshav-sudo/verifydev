@@ -518,8 +518,9 @@ export default function Dashboard() {
               {/* Horizontal Scroll on Mobile */}
               <div className="flex lg:flex-col gap-3 overflow-x-auto pb-4 lg:pb-0 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-primary/10 w-full min-w-0 touch-pan-x">
               {isLoadingProjects ? (
-                <div className="p-8 flex justify-center w-full">
-                  <RefreshCw className="w-6 h-6 text-muted-foreground animate-spin" />
+                <div className="p-8 flex flex-col items-center justify-center w-full gap-2">
+                  <RefreshCw className="w-5 h-5 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Refresh karo</span>
                 </div>
               ) : projects.length > 0 ? (
                 projects.map((project: any) => (
