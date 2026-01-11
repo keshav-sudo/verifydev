@@ -45,7 +45,7 @@ export default function OtpLogin() {
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
 
-  const API_URL = import.meta.env.VITE_GATEWAY_URL || 'http://localhost'
+  const API_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_GATEWAY_URL || 'http://localhost'
 
   // Request OTP
   const handleRequestOtp = async (e?: React.FormEvent) => {
