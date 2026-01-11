@@ -299,7 +299,9 @@ function ActivityItem({ activity }: { activity: { source: string; points: number
         <Zap className="w-4 h-4 text-primary" />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-foreground truncate">{activity.source}</div>
+        <div className="text-sm font-medium text-foreground truncate">
+            {activity.source || (activity.points > 0 ? 'Project Scan' : 'Activity')}
+        </div>
         <div className="text-xs text-muted-foreground">{new Date(activity.date).toLocaleDateString()}</div>
       </div>
       <div className="text-sm font-semibold text-primary">+{activity.points}</div>
@@ -465,8 +467,8 @@ export default function Dashboard() {
               </div>
               <span className="text-xs text-muted-foreground">Aura points earned</span>
             </div>
-            <div className="p-5">
-              <div className="h-[180px]">
+            <div className="p-4 sm:p-5">
+              <div className="h-[180px] w-full min-w-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={activityData}>
                     <defs>
@@ -522,14 +524,14 @@ export default function Dashboard() {
             
             <div className="p-3 sm:p-4">
               {/* Horizontal Scroll on Mobile */}
-              <div className="flex lg:flex-col gap-3 overflow-x-auto pb-2 lg:pb-0 snap-x snap-mandatory scrollbar-hide">
+              <div className="flex lg:flex-col gap-3 overflow-x-auto pb-4 lg:pb-0 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-primary/10 w-full min-w-0 touch-pan-x">
               {isLoadingProjects ? (
                 <div className="p-8 flex justify-center w-full">
                   <RefreshCw className="w-6 h-6 text-muted-foreground animate-spin" />
                 </div>
               ) : projects.length > 0 ? (
                 projects.slice(0, 3).map((project: any) => (
-                  <div key={project.id} className="min-w-[280px] sm:min-w-[320px] lg:min-w-0 snap-start">
+                  <div key={project.id} className="min-w-[280px] max-w-[85vw] sm:min-w-[320px] lg:min-w-0 snap-center lg:snap-align-none shrink-0">
                     <ProjectCard project={project} />
                   </div>
                 ))

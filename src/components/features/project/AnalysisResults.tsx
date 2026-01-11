@@ -109,7 +109,7 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
                     }`} />
                     <div>
                       <h4 className="font-medium text-sm">{opt.title}</h4>
-                      <p className="text-xs text-muted-foreground mt-1">{opt.description}</p>
+                      <p className="text-xs text-muted-foreground mt-1 break-words">{opt.description}</p>
                       <Badge variant="outline" className="mt-2 text-[10px] h-5">
                         Impact: {opt.impact}
                       </Badge>
