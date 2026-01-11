@@ -4,7 +4,7 @@
  * Controlled from settings
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth-store'
 import { useUserStore } from '@/store/user-store'
@@ -317,6 +317,29 @@ export default function Dashboard() {
       setIsSyncing(false)
     }
   }
+
+  // Check if any projects are currently analyzing
+  const analyzingProjects = useMemo(() => 
+    projects.filter(p => {
+      const status = p.analysisStatus?.toLowerCase()
+      return status === 'analyzing' || status === 'pending' || status === 'processing'
+    }),
+    [projects]
+  )
+
+  // Poll for status updates when projects are analyzing
+  useEffect(() => {
+    if (analyzingProjects.length === 0) return
+
+    const pollInterval = setInterval(async () => {
+      await fetchProjects()
+      // Also refresh aura and skills as they may have updated
+      await fetchAura()
+      await fetchSkills()
+    }, 3000) // Poll every 3 seconds
+
+    return () => clearInterval(pollInterval)
+  }, [analyzingProjects.length, fetchProjects, fetchAura, fetchSkills])
 
   const analyzedCount = projects.filter(p => p.analysisStatus?.toUpperCase() === 'COMPLETED').length
   const topSkills = skills.slice(0, 5)
