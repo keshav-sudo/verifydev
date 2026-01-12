@@ -1,4 +1,4 @@
-/**
+﻿/**
  * useProjectPolling Hook
  * Efficient polling for project analysis status with exponential backoff
  * Automatically stops when analysis completes

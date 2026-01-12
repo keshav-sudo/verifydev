@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Skill Card v2 Component
  * Displays skills with VERIFIED/INFERRED/CLAIMED states and evidence chain support
  */

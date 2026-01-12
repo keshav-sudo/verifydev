@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Bulk Message Dialog Component
  * Send message to multiple candidates at once
  */

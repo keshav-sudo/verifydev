@@ -1,10 +1,12 @@
+﻿"use client"
+
 /**
  * NotificationBell Component
  * Shows unread notification count with dropdown
  */
 
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { formatDistanceToNow } from 'date-fns'
 import { 
@@ -150,7 +152,7 @@ export function NotificationBell() {
 
         {notifications.length > 0 && (
           <div className="p-2 border-t">
-            <Link to="/notifications" onClick={() => setIsOpen(false)}>
+            <Link href="/notifications" onClick={() => setIsOpen(false)}>
               <Button variant="ghost" className="w-full" size="sm">
                 View all notifications
               </Button>

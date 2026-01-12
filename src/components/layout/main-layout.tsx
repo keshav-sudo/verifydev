@@ -1,9 +1,13 @@
-import { Outlet } from 'react-router-dom'
+﻿"use client"
 
-export default function MainLayout() {
+interface MainLayoutProps {
+  children: React.ReactNode
+}
+
+export default function MainLayout({ children }: MainLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
-      <Outlet />
+      {children}
     </div>
   )
 }

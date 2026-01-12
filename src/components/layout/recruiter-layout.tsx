@@ -1,10 +1,13 @@
+﻿"use client"
+
 /**
  * Recruiter Layout - PREMIUM MOBILE-FIRST RESPONSIVE
  * Sidebar collapses to hamburger menu on mobile.
  */
 
 import { useState, useEffect } from 'react'
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
+import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
 import { useRecruiterStore } from '@/store/recruiter-store'
 import { useUIStore } from '@/store/ui-store'
 import { cn, getInitials } from '@/lib/utils'
@@ -33,32 +36,38 @@ const navigation = [
   { name: 'Settings', href: '/recruiter/settings', icon: Settings },
 ]
 
-export default function RecruiterLayout() {
+interface RecruiterLayoutProps {
+  children: React.ReactNode
+}
+
+export default function RecruiterLayout({ children }: RecruiterLayoutProps) {
   const { sidebarOpen, toggleSidebar } = useUIStore()
   const { recruiter, logout } = useRecruiterStore()
-  const location = useLocation()
-  const navigate = useNavigate()
+  const pathname = usePathname()
+  const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Close mobile menu on navigation
   useEffect(() => {
     setMobileMenuOpen(false)
-  }, [location.pathname])
+  }, [pathname])
 
   // Close mobile menu on resize to desktop
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) {
+      if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
         setMobileMenuOpen(false)
       }
     }
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize)
+      return () => window.removeEventListener('resize', handleResize)
+    }
   }, [])
 
   const handleLogout = () => {
     logout()
-    navigate('/auth')
+    router.push('/auth')
   }
 
   // Get recruiter info safely
@@ -92,7 +101,7 @@ export default function RecruiterLayout() {
       >
         {/* Logo Section with Detailing */}
         <div className="flex h-16 items-center px-4 border-b border-border/50 bg-muted/5">
-          <Link to="/recruiter/dashboard" className="flex items-center gap-3">
+          <Link href="/recruiter/dashboard" className="flex items-center gap-3">
             <div className="flex items-center justify-center w-10 h-10 lg:w-9 lg:h-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-bold shadow-lg shadow-primary/20 border border-primary/20">
               V
             </div>
@@ -148,12 +157,12 @@ export default function RecruiterLayout() {
         {/* Navigation */}
         <nav className="flex flex-col gap-1.5 p-3 mt-4 overflow-y-auto scrollbar-none flex-1">
           {navigation.map((item) => {
-            const isActive = location.pathname === item.href ||
-              (item.href !== '/recruiter/dashboard' && location.pathname.startsWith(item.href))
+            const isActive = pathname === item.href ||
+              (item.href !== '/recruiter/dashboard' && pathname?.startsWith(item.href))
             return (
               <Link
                 key={item.name}
-                to={item.href}
+                href={item.href}
                 className={cn(
                   'flex items-center gap-3 rounded-xl px-4 py-3.5 lg:py-3 text-base lg:text-sm font-medium transition-all duration-200 group relative',
                   'border border-transparent min-h-[48px] lg:min-h-0',
@@ -242,14 +251,14 @@ export default function RecruiterLayout() {
                 <Menu className="h-5 w-5" />
               </Button>
               <span className="text-sm font-medium text-muted-foreground hidden sm:block">
-                {navigation.find(n => location.pathname.startsWith(n.href))?.name || 'Page'}
+                {navigation.find(n => pathname?.startsWith(n.href))?.name || 'Page'}
               </span>
             </div>
 
             {/* Right side - User Actions */}
             <div className="flex items-center gap-2 lg:gap-4">
               <Button variant="outline" size="sm" className="border-primary/30 text-primary hover:bg-primary/10 text-sm" asChild>
-                <Link to="/recruiter/post-job">
+                <Link href="/recruiter/post-job">
                   <Plus className="h-4 w-4 mr-1 lg:mr-2" />
                   <span className="hidden sm:inline">Post Job</span>
                   <span className="sm:hidden">Post</span>
@@ -277,7 +286,7 @@ export default function RecruiterLayout() {
           <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
 
           <div className="max-w-7xl mx-auto w-full h-full relative z-10">
-            <Outlet />
+            {children}
           </div>
         </div>
       </main>

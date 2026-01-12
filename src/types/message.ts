@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Message Types
  * For in-platform messaging system
  */

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Job Service
  * Handles job listings, search, applications, and matching
  * Backend: job-service (port 3004)

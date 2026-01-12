@@ -1,4 +1,4 @@
-// Job Types and Enums
+﻿// Job Types and Enums
 
 export type JobType =
   | 'FULL_TIME'

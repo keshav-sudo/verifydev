@@ -1,4 +1,4 @@
-// Professional Lottie Animation URLs from LottieFiles CDN
+﻿// Professional Lottie Animation URLs from LottieFiles CDN
 // These are real, high-quality animations that work beautifully
 
 export const LOTTIE_URLS = {

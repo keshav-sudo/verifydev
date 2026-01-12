@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+﻿import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { User } from '@/types'
 import { apiClient } from '@/api/client'
@@ -64,7 +64,7 @@ export const useAuthStore = create<AuthState>()(
       login: () => {
         // Redirect directly to gateway - browser redirects don't go through Vite proxy
         // In production, this should be the actual API domain
-        const gatewayUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_GATEWAY_URL || 'http://localhost'
+        const gatewayUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost'
           window.location.href = `${gatewayUrl}/api/v1/auth/github`
       },
 

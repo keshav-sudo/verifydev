@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Application Timeline Component
  * Visual timeline showing application status progression
  * Production-ready with animations and status indicators

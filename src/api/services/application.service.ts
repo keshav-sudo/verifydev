@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Application Service (Enhanced)
  * API calls for job applications with match scoring
  * Backend: job-service (port 3004) /api/v1/applications

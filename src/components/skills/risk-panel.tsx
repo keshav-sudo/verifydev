@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Risk Panel Component
  * Displays risk assessment with unknowns and hiring recommendations
  */

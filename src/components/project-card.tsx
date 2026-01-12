@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Project Card Component
  * Displays GitHub project with analysis status, tech stack, and quality score
  */

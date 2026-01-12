@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Message Service
  * API calls for in-platform messaging
  * Backend: job-service (port 3004) /api/v1/messages

@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion'
+﻿import { motion, AnimatePresence } from 'framer-motion'
 import Lottie from 'lottie-react'
 import { successAnimation } from './lottie-data'
 import { CheckCircle2, XCircle, AlertTriangle, Info } from 'lucide-react'

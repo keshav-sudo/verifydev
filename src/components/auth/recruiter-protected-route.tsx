@@ -1,4 +1,7 @@
-import { Navigate } from 'react-router-dom'
+﻿"use client"
+
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useRecruiterStore } from '@/store/recruiter-store'
 import { Loader2 } from 'lucide-react'
 
@@ -8,6 +11,13 @@ interface RecruiterProtectedRouteProps {
 
 export default function RecruiterProtectedRoute({ children }: RecruiterProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useRecruiterStore()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace('/recruiter/login')
+    }
+  }, [isAuthenticated, isLoading, router])
 
   if (isLoading) {
     return (
@@ -18,7 +28,7 @@ export default function RecruiterProtectedRoute({ children }: RecruiterProtected
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/recruiter/login" replace />
+    return null
   }
 
   return <>{children}</>

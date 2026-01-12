@@ -1,4 +1,4 @@
-// Premium Lottie animation data
+﻿// Premium Lottie animation data
 
 // Animated checkmark with glow effect
 export const successAnimation = {

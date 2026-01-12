@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Resume Service
  * Handles resume generation and templates
  * Backend: resume-service (port 8003)
@@ -118,7 +118,7 @@ export const getMyResumes = () => {
  * Download resume PDF
  */
 export const downloadResume = (resumeId: string) => {
-  const apiUrl = import.meta.env.VITE_API_URL || '/api'
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api'
   window.open(`${apiUrl}/v1/resume/${resumeId}/download`, '_blank')
 }
 

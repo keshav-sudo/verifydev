@@ -1,4 +1,4 @@
-/**
+﻿/**
  * User Service
  * Handles user profile, onboarding, skills, projects, and aura
  * Backend: user-service (port 3002)

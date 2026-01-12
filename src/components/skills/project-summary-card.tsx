@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Project Summary Card Component
  * Displays overall score, engineering level, architecture style, and hire signal
  */

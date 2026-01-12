@@ -1,10 +1,13 @@
+﻿"use client"
+
 /**
  * Dashboard Layout - PREMIUM MOBILE-FIRST RESPONSIVE
  * Sidebar collapses to hamburger menu on mobile.
  */
 
 import { useRef, useEffect, useState } from 'react'
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
+import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/auth-store'
 import { useUIStore } from '@/store/ui-store'
 import { cn, getInitials } from '@/lib/utils'
@@ -40,11 +43,15 @@ const navigation = [
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
-export default function DashboardLayout() {
+interface DashboardLayoutProps {
+  children: React.ReactNode
+}
+
+export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, logout } = useAuthStore()
   const { sidebarOpen, toggleSidebar } = useUIStore()
-  const location = useLocation()
-  const navigate = useNavigate()
+  const pathname = usePathname()
+  const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -56,22 +63,24 @@ export default function DashboardLayout() {
     }
     // Close mobile menu on navigation
     setMobileMenuOpen(false)
-  }, [location.pathname])
+  }, [pathname])
 
   // Close mobile menu on resize to desktop
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) {
+      if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
         setMobileMenuOpen(false)
       }
     }
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize)
+      return () => window.removeEventListener('resize', handleResize)
+    }
   }, [])
 
   const handleLogout = async () => {
     await logout()
-    navigate('/auth')
+    router.push('/auth')
   }
 
   return (
@@ -99,7 +108,7 @@ export default function DashboardLayout() {
       >
         {/* Logo Section */}
         <div className="flex h-16 items-center px-4 border-b border-border/50 bg-muted/5 shrink-0">
-          <Link to="/dashboard" className="flex items-center gap-3">
+          <Link href="/dashboard" className="flex items-center gap-3">
             <div className="flex items-center justify-center w-10 h-10 lg:w-9 lg:h-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-bold shadow-lg shadow-primary/20 border border-primary/20">
               V
             </div>
@@ -142,11 +151,11 @@ export default function DashboardLayout() {
         {/* Navigation - Scrollable inside sidebar */}
         <nav className="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto scrollbar-none">
           {navigation.map((item) => {
-            const isActive = location.pathname === item.href
+            const isActive = pathname === item.href
             return (
               <Link
                 key={item.name}
-                to={item.href}
+                href={item.href}
                 className={cn(
                   'flex items-center gap-3 rounded-xl px-4 py-3.5 lg:py-3 text-base lg:text-sm font-medium transition-all duration-200 group relative',
                   'border border-transparent min-h-[48px] lg:min-h-0', // Touch-friendly on mobile
@@ -241,7 +250,7 @@ export default function DashboardLayout() {
               <Menu className="h-5 w-5" />
             </Button>
             <span className="text-sm font-medium text-muted-foreground hidden sm:block">
-              {navigation.find(n => n.href === location.pathname)?.name || 'Page'}
+              {navigation.find(n => n.href === pathname)?.name || 'Page'}
             </span>
           </div>
 
@@ -254,7 +263,7 @@ export default function DashboardLayout() {
             </div>
             <NotificationCenter />
             {user && (
-              <Link to="/profile">
+              <Link href="/profile">
                 <Avatar className="h-9 w-9 lg:h-8 lg:w-8 rounded-xl cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all border border-border">
                   <AvatarImage src={user.avatarUrl} alt={user.name} />
                   <AvatarFallback className="rounded-xl bg-primary/10 text-primary text-xs">{getInitials(user.name)}</AvatarFallback>
@@ -269,7 +278,7 @@ export default function DashboardLayout() {
           ref={scrollRef}
           className={cn(
             "flex-1 relative bg-muted/60 dark:bg-black w-full overflow-x-hidden",
-            location.pathname.startsWith('/messages') 
+            pathname?.startsWith('/messages') 
               ? "overflow-hidden flex flex-col" 
               : "overflow-y-auto p-4 sm:p-6 lg:p-8"
           )}
@@ -283,9 +292,9 @@ export default function DashboardLayout() {
 
           <div className={cn(
             "max-w-7xl mx-auto w-full relative z-10",
-            location.pathname.startsWith('/messages') ? "h-full flex flex-col" : "min-h-full"
+            pathname?.startsWith('/messages') ? "h-full flex flex-col" : "min-h-full"
           )}>
-            <Outlet />
+            {children}
           </div>
         </div>
       </main>

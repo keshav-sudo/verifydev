@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Notification Types and API
  */
 

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ProjectAnalysisProgress Component
  * Real-time visual feedback for project analysis
  */

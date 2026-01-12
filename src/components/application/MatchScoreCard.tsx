@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Match Score Card Component
  * Displays detailed match scoring breakdown with visual indicators
  * Production-ready with animations and accessibility
