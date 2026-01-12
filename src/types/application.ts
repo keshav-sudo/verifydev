@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Application Types
  * Enhanced application types with match scoring
  */

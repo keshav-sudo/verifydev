@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Match Score Component
  * Shows job/candidate match percentage with visual indicator
  */

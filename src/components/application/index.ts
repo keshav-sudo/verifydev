@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Application Components Index
  * Export all application-related components
  */

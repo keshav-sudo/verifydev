@@ -1,9 +1,9 @@
-/**
+﻿/**
  * Recruiter React Query Hooks
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/navigation'
 import { toast } from '@/hooks/use-toast'
 import { useRecruiterStore } from '@/store/recruiter-store'
 import * as recruiterService from '@/api/services/recruiter.service'
@@ -38,7 +38,7 @@ export const recruiterKeys = {
 // ============================================
 
 export const useRecruiterRegister = () => {
-  const navigate = useNavigate()
+  const router = useRouter()
 
   return useMutation({
     mutationFn: (data: RecruiterRegisterData) => recruiterService.registerRecruiter(data),
@@ -54,7 +54,7 @@ export const useRecruiterRegister = () => {
         title: 'Account created! 🎉',
         description: 'Welcome to VerifyDev Recruiter Dashboard.',
       })
-      navigate('/recruiter/dashboard')
+      router.push('/recruiter/dashboard')
     },
     onError: (error: any) => {
       toast({
@@ -67,7 +67,7 @@ export const useRecruiterRegister = () => {
 }
 
 export const useRecruiterLogin = () => {
-  const navigate = useNavigate()
+  const router = useRouter()
 
   return useMutation({
     mutationFn: (data: RecruiterLoginData) => recruiterService.loginRecruiter(data),
@@ -82,7 +82,7 @@ export const useRecruiterLogin = () => {
         title: 'Welcome back!',
         description: 'You have successfully logged in.',
       })
-      navigate('/recruiter/dashboard')
+      router.push('/recruiter/dashboard')
     },
     onError: (error: any) => {
       toast({
@@ -129,7 +129,7 @@ export const useUpdateRecruiterProfile = () => {
 
 export const useRecruiterLogout = () => {
   const queryClient = useQueryClient()
-  const navigate = useNavigate()
+  const router = useRouter()
   const { logout: clearAuth } = useRecruiterStore()
 
   return useMutation({
@@ -137,7 +137,7 @@ export const useRecruiterLogout = () => {
     onSuccess: () => {
       clearAuth()
       queryClient.clear()
-      navigate('/recruiter/login')
+      router.push('/recruiter/login')
     },
   })
 }

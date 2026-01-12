@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TrendingUp, TrendingDown, Info, Sparkles, Star, Zap, Award, GitBranch, Code, CheckCircle } from 'lucide-react'
 import { AuraDetailItem } from '@/types'

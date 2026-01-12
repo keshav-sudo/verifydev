@@ -1,4 +1,4 @@
-// User Types
+﻿// User Types
 export interface User {
   id: string
   githubId: string

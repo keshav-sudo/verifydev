@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Skill Card Component
  * Displays a skill with score, verification status, and evidence
  */

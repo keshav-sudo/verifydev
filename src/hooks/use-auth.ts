@@ -1,9 +1,9 @@
-/**
+﻿/**
  * Auth React Query Hooks
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/auth-store'
 import * as authService from '@/api/services/auth.service'
 
@@ -32,7 +32,7 @@ export const useCurrentUser = () => {
  */
 export const useLogout = () => {
   const queryClient = useQueryClient()
-  const navigate = useNavigate()
+  const router = useRouter()
   const { logout: clearAuth } = useAuthStore()
 
   return useMutation({
@@ -40,7 +40,7 @@ export const useLogout = () => {
     onSuccess: () => {
       clearAuth()
       queryClient.clear()
-      navigate('/login')
+      router.push('/login')
     },
   })
 }
@@ -50,7 +50,7 @@ export const useLogout = () => {
  */
 export const useLogoutAll = () => {
   const queryClient = useQueryClient()
-  const navigate = useNavigate()
+  const router = useRouter()
   const { logout: clearAuth } = useAuthStore()
 
   return useMutation({
@@ -58,7 +58,7 @@ export const useLogoutAll = () => {
     onSuccess: () => {
       clearAuth()
       queryClient.clear()
-      navigate('/login')
+      router.push('/login')
     },
   })
 }

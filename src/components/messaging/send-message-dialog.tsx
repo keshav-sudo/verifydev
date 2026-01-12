@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Send Message Dialog Component
  * Premium dialog for recruiters to send messages to candidates
  */

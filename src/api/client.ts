@@ -1,7 +1,7 @@
-import axios, { AxiosError, type AxiosRequestConfig } from 'axios'
+﻿import axios, { AxiosError, type AxiosRequestConfig } from 'axios'
 import { useAuthStore } from '@/store/auth-store'
 
-const apiBase = import.meta.env.VITE_API_URL || '';
+const apiBase = process.env.NEXT_PUBLIC_API_URL || '';
 const API_BASE_URL = apiBase 
   ? (apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`)
   : '/api';

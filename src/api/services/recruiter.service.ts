@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Recruiter Service
  * Handles recruiter authentication, candidate search, and job management
  * Backend: recruiter-service (port 3005)
@@ -346,7 +346,7 @@ export const getCandidateResume = (userId: string) => {
  * Download candidate's resume PDF
  */
 export const downloadCandidateResume = (userId: string) => {
-  const apiUrl = import.meta.env.VITE_API_URL || '/api'
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api'
   window.open(`${apiUrl}/v1/recruiters/candidates/${userId}/resume?download=true`, '_blank')
 }
 

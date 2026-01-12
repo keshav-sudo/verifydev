@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Authentication Service
  * Handles GitHub OAuth, JWT tokens, session management
  * Backend: auth-service (port 3001)
@@ -38,7 +38,7 @@ export interface RefreshResponse {
  * Redirects to GitHub authorization page
  */
 export const initiateGitHubLogin = () => {
-  const apiUrl = import.meta.env.VITE_API_URL || '/api'
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api'
   window.location.href = `${apiUrl}/v1/auth/github`
 }
 

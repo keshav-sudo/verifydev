@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Resume React Query Hooks
  */
 

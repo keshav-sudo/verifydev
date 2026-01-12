@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Aura Score Display Component
  * Shows the user's aura score with level, trend, and visual styling
  */

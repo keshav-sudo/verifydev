@@ -1,3 +1,5 @@
+﻿"use client"
+
 /**
  * Application Card Component
  * Displays application summary with actions
@@ -6,7 +8,7 @@
 
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import {
   Building2,
   MapPin,
@@ -81,7 +83,7 @@ export function ApplicationCard({
 
               <div className="flex-1 min-w-0">
                 <Link
-                  to={`/job-detail/${application.jobId}`}
+                  href={`/jobs/${application.jobId}`}
                   className="hover:underline"
                 >
                   <h3 className="font-semibold text-lg truncate">

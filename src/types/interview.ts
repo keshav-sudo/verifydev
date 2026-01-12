@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Interview Types
  * For interview scheduling and management
  */

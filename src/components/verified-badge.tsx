@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Verified Badge Component
  * Shows a verified checkmark badge for verified skills, projects, etc.
  */
