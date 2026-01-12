@@ -2,10 +2,10 @@ import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useAuthStore } from '@/store/auth-store'
-import { Player } from '@lottiefiles/react-lottie-player'
-import { 
-  Github, 
-  ArrowRight, 
+import { LottieWrapper, ParticleBackground as OptimizedParticles, FloatingOrbs as OptimizedOrbs } from '@/components/ui/animated-backgrounds'
+import {
+  Github,
+  ArrowRight,
   Code2,
   Users,
   Sparkles,
@@ -49,7 +49,7 @@ const howItWorks = [
     lottie: "/animations/github-connect.json",
   },
   {
-    step: "02", 
+    step: "02",
     title: "AI Analysis",
     description: "Advanced AI examines your code quality, patterns & style.",
     icon: Cpu,
@@ -114,63 +114,17 @@ const usps = [
 ]
 
 // ========================================
-// PARTICLE BACKGROUND
+// PARTICLE BACKGROUND (Using Optimized Version)
 // ========================================
 function ParticleBackground() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {Array.from({ length: 30 }).map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-1 h-1 rounded-full bg-primary/30"
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-          }}
-          animate={{
-            y: [0, -50, 0],
-            x: [0, Math.random() * 30 - 15, 0],
-            opacity: [0, 0.6, 0],
-            scale: [0.5, 1, 0.5],
-          }}
-          transition={{
-            duration: 5 + Math.random() * 5,
-            repeat: Infinity,
-            delay: Math.random() * 5,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
-    </div>
-  )
+  return <OptimizedParticles />
 }
 
 // ========================================
-// FLOATING ORBS
+// FLOATING ORBS (Using Optimized Version)
 // ========================================
 function FloatingOrbs() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <motion.div
-        className="absolute top-20 left-[10%] w-72 h-72 rounded-full"
-        style={{ background: 'radial-gradient(circle, hsl(var(--primary) / 0.15) 0%, transparent 70%)' }}
-        animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
-        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="absolute bottom-40 right-[5%] w-96 h-96 rounded-full"
-        style={{ background: 'radial-gradient(circle, hsl(var(--primary) / 0.1) 0%, transparent 70%)' }}
-        animate={{ x: [0, -20, 0], y: [0, 30, 0] }}
-        transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full opacity-50"
-        style={{ background: 'radial-gradient(circle, hsl(var(--primary) / 0.05) 0%, transparent 50%)' }}
-        animate={{ scale: [1, 1.1, 1] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-      />
-    </div>
-  )
+  return <OptimizedOrbs />
 }
 
 // ========================================
@@ -180,7 +134,7 @@ function AnimatedCounter({ value }: { value: string }) {
   const ref = useRef<HTMLSpanElement>(null)
   const isInView = useInView(ref, { once: true })
   const [displayValue, setDisplayValue] = useState("0")
-  
+
   useEffect(() => {
     if (isInView) {
       const numericValue = parseInt(value.replace(/[^0-9]/g, ''))
@@ -188,7 +142,7 @@ function AnimatedCounter({ value }: { value: string }) {
       const steps = 60
       const increment = numericValue / steps
       let current = 0
-      
+
       const timer = setInterval(() => {
         current += increment
         if (current >= numericValue) {
@@ -203,7 +157,7 @@ function AnimatedCounter({ value }: { value: string }) {
       return () => clearInterval(timer)
     }
   }, [isInView, value])
-  
+
   return <span ref={ref}>{displayValue}</span>
 }
 
@@ -220,7 +174,7 @@ function HeroVisualization() {
     { name: 'Docker', icon: '🐳' },
   ]
   const [activeSkill, setActiveSkill] = useState(0)
-  
+
   useEffect(() => {
     const interval = setInterval(() => setActiveSkill(prev => (prev + 1) % skills.length), 2500)
     return () => clearInterval(interval)
@@ -352,7 +306,7 @@ function HeroSection() {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.12),transparent_50%)]" />
       <FloatingOrbs />
       <ParticleBackground />
-      
+
 
       <motion.div style={{ opacity, y }} className="relative z-10 container mx-auto px-6 py-16">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -362,17 +316,17 @@ function HeroSection() {
               <Sparkles className="w-3.5 h-3.5 mr-1.5" />
               #1 Developer Verification + Job Platform
             </Badge>
-            
+
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] mb-5">
               Prove Your Skills.
               <br />
               <span className="text-primary">Land Dream Jobs.</span>
             </h1>
-            
+
             <p className="text-lg text-muted-foreground max-w-lg mb-8 leading-relaxed">
               Connect your GitHub. Get AI-verified skills. <span className="text-foreground font-medium">Get discovered by top companies</span> looking for proven talent.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-6">
               {isAuthenticated ? (
                 <Link to="/dashboard">
@@ -395,14 +349,14 @@ function HeroSection() {
                 </>
               )}
             </div>
-            
+
             <div className="flex flex-wrap gap-4 justify-center lg:justify-start text-sm text-muted-foreground">
               {[{ i: CheckCircle2, t: "Free forever" }, { i: Zap, t: "2 min setup" }, { i: Users, t: "50K+ devs" }].map((x, i) => (
                 <span key={i} className="flex items-center gap-1.5"><x.i className="w-4 h-4 text-primary" />{x.t}</span>
               ))}
             </div>
           </motion.div>
-          
+
           {/* Right */}
           <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3, duration: 0.6 }} className="hidden lg:block">
             <HeroVisualization />
@@ -460,7 +414,7 @@ function HowItWorksSection() {
             <motion.div key={item.step} initial={{ opacity: 0, y: 30 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ delay: i * 0.1 }} className="relative p-6 rounded-2xl bg-card border border-border hover:border-primary/30 transition-colors">
               <div className="absolute -top-3 -left-3 w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-sm font-bold text-primary-foreground">{item.step}</div>
               <div className="w-20 h-20 mx-auto mb-4">
-                <Player autoplay loop src={item.lottie} style={{ height: '100%', width: '100%' }} />
+                <LottieWrapper src={item.lottie} style={{ height: '100%', width: '100%' }} />
               </div>
               <div className="flex items-center justify-center gap-2 mb-2">
                 <item.icon className="w-4 h-4 text-primary" />
@@ -589,7 +543,7 @@ function CTASection() {
       <div className="container mx-auto px-6">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={isInView ? { opacity: 1, y: 0 } : {}} className="max-w-2xl mx-auto text-center">
           <div className="w-20 h-20 mx-auto mb-6">
-            <Player autoplay loop src="/animations/rocket-launch.json" style={{ height: '100%', width: '100%' }} />
+            <LottieWrapper src="/animations/rocket-launch.json" style={{ height: '100%', width: '100%' }} />
           </div>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to <span className="text-primary">Prove Your Worth?</span></h2>
           <p className="text-lg text-muted-foreground mb-8">Join 50,000+ developers who've transformed their careers with verified skills.</p>
@@ -639,11 +593,11 @@ function USPSection() {
     <section ref={ref} className="py-24 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/[0.03] to-transparent" />
-      
+
       <div className="container mx-auto px-6 relative">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={isInView ? { opacity: 1, y: 0 } : {}} 
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
           className="text-center mb-16"
         >
           <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
@@ -660,7 +614,7 @@ function USPSection() {
 
         <div className="space-y-20">
           {usps.map((usp, i) => (
-            <motion.div 
+            <motion.div
               key={usp.title}
               initial={{ opacity: 0, y: 40 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -675,7 +629,7 @@ function USPSection() {
                 </div>
                 <h3 className="text-2xl md:text-3xl font-bold mb-4 text-foreground">{usp.title}</h3>
                 <p className="text-lg text-muted-foreground leading-relaxed mb-6">{usp.description}</p>
-                
+
                 {/* Visual Stats */}
                 <div className="flex gap-8">
                   {i === 0 && (
@@ -716,10 +670,10 @@ function USPSection() {
                   )}
                 </div>
               </div>
-              
+
               {/* Lottie Animation */}
               <div className={`${i % 2 === 1 ? 'lg:col-start-1 lg:row-start-1' : ''}`}>
-                <motion.div 
+                <motion.div
                   className="relative w-full aspect-square max-w-md mx-auto"
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.3 }}
@@ -727,10 +681,8 @@ function USPSection() {
                   {/* Glow effect */}
                   <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/20 via-transparent to-primary/10 blur-xl" />
                   <div className="relative bg-black/40 backdrop-blur-sm rounded-3xl p-8 border border-white/[0.08]">
-                    <Player 
-                      autoplay 
-                      loop 
-                      src={usp.lottie} 
+                    <LottieWrapper
+                      src={usp.lottie}
                       style={{ height: '100%', width: '100%' }}
                     />
                   </div>
