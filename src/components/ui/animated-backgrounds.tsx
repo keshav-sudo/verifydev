@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion'
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState } from 'react'
 
 // Hook to detect mobile - check on first render for SSR safety
 function useIsMobile() {
