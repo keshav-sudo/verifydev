@@ -174,7 +174,7 @@ export default function Resume() {
     }
 
     loadResumeData()
-  }, [fetchAura, toast])
+  }, [fetchAura])
 
   const toggleSkill = (skillName: string) => {
     const newSelected = new Set(selectedSkills)
@@ -454,9 +454,9 @@ export default function Resume() {
                      <div className="flex-1 rounded-md bg-black border border-green-500/30 p-2 font-mono text-[5px] text-green-500 space-y-1 overflow-hidden">
                         <div>$ cat profile.json</div>
                         <div className="text-blue-400">{"{"}</div>
-                        <div className="pl-1">"name": "USER",</div>
-                        <div className="pl-1">"skills": ["TS", "Go"],</div>
-                        <div className="pl-1">"aura": 1500</div>
+                        <div className="pl-1">&quot;name&quot;: &quot;USER&quot;,</div>
+                        <div className="pl-1">&quot;skills&quot;: [&quot;TS&quot;, &quot;Go&quot;],</div>
+                        <div className="pl-1">&quot;aura&quot;: 1500</div>
                         <div className="text-blue-400">{"}"}</div>
                         <div className="pt-1 text-yellow-500">_</div>
                      </div>

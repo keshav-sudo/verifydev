@@ -271,7 +271,7 @@ export default function RoleSelection() {
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Not sure? Choose "User / Visitor" to explore without signing up.
+            Not sure? Choose &quot;User / Visitor&quot; to explore without signing up.
           </p>
         </motion.div>
       </div>

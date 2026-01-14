@@ -710,7 +710,7 @@ export default function Settings() {
                   
                   <div>
                     <h3 className="font-semibold mb-2 text-base">Accent Color</h3>
-                    <p className="text-sm text-muted-foreground/80 mb-6">Personalize the application's highlight color</p>
+                    <p className="text-sm text-muted-foreground/80 mb-6">Personalize the application&apos;s highlight color</p>
                     <div className="flex flex-wrap gap-3">
                       {[
                         { name: 'Indigo', value: '239 84% 67%' },
@@ -944,7 +944,7 @@ export default function Settings() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium">Open to Work</p>
-                      <p className="text-sm text-muted-foreground">Let recruiters know you're looking for opportunities</p>
+                      <p className="text-sm text-muted-foreground">Let recruiters know you&apos;re looking for opportunities</p>
                     </div>
                     <Switch 
                       checked={privacy.showInSearch}
