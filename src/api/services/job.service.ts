@@ -29,7 +29,7 @@ export interface Application {
   id: string
   jobId: string
   userId: string
-  status: 'APPLIED' | 'REVIEWING' | 'SHORTLISTED' | 'REJECTED' | 'WITHDRAWN'
+  status: 'PENDING' | 'REVIEWING' | 'SHORTLISTED' | 'INTERVIEW' | 'OFFER' | 'ACCEPTED' | 'REJECTED' | 'WITHDRAWN'
   coverLetter?: string
   resumeUrl?: string
   matchScore: number
@@ -243,10 +243,13 @@ export const getJobLevelLabel = (level: Job['level']) => {
  */
 export const getApplicationStatusLabel = (status: Application['status']) => {
   const labels: Record<Application['status'], string> = {
-    APPLIED: 'Applied',
+    PENDING: 'Pending Review',
     REVIEWING: 'Under Review',
     SHORTLISTED: 'Shortlisted',
-    REJECTED: 'Rejected',
+    INTERVIEW: 'Interview Stage',
+    OFFER: 'Offer Extended',
+    ACCEPTED: 'Offer Accepted',
+    REJECTED: 'Not Selected',
     WITHDRAWN: 'Withdrawn',
   }
   return labels[status]
@@ -257,9 +260,12 @@ export const getApplicationStatusLabel = (status: Application['status']) => {
  */
 export const getApplicationStatusColor = (status: Application['status']) => {
   const colors: Record<Application['status'], string> = {
-    APPLIED: 'blue',
-    REVIEWING: 'yellow',
-    SHORTLISTED: 'green',
+    PENDING: 'gray',
+    REVIEWING: 'blue',
+    SHORTLISTED: 'purple',
+    INTERVIEW: 'orange',
+    OFFER: 'green',
+    ACCEPTED: 'green',
     REJECTED: 'red',
     WITHDRAWN: 'gray',
   }

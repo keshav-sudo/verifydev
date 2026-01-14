@@ -29,7 +29,6 @@ import {
 
 const navigation = [
   { name: 'Dashboard', href: '/recruiter/dashboard', icon: LayoutDashboard },
-  { name: 'Find Candidates', href: '/recruiter/candidates', icon: Users },
   { name: 'My Jobs', href: '/recruiter/jobs', icon: Briefcase },
   { name: 'Post Job', href: '/recruiter/post-job', icon: Plus },
   { name: 'Messages', href: '/recruiter/messages', icon: MessageSquare },

@@ -73,7 +73,7 @@ export function ApplyJobModal({ job, open, onOpenChange, applicationData }: Appl
   // Collapsible states
   const [isProjectsOpen, setIsProjectsOpen] = useState(false)
   const [isExperienceOpen, setIsExperienceOpen] = useState(false)
-  const [isSkillsOpen, setIsSkillsOpen] = useState(false)
+  const [isSkillsOpen, setIsSkillsOpen] = useState(true)
 
   const {
     register,
@@ -118,7 +118,7 @@ export function ApplyJobModal({ job, open, onOpenChange, applicationData }: Appl
   const projects = projectsData?.projects || []
   const work = experienceData?.work || []
   const certs = experienceData?.certifications || []
-  const skills = skillsResponse?.skills || []
+  const skills = skillsResponse?.skills || userProfile?.skills || []
 
   // Initialize from applicationData or defaults
   useEffect(() => {
@@ -132,7 +132,7 @@ export function ApplyJobModal({ job, open, onOpenChange, applicationData }: Appl
       } else {
         // Default: Auto-select ALL skills, but let user choose projects/exp
         if (skills.length > 0) {
-             setSelectedSkills(skills.map(s => s.name))
+             setSelectedSkills(skills.map((s: any) => s.name))
         }
         setSelectedProjects([])
         setSelectedExperience([])
@@ -220,7 +220,7 @@ export function ApplyJobModal({ job, open, onOpenChange, applicationData }: Appl
           </DialogTitle>
           <DialogDescription>
             {step === 'form'
-              ? `Apply to ${job.title} at ${job.company}`
+              ? `Apply to ${job.title} at ${job.organization?.name || 'Verified Company'}`
               : 'Review your application before submitting'}
           </DialogDescription>
         </DialogHeader>
@@ -237,7 +237,7 @@ export function ApplyJobModal({ job, open, onOpenChange, applicationData }: Appl
                     </div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg">{job.title}</h3>
-                      <p className="text-sm text-muted-foreground">{job.company}</p>
+                      <p className="text-sm text-muted-foreground">{job.organization?.name || 'Verified Company'}</p>
                       <div className="flex flex-wrap gap-2 mt-2">
                         <Badge variant="secondary">{job.type}</Badge>
                         <Badge variant="secondary">{job.location}</Badge>
@@ -289,7 +289,7 @@ export function ApplyJobModal({ job, open, onOpenChange, applicationData }: Appl
                     <div className="px-4 pb-4">
                       {skills.length === 0 ? <p className="text-sm text-muted-foreground">No skills found.</p> :
                         <div className="flex flex-wrap gap-2">
-                          {skills.map((s) => (
+                          {skills.map((s: any) => (
                             <Badge
                               key={s.id || s.name}
                               variant={selectedSkills.includes(s.name) ? "default" : "outline"}

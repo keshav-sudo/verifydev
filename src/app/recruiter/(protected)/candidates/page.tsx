@@ -1,8 +1,7 @@
-﻿"use client"
+"use client"
 
-import RecruiterCandidates from '@/views/recruiter/candidates'
+import CandidateSearchPage from '@/views/recruiter/candidates'
 
-export default function RecruiterCandidatesPage() {
-  return <RecruiterCandidates />
+export default function CandidatesPage() {
+  return <CandidateSearchPage />
 }
-

@@ -29,20 +29,22 @@ import {
   Sparkles,
 } from 'lucide-react'
 
-const jobTypeLabels: Record<Job['type'], string> = {
-  'full-time': 'Full-time',
-  'part-time': 'Part-time',
-  contract: 'Contract',
-  freelance: 'Freelance',
-  internship: 'Internship',
+const jobTypeLabels: Record<string, string> = {
+  FULL_TIME: 'Full Time',
+  PART_TIME: 'Part Time',
+  CONTRACT: 'Contract',
+  FREELANCE: 'Freelance',
+  INTERNSHIP: 'Internship',
 }
 
-const experienceLevelLabels: Record<Job['experienceLevel'], string> = {
-  entry: 'Entry Level',
-  mid: 'Mid Level',
-  senior: 'Senior',
-  lead: 'Lead',
-  executive: 'Executive',
+const experienceLevelLabels: Record<string, string> = {
+  ENTRY: 'Entry Level',
+  JUNIOR: 'Junior',
+  MID: 'Mid Level',
+  SENIOR: 'Senior',
+  LEAD: 'Lead',
+  PRINCIPAL: 'Principal',
+  EXECUTIVE: 'Executive',
 }
 
 export default function JobDetail() {
@@ -225,7 +227,7 @@ export default function JobDetail() {
           </Button>
           <div className="flex-1">
             <h1 className="text-3xl font-bold">{job.title}</h1>
-            <p className="text-muted-foreground mt-1">{job.company}</p>
+            <p className="text-muted-foreground mt-1">{job.organization?.name || 'Verified Company'}</p>
           </div>
 
           <div className="flex items-center gap-4">
@@ -288,12 +290,43 @@ export default function JobDetail() {
               <CardContent>
                 <ul className="space-y-2">
                   {(() => {
-                    const reqs: string | string[] | undefined = job.requirements as string | string[] | undefined
-                    const reqArray: string[] = Array.isArray(reqs) ? reqs : (typeof reqs === 'string' ? reqs.split(',').map((r: string) => r.trim()).filter(Boolean) : [])
-                    return reqArray.map((req: string, index: number) => (
+                    const reqs = job.requirements
+                    const reqArray = typeof reqs === 'string' 
+                      ? reqs.split('\n').map(r => r.trim()).filter(Boolean)
+                      : (Array.isArray(reqs) ? reqs : [])
+                    
+                    if (reqArray.length === 0) return <p className="text-muted-foreground italic">No specific requirements listed.</p>
+
+                    return reqArray.map((req, index) => (
                       <li key={index} className="flex items-start gap-2">
                         <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                         <span className="text-sm">{req}</span>
+                      </li>
+                    ))
+                  })()}
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Responsibilities */}
+             <Card className="border border-border/50">
+              <CardHeader>
+                <CardTitle>Responsibilities</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {(() => {
+                    const resps = job.responsibilities
+                    const respArray = typeof resps === 'string' 
+                      ? resps.split('\n').map(r => r.trim()).filter(Boolean)
+                      : (Array.isArray(resps) ? resps : [])
+                    
+                    if (respArray.length === 0) return <p className="text-muted-foreground italic">No specific responsibilities listed.</p>
+
+                    return respArray.map((resp: string, index: number) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                        <span className="text-sm">{resp}</span>
                       </li>
                     ))
                   })()}
@@ -308,15 +341,16 @@ export default function JobDetail() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {(() => {
-                    const skills: string | string[] | undefined = job.skills as string | string[] | undefined
-                    const skillArray: string[] = Array.isArray(skills) ? skills : (typeof skills === 'string' ? skills.split(',').map((s: string) => s.trim()).filter(Boolean) : [])
-                    return skillArray.map((skill: string) => (
-                      <Badge key={skill} variant="secondary" className="text-sm">
-                        {skill}
-                      </Badge>
-                    ))
-                  })()}
+                  {job.requiredSkills.map((skill: string) => (
+                    <Badge key={skill} variant="secondary" className="text-sm">
+                      {skill}
+                    </Badge>
+                  ))}
+                  {job.preferredSkills?.map((skill: string) => (
+                    <Badge key={skill} variant="outline" className="text-sm border-dashed">
+                      {skill} (Preferred)
+                    </Badge>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -369,8 +403,18 @@ export default function JobDetail() {
                   <div>
                     <p className="text-sm text-muted-foreground">Experience</p>
                     <p className="font-semibold">
-                      {experienceLevelLabels[job.experienceLevel]}
+                      {experienceLevelLabels[job.level]}
                     </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                    <Zap className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Category</p>
+                    <p className="font-semibold">{job.category}</p>
                   </div>
                 </div>
 
@@ -408,18 +452,10 @@ export default function JobDetail() {
               <CardContent>
                 <div className="flex items-center gap-3 mb-4">
                   <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
-                    {job.companyLogo ? (
-                      <img
-                        src={job.companyLogo}
-                        alt={job.company}
-                        className="h-8 w-8 object-contain"
-                      />
-                    ) : (
-                      <Building className="h-6 w-6 text-muted-foreground" />
-                    )}
+                    <Building className="h-6 w-6 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="font-semibold">{job.company}</p>
+                    <p className="font-semibold">{job.organization?.name || 'Verified Company'}</p>
                     <p className="text-sm text-muted-foreground">
                       {job.applicationsCount} applicants
                     </p>

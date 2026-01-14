@@ -74,6 +74,10 @@ export interface Job {
   viewsCount: number
   createdAt: Date | string
   expiresAt?: Date | string
+  // Backward compatibility / convenience fields
+  company?: string          // Alias for organization.name
+  companyLogo?: string      // Alias for organization logo
+  skills?: JobSkill[]       // Structured skill requirements
 }
 
 // Request DTOs

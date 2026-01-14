@@ -71,6 +71,7 @@ interface GitHubRepo {
   stars: number
   forks: number
   defaultBranch: string
+  sizeMB: number // Size in MB from API
   isAdded: boolean
 }
 
@@ -134,6 +135,7 @@ function CircularProgress({ value, size = 56 }: { value: number, size?: number }
   )
 }
 
+
 // Skeleton components
 function ProjectCardSkeleton() {
   return (
@@ -170,6 +172,129 @@ function StatsSkeleton() {
   )
 }
 
+// ============================================
+// FOLDER SELECTOR - Modal Component
+// ============================================
+interface FolderSelectorProps {
+  repoUrl: string
+  currentPath: string
+  onSelect: (path: string) => void
+  isOpen: boolean
+  onClose: () => void
+}
+
+const FolderSelector = ({ repoUrl, currentPath, onSelect, isOpen, onClose }: FolderSelectorProps) => {
+  const [currentDir, setCurrentDir] = useState('')
+  const [history, setHistory] = useState<string[]>([])
+  
+  const { data: contents, isLoading } = useQuery({
+    queryKey: ['repo-contents', repoUrl, currentDir],
+    queryFn: async () => {
+      const res = await get<{ contents: any[] }>(`/v1/projects/repo/contents?repo=${encodeURIComponent(repoUrl)}&path=${currentDir}`)
+      return res.contents?.filter((item: any) => item.type === 'dir') || [] // Only show directories
+    },
+    enabled: isOpen
+  })
+
+  // Reset when opened
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentDir(currentPath || '')
+      setHistory([])
+    }
+  }, [isOpen, repoUrl]) // Don't depend on currentPath to avoid reset on selection
+
+  const handleNavigate = (path: string) => {
+    setHistory(prev => [...prev, currentDir])
+    setCurrentDir(path)
+  }
+
+  const handleBack = () => {
+    const newHistory = [...history]
+    const prev = newHistory.pop()
+    setHistory(newHistory)
+    setCurrentDir(prev || '')
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={onClose}>
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        onClick={e => e.stopPropagation()}
+        className="w-full max-w-md overflow-hidden rounded-xl border bg-card shadow-2xl"
+      >
+        <div className="border-b p-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Select Analysis Path</h3>
+            <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="mt-2 flex items-center gap-2 rounded-md bg-muted/50 p-2 text-sm text-muted-foreground">
+             <Button 
+               variant="ghost" 
+               size="icon" 
+               className="h-6 w-6 shrink-0" 
+               onClick={handleBack}
+               disabled={history.length === 0 && !currentDir}
+             >
+               <ChevronRight className="h-4 w-4 rotate-180" />
+             </Button>
+             <span className="truncate font-mono" title={currentDir}>{currentDir || '/ (root)'}</span>
+          </div>
+        </div>
+
+        <div className="max-h-[300px] overflow-y-auto p-2">
+          {isLoading ? (
+            <div className="flex h-[100px] items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : contents?.length === 0 ? (
+            <div className="flex h-[100px] flex-col items-center justify-center text-muted-foreground">
+              <FolderGit2 className="mb-2 h-8 w-8 opacity-20" />
+              <p className="text-sm">No folders found</p>
+            </div>
+          ) : (
+            <div className="grid gap-1">
+              {/* Option to select current directory */}
+               <Button
+                variant="ghost"
+                className="justify-start gap-2 text-blue-500 hover:bg-blue-500/10 hover:text-blue-600 dark:hover:bg-blue-500/20"
+                onClick={() => {
+                  onSelect(currentDir)
+                  onClose()
+                }}
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                Analyze "{currentDir || '/'}"
+              </Button>
+
+              {contents?.map((item: any) => (
+                <Button
+                  key={item.path}
+                  variant="ghost"
+                  className="justify-start gap-2 font-normal"
+                  onClick={() => handleNavigate(item.path)}
+                >
+                  <FolderGit2 className="h-4 w-4 text-muted-foreground" />
+                  {item.name}
+                  <ChevronRight className="ml-auto h-3 w-3 opacity-50" />
+                </Button>
+              ))}
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+
+
 export default function Projects() {
   const router = useRouter()
   const [search, setSearch] = useState('')
@@ -183,6 +308,11 @@ export default function Projects() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [selectedProjects, setSelectedProjects] = useState<Set<string>>(new Set())
   const [projectType, setProjectType] = useState<ProjectType>('fullstack')
+  const [selectedBranches, setSelectedBranches] = useState<Record<string, string>>({})
+  const [analysisPaths, setAnalysisPaths] = useState<Record<string, string>>({})
+  const [repoBranches, setRepoBranches] = useState<Record<string, {name: string, protected: boolean}[]>>({})
+  const [loadingBranches, setLoadingBranches] = useState<Set<string>>(new Set())
+  const [openFolderSelector, setOpenFolderSelector] = useState<string | null>(null)
   
   const queryClient = useQueryClient()
 
@@ -281,8 +411,9 @@ export default function Projects() {
             githubRepoUrl: repo.url, 
             repoName: repo.name,
             description: repo.description || undefined,
-            defaultBranch: repo.defaultBranch,
+            defaultBranch: selectedBranches[repo.url] || repo.defaultBranch,
             projectType: type,
+            basePath: analysisPaths[repo.url] || undefined,
           })
         )
       )
@@ -296,6 +427,7 @@ export default function Projects() {
       queryClient.invalidateQueries({ queryKey: ['aura'] })
       queryClient.invalidateQueries({ queryKey: ['profile'] })
       setSelectedRepos(new Set())
+      setSelectedBranches({})
       setRepoSearch('')
       setShowAddModal(false)
       toast({ title: 'Projects added', description: `${selectedRepos.size} project(s) are being analyzed.` })
@@ -388,6 +520,25 @@ export default function Projects() {
       setSelectedProjects(new Set())
     } else {
       setSelectedProjects(new Set(filteredProjects.map(p => p.id)))
+    }
+  }
+
+  // Helper to fetch branches
+  const fetchBranches = async (repoUrl: string) => {
+    if (repoBranches[repoUrl] || loadingBranches.has(repoUrl)) return
+    
+    setLoadingBranches(prev => new Set(prev).add(repoUrl))
+    try {
+      const res = await get<{ branches: {name: string, protected: boolean}[] }>(`/v1/projects/repo/branches?repo=${encodeURIComponent(repoUrl)}`)
+      setRepoBranches(prev => ({ ...prev, [repoUrl]: res.branches }))
+    } catch (err) {
+      console.error('Failed to load branches', err)
+    } finally {
+      setLoadingBranches(prev => {
+        const next = new Set(prev)
+        next.delete(repoUrl)
+        return next
+      })
     }
   }
 
@@ -590,7 +741,8 @@ export default function Projects() {
                   <div className="divide-y divide-border/50">
                     {filteredRepos.map((repo) => {
                       const isSelected = selectedRepos.has(repo.url)
-                      const isDisabled = repo.isAdded
+                      const isTooLarge = repo.sizeMB > 500 // Block repos > 500MB
+                      const isDisabled = repo.isAdded || isTooLarge
                       return (
                         <div
                           key={repo.id}
@@ -599,8 +751,12 @@ export default function Projects() {
                             const newSelected = new Set(selectedRepos)
                             if (isSelected) {
                               newSelected.delete(repo.url)
+                              const newBranches = { ...selectedBranches }
+                              delete newBranches[repo.url]
+                              setSelectedBranches(newBranches)
                             } else {
                               newSelected.add(repo.url)
+                              fetchBranches(repo.url)
                             }
                             setSelectedRepos(newSelected)
                           }}
@@ -657,7 +813,95 @@ export default function Projects() {
                                 <GitFork className="h-3 w-3" />
                                 {formatNumber(repo.forks)}
                               </span>
+                              {/* Size indicator */}
+                              <span className={cn(
+                                "flex items-center gap-1 font-medium",
+                                repo.sizeMB > 100 ? "text-yellow-500" : "",
+                                repo.sizeMB > 500 ? "text-red-500" : ""
+                              )}>
+                                {repo.sizeMB > 0 ? `${repo.sizeMB} MB` : '< 1 MB'}
+                                {repo.sizeMB > 100 && repo.sizeMB <= 500 && " ⚠️"}
+                                {repo.sizeMB > 500 && " 🚫"}
+                              </span>
                             </div>
+
+                            {/* Branch Selection */}
+                            {isSelected && !isDisabled && (
+                              <div className="mt-3 space-y-2" onClick={e => e.stopPropagation()}>
+                                <div className="flex items-center gap-2">
+                                  <GitFork className="h-3 w-3 text-muted-foreground" />
+                                  <Select
+                                    value={selectedBranches[repo.url] || repo.defaultBranch}
+                                    onValueChange={(val) => setSelectedBranches(prev => ({ ...prev, [repo.url]: val }))}
+                                    disabled={loadingBranches.has(repo.url)}
+                                  >
+                                    <SelectTrigger className="h-7 w-[180px] text-xs">
+                                      <SelectValue placeholder="Select branch" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {(repoBranches[repo.url] || [{ name: repo.defaultBranch, protected: false }]).map(b => (
+                                        <SelectItem key={b.name} value={b.name} className="text-xs">
+                                          {b.name}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  {loadingBranches.has(repo.url) && (
+                                    <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                                  )}
+                                </div>
+                                
+                                <div className="flex items-center gap-2">
+                                  <FolderGit2 className="h-3 w-3 text-muted-foreground" />
+                                  <div className="flex flex-1 items-center gap-2">
+                                    <Input 
+                                      placeholder="/path (optional)"
+                                      className="h-7 text-xs font-mono"
+                                      value={analysisPaths[repo.url] || ''}
+                                      onChange={(e) => setAnalysisPaths(prev => ({ ...prev, [repo.url]: e.target.value }))}
+                                    />
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      className="h-7 w-7 shrink-0"
+                                      onClick={() => setOpenFolderSelector(repo.url)}
+                                      title="Browse Folders"
+                                    >
+                                      <List className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Folder Selector Modal */}
+                            <AnimatePresence>
+                              {openFolderSelector === repo.url && (
+                                <FolderSelector
+                                  repoUrl={repo.url}
+                                  currentPath={analysisPaths[repo.url] || ''}
+                                  onSelect={(path) => setAnalysisPaths(prev => ({ ...prev, [repo.url]: path }))}
+                                  isOpen={true}
+                                  onClose={() => setOpenFolderSelector(null)}
+                                />
+                              )}
+                            </AnimatePresence>
+
+
+                            {/* Large repo warning */}
+                            {repo.sizeMB > 100 && (
+                              <div className={cn(
+                                "mt-2 text-xs px-2 py-1 rounded",
+                                repo.sizeMB > 500 
+                                  ? "bg-red-500/10 text-red-500" 
+                                  : "bg-yellow-500/10 text-yellow-500"
+                              )}>
+                                {repo.sizeMB > 500 
+                                  ? "❌ Too large to analyze (>500MB)"
+                                  : "⚠️ Large repo - analysis may take time"
+                                }
+                              </div>
+                            )}
                           </div>
                         </div>
                       )
@@ -683,6 +927,7 @@ export default function Projects() {
                     onClick={() => {
                       setShowAddModal(false)
                       setSelectedRepos(new Set())
+                      setSelectedBranches({})
                       setRepoSearch('')
                     }}
                   >

@@ -11,6 +11,7 @@ export * from './resume.service'
 export * from './notification.service'
 export * from './interview.service'
 export * from './message.service'
+export * from './dimensional-analysis.service'
 
 // Note: application.service exports are used directly to avoid conflicts with job.service
 // Import from './application.service' when needed

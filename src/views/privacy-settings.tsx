@@ -266,6 +266,19 @@ export default function PrivacySettings() {
     },
   })
 
+  // Update skill visibility mutation
+  const updateSkillVisibilityMutation = useMutation({
+    mutationFn: ({ skillId, data }: { skillId: string; data: { showToRecruiters?: boolean } }) => 
+      patch(`/v1/visibility-settings/skills/${skillId}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-skills'] })
+      toast({ title: 'Skill visibility updated!', description: 'Your skill visibility has been changed.' })
+    },
+    onError: () => {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to update skill visibility.' })
+    },
+  })
+
   // Handlers
   const handleVisibilityChange = (key: keyof typeof visibility, value: any) => {
     setVisibility(prev => ({ ...prev, [key]: value }))
@@ -323,6 +336,13 @@ export default function PrivacySettings() {
     updateProjectVisibilityMutation.mutate({
       projectId: project.id,
       data: { showToRecruiters: !project.showToRecruiters }
+    })
+  }
+
+  const handleToggleSkillVisibility = (skill: Skill) => {
+    updateSkillVisibilityMutation.mutate({
+      skillId: skill.id,
+      data: { showToRecruiters: !skill.showToRecruiters }
     })
   }
 
@@ -887,9 +907,8 @@ export default function PrivacySettings() {
                         </div>
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => {
-                              // Toggle skill visibility
-                            }}
+                            onClick={() => handleToggleSkillVisibility(skill)}
+                            disabled={updateSkillVisibilityMutation.isPending}
                             className={cn(
                               "p-2 rounded-lg transition-all",
                               skill.showToRecruiters

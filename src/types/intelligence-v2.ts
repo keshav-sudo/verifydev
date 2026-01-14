@@ -70,6 +70,8 @@ export interface SkillNode {
   inferredFrom?: string
   rawConfidence: number
   netConfidence: number
+  usageVerified?: boolean // NEW
+  usageStrength?: number  // NEW
   relations?: SkillRelation[]
   evidence?: EvidenceChain
 }

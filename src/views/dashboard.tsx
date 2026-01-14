@@ -14,6 +14,7 @@ import { useUserStore } from '@/store/user-store'
 import { useQuery } from '@tanstack/react-query'
 import { get } from '@/api/client'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { cn, formatNumber } from '@/lib/utils'
 import {
   Github,
@@ -42,6 +43,28 @@ import {
 } from 'recharts'
 import { motion } from 'framer-motion'
 import { ProjectAnalysisProgress } from '@/components/project-analysis-progress'
+
+// ============================================
+// LOADING SKELETONS
+// ============================================
+function ProjectCardSkeleton() {
+  return (
+    <div className="rounded-xl border border-border/80 bg-card/60 backdrop-blur-md p-4 h-[180px] flex flex-col gap-3">
+      <div className="flex items-start gap-3">
+        <Skeleton className="h-11 w-11 rounded-full shrink-0" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-3 w-full" />
+          <Skeleton className="h-3 w-2/3" />
+        </div>
+      </div>
+      <div className="mt-auto flex items-center gap-2">
+        <Skeleton className="h-5 w-16 rounded-full" />
+        <Skeleton className="h-5 w-16 rounded-full" />
+      </div>
+    </div>
+  )
+}
 
 // ============================================
 // CIRCULAR PROGRESS - Like the screenshot
@@ -116,7 +139,7 @@ function StatCard({
       </div>
       
       {loading ? (
-        <div className="h-9 w-24 bg-muted/50 animate-pulse rounded-lg mb-1" />
+        <Skeleton className="h-9 w-24 rounded-lg mb-1" />
       ) : (
         <div className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight mb-1 truncate">
           {typeof value === 'number' ? formatNumber(value) : value}
@@ -241,17 +264,24 @@ function SkillPill({ skill }: { skill: any }) {
 // ============================================
 // ACTIVITY ITEM
 // ============================================
-function ActivityItem({ activity }: { activity: { source: string; points: number; date: string } }) {
+function ActivityItem({ activity }: { activity: any }) {
+  const isProject = activity.type === 'PROJECT_ANALYZED'
+  
   return (
     <div className="flex items-center gap-3 py-2.5">
-      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-        <Zap className="w-4 h-4 text-primary" />
+      <div className={cn(
+        "w-8 h-8 rounded-lg flex items-center justify-center", 
+        isProject ? "bg-blue-500/10 text-blue-500" : "bg-primary/10 text-primary"
+      )}>
+        {isProject ? <Code2 className="w-4 h-4" /> : <Zap className="w-4 h-4" />}
       </div>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium text-foreground truncate">
-            {activity.source || (activity.points > 0 ? 'Project Scan' : 'Activity')}
+            {activity.description || activity.source || (activity.points > 0 ? 'Project Scan' : 'Activity')}
         </div>
-        <div className="text-xs text-muted-foreground">{new Date(activity.date).toLocaleDateString()}</div>
+        <div className="text-xs text-muted-foreground">
+          {new Date(activity.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+        </div>
       </div>
       <div className="text-sm font-semibold text-primary">+{activity.points}</div>
     </div>
@@ -292,7 +322,8 @@ export default function Dashboard() {
     queryFn: async () => {
       try {
         const res = await get('/v1/jobs/matched') as any
-        return res?.data || []
+        // get() returns response.data.data, so res is { jobs: [...], totalMatched: N }
+        return res?.jobs || res?.data || []
       } catch {
         return []
       }
@@ -325,55 +356,7 @@ export default function Dashboard() {
     }
   }
 
-  // ========== POLLING LOGIC ==========
-  // Use ref to track interval and avoid stale closures
-  const pollingRef = useRef<NodeJS.Timeout | null>(null)
-  const isPollingRef = useRef(false)
 
-  // Start polling when component mounts
-  useEffect(() => {
-    // Function to check and poll
-    const checkAndPoll = async () => {
-      // Get current projects from store
-      const currentProjects = useUserStore.getState().projects
-      
-      // Check if any project needs polling
-      const needsPolling = currentProjects.some(p => {
-        const status = p.analysisStatus?.toLowerCase()
-        return status === 'analyzing' || status === 'pending' || status === 'processing'
-      })
-
-      if (needsPolling) {
-        console.log('[Poll] 🔄 Fetching updates for analyzing projects...')
-        try {
-          await useUserStore.getState().fetchProjects()
-          await useUserStore.getState().fetchAura()
-          await useUserStore.getState().fetchSkills()
-          console.log('[Poll] ✅ Update complete')
-        } catch (err) {
-          console.error('[Poll] ❌ Error:', err)
-        }
-      }
-    }
-
-    // Initial fetch
-    if (user) {
-      console.log('[Poll] 🚀 Starting polling system...')
-      
-      // Poll every 4 seconds
-      pollingRef.current = setInterval(checkAndPoll, 4000)
-      isPollingRef.current = true
-    }
-
-    return () => {
-      if (pollingRef.current) {
-        console.log('[Poll] 🛑 Stopping polling...')
-        clearInterval(pollingRef.current)
-        pollingRef.current = null
-        isPollingRef.current = false
-      }
-    }
-  }, [user]) // Only depends on user
 
   const analyzedCount = projects.filter(p => p.analysisStatus?.toUpperCase() === 'COMPLETED').length
   const topSkills = skills.slice(0, 5)
@@ -539,10 +522,12 @@ export default function Dashboard() {
               {/* Horizontal Scroll on Mobile */}
               <div className="flex lg:flex-col gap-3 overflow-x-auto pb-4 lg:pb-0 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-primary/10 w-full min-w-0 touch-pan-x">
               {isLoadingProjects ? (
-                <div className="p-8 flex flex-col items-center justify-center w-full gap-2">
-                  <RefreshCw className="w-5 h-5 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Refresh karo</span>
-                </div>
+                // Show 3 skeleton cards while loading
+                [1, 2, 3].map((i) => (
+                  <div key={i} className="w-[85vw] max-w-[300px] shrink-0 snap-center">
+                    <ProjectCardSkeleton />
+                  </div>
+                ))
               ) : projects.length > 0 ? (
                 projects.map((project: any) => (
                   <div key={project.id} className="w-[85vw] max-w-[300px] shrink-0 snap-center">
@@ -636,7 +621,7 @@ export default function Dashboard() {
             <div className="p-4 space-y-2">
               {isLoadingSkills ? (
                 [1,2,3].map(i => (
-                  <div key={i} className="h-11 bg-muted/50 animate-pulse rounded-xl" />
+                  <Skeleton key={i} className="h-11 rounded-xl" />
                 ))
               ) : topSkills.length > 0 ? (
                 topSkills.map((skill: any, i: number) => (

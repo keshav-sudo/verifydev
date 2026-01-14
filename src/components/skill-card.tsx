@@ -21,18 +21,19 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 
-interface Skill {
+interface SkillProps {
   id: string
   name: string
   category: string
   score: number
-  isVerified: boolean
-  evidenceCount: number
+  isVerified: boolean      // Legacy field (keep for compatibility)
+  usageVerified?: boolean  // NEW: Strict usage verification
+  evidence: string[]       // Changed from evidenceCount to string array
   lastUsed?: string
 }
 
 interface SkillCardProps {
-  skill: Skill
+  skill: SkillProps
   onViewEvidence?: (skillId: string) => void
   compact?: boolean
   className?: string
@@ -44,6 +45,9 @@ export function SkillCard({
   compact = false,
   className,
 }: SkillCardProps) {
+  // Use usageVerified if available, otherwise fall back to isVerified
+  const isVerified = skill.usageVerified ?? skill.isVerified
+  
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600 dark:text-green-400'
     if (score >= 60) return 'text-blue-600 dark:text-blue-400'
@@ -68,7 +72,7 @@ export function SkillCard({
       >
         <div className="flex items-center gap-2 flex-1">
           <span className="font-medium">{skill.name}</span>
-          {skill.isVerified && <VerifiedBadge size="sm" />}
+          {isVerified && <VerifiedBadge size="sm" />}
         </div>
         <div className="flex items-center gap-3">
           <div className="text-right">
@@ -76,7 +80,7 @@ export function SkillCard({
               {skill.score}%
             </span>
           </div>
-          {skill.isVerified && skill.evidenceCount > 0 && onViewEvidence && (
+          {isVerified && skill.evidence && skill.evidence.length > 0 && onViewEvidence && (
             <Button
               variant="ghost"
               size="sm"
@@ -98,11 +102,15 @@ export function SkillCard({
           <div className="space-y-1">
             <CardTitle className="text-lg flex items-center gap-2">
               {skill.name}
-              {skill.isVerified && (
-                <VerifiedBadge
-                  size="sm"
-                  tooltipText="Verified through project analysis"
-                />
+              {/* USAGE BADGE */}
+              {isVerified ? (
+                <span className="px-2 py-0.5 text-xs font-medium bg-green-500/20 text-green-400 rounded-full border border-green-500/30 flex items-center gap-1">
+                  <VerifiedBadge size="sm" showTooltip={false} /> Verified Usage
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 text-xs font-medium bg-yellow-500/10 text-yellow-500/80 rounded-full border border-yellow-500/20">
+                   Dependency Only
+                </span>
               )}
             </CardTitle>
             <CardDescription className="text-xs">
@@ -134,18 +142,22 @@ export function SkillCard({
         <div className="space-y-1">
           <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
             <div 
-              className={cn("h-full transition-all", getProgressColor(skill.score))} 
+              className={cn("h-full transition-all", isVerified ? 'bg-gradient-to-r from-green-500 to-emerald-400' : 'bg-gray-500')} 
               style={{ width: `${skill.score}%` }} 
             />
           </div>
         </div>
+        
+        <div className="text-right text-xs text-gray-400">
+           {skill.score}% Confidence
+        </div>
 
         {/* Evidence */}
-        {skill.isVerified && skill.evidenceCount > 0 && (
-          <div className="flex items-center justify-between pt-2 border-t">
-            <span className="text-xs text-muted-foreground">
-              {skill.evidenceCount} {skill.evidenceCount === 1 ? 'project' : 'projects'} analyzed
-            </span>
+        {isVerified && skill.evidence && skill.evidence.length > 0 && (
+          <div className="flex items-center justify-between pt-2 border-t mt-2">
+             <span className="text-xs text-muted-foreground truncate max-w-[180px]">
+                Scanning proof: {skill.evidence[0]}
+             </span>
             {onViewEvidence && (
               <Button
                 variant="ghost"
@@ -153,7 +165,7 @@ export function SkillCard({
                 onClick={() => onViewEvidence(skill.id)}
                 className="h-8 text-xs"
               >
-                View Evidence
+                Full Evidence
                 <ExternalLink className="ml-1 w-3 h-3" />
               </Button>
             )}

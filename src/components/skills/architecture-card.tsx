@@ -1,4 +1,6 @@
-﻿/**
+﻿"use client"
+
+/**
  * Architecture Card Component
  * Displays architecture analysis with justification scoring and cargo-cult warnings
  */

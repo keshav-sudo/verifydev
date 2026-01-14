@@ -1,4 +1,6 @@
-﻿/**
+﻿"use client"
+
+/**
  * Hire Signal Badge Component
  * Displays STRONG_HIRE, HIRE, BORDERLINE, NO_HIRE with appropriate styling
  */

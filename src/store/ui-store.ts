@@ -3,14 +3,14 @@ import { persist } from 'zustand/middleware'
 
 interface UIState {
   sidebarOpen: boolean
-  theme: 'light' | 'dark' | 'system'
+  theme: 'light' | 'dark' | 'system' | 'neutral'
   accentColor: string
   commandPaletteOpen: boolean
 
   // Actions
   toggleSidebar: () => void
   setSidebarOpen: (open: boolean) => void
-  setTheme: (theme: 'light' | 'dark' | 'system') => void
+  setTheme: (theme: 'light' | 'dark' | 'system' | 'neutral') => void
   setAccentColor: (color: string) => void
   toggleCommandPalette: () => void
 }
@@ -28,16 +28,23 @@ export const useUIStore = create<UIState>()(
       setTheme: (theme) => {
         set({ theme })
         // Apply theme to document
+        const root = document.documentElement
+        root.classList.remove('dark', 'neutral')
+        
         if (theme === 'dark') {
-          document.documentElement.classList.add('dark')
-        } else if (theme === 'light') {
-          document.documentElement.classList.remove('dark')
-        } else {
-          // System preference
+          root.classList.add('dark')
+        } else if (theme === 'neutral') {
+          root.classList.add('neutral')
+          // Neutral can be considered a dark variant or separate.
+          // Usually we want dark text on light, or light text on dark.
+          // Let's assume Neutral is a Dark Gray theme, so we check preferences or just force it.
+          // Or if it's a light neutral? "Neutral time jo io theme match".
+          // Let's make Neutral a "System-like" gray theme.
+          // For now, I will treat it as a distinct class that overrides colors.
+          root.classList.add('dark') // Inherit dark mode text colors suitable for dark gray
+        } else if (theme === 'system') {
           if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.classList.add('dark')
-          } else {
-            document.documentElement.classList.remove('dark')
+            root.classList.add('dark')
           }
         }
       },

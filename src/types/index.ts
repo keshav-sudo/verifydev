@@ -1,4 +1,6 @@
 ﻿// User Types
+import { Job, ExperienceLevel } from './job'
+
 export interface User {
   id: string
   githubId: string
@@ -155,36 +157,7 @@ export interface OptimizationSuggestion {
 }
 
 // Job Types
-export interface Job {
-  id: string
-  recruiterId: string
-  title: string
-  company: string
-  companyLogo?: string
-  location: string
-  type: JobType
-  experienceLevel: ExperienceLevel
-  salaryMin?: number
-  salaryMax?: number
-  salaryCurrency: string
-  description: string
-  requirements: string[]
-  requiredSkills: string[]
-  skills: string[]
-  minAuraScore?: number
-  status: JobStatus
-  applicationsCount: number
-  viewsCount?: number
-  isRemote?: boolean
-  minCoreCount?: number
-  preferredSkills?: string[]
-  createdAt: string
-  updatedAt: string
-}
 
-export type JobType = 'full-time' | 'part-time' | 'contract' | 'freelance' | 'internship'
-export type ExperienceLevel = 'entry' | 'mid' | 'senior' | 'lead' | 'executive'
-export type JobStatus = 'draft' | 'active' | 'paused' | 'closed'
 
 export interface JobApplication {
   id: string
@@ -256,6 +229,8 @@ export interface VerifiedSkill {
   weight?: number // Importance (1-10)
   verifiedAt?: string // When skill was verified
   projectCount?: number // Number of projects using this skill
+  usageVerified?: boolean // NEW: Verified by actual code usage
+  usageStrength?: number  // NEW: Strength of usage evidence (0-1)
 }
 
 export interface SystemArchitecture {
@@ -497,4 +472,6 @@ export * from './interview'
 export * from './message'
 export * from './application'
 export * from './job'
+export * from './dimensions'
+export * from './intelligence-v2'
 

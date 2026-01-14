@@ -33,9 +33,12 @@ export interface RecruiterRegisterData {
   email: string
   password: string
   name: string
+  position: string
   organizationName: string
-  organizationWebsite?: string
-  position?: string
+  organizationWebsite: string
+  industry: string
+  organizationSize: string
+  organizationDescription?: string
 }
 
 export interface RecruiterLoginData {
@@ -239,6 +242,16 @@ export const refreshRecruiterToken = (refreshToken: string) => {
  */
 export const getCurrentRecruiter = () => {
   return get<Recruiter>('/v1/recruiters/me')
+}
+
+/**
+ * Get public recruiter profile by ID
+ */
+export const getPublicRecruiterProfile = (userId: string) => {
+  return get<{ 
+    recruiter: { id: string; name: string; title?: string; avatarUrl?: string };
+    organization: { id: string; name: string; slug: string; logo?: string; isVerified: boolean };
+  }>(`/v1/recruiters/public/${userId}`)
 }
 
 /**

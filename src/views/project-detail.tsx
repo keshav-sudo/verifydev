@@ -14,6 +14,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 import { get } from '@/api/client'
 import { formatNumber, getLanguageColor, cn } from '@/lib/utils'
 import { IntelligenceVerdictCard } from '@/components/intelligence-verdict-card'
@@ -51,6 +52,7 @@ import {
   Lock,
   ChevronDown,
   ChevronUp,
+  FolderTree,
 } from 'lucide-react'
 import {
   RadarChart,
@@ -413,7 +415,7 @@ interface ArchitectureData {
   engineeringLevel?: string
 }
 
-function LegacyArchitectureCard({ architecture }: { architecture: ArchitectureData }) {
+function LegacyArchitectureCard({ architecture, folderStructure }: { architecture: ArchitectureData; folderStructure?: any }) {
   if (!architecture) return null
   
   const archTypeLabels: Record<string, string> = {
@@ -456,6 +458,32 @@ function LegacyArchitectureCard({ architecture }: { architecture: ArchitectureDa
                 <p className="text-lg font-bold text-blue-400">{architecture.serviceCount} Services</p>
               </div>
               <Server className="h-8 w-8 text-blue-500/50" />
+            </div>
+          )}
+          
+          {/* Folder Structure */}
+          {folderStructure?.topLevelFolders && folderStructure.topLevelFolders.length > 0 && (
+            <div>
+              <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5">
+                <FolderTree className="w-3.5 h-3.5" />
+                Top-Level Folders ({folderStructure.topLevelFolders.length})
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {folderStructure.topLevelFolders.map((folder: string, i: number) => (
+                  <Badge 
+                    key={i} 
+                    variant="outline" 
+                    className="bg-muted/50 font-mono text-xs"
+                  >
+                    📁 {folder}
+                  </Badge>
+                ))}
+              </div>
+              {folderStructure.maxDepth && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Max depth: {folderStructure.maxDepth} levels
+                </p>
+              )}
             </div>
           )}
           
@@ -507,7 +535,7 @@ function LegacyArchitectureCard({ architecture }: { architecture: ArchitectureDa
               <Target className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">Engineering Level:</span>
               <Badge className={cn(
-                architecture.engineeringLevel === 'Production-grade' 
+                architecture.engineeringLevel === 'Production-grade' || architecture.engineeringLevel === 'PRODUCTION'
                   ? 'bg-emerald-500/20 text-emerald-400'
                   : architecture.engineeringLevel === 'Advanced'
                     ? 'bg-blue-500/20 text-blue-400'
@@ -1355,19 +1383,35 @@ export default function ProjectDetail() {
       const raw = response.project
       
       // Map backend fields to frontend expected fields
-      // Handle the nested fullAnalysis.industryAnalysis structure
+      // Handle the nested fullAnalysis structure
       const fullAnalysis = raw.fullAnalysis || {}
-      const industryAnalysisFromFull = fullAnalysis.industryAnalysis || {}
       const topLevelIndustry = raw.industryAnalysis || {}
       
-      // Merge industry analysis - prefer fullAnalysis version as it has more data
+      // Get verified skills from fullAnalysis (this is where they actually are!)
+      const verifiedSkills = fullAnalysis.verifiedSkills || topLevelIndustry.verifiedSkills || []
+      
+      // Group skills by category for better organization
+      const skillsByCategory: Record<string, any[]> = {}
+      verifiedSkills.forEach((skill: any) => {
+        const category = (skill.category || 'OTHER').toUpperCase()
+        if (!skillsByCategory[category]) {
+          skillsByCategory[category] = []
+        }
+        skillsByCategory[category].push(skill)
+      })
+      
+      // Merge industry analysis with actual verified skills data
       const mergedIndustryAnalysis = {
-        ...topLevelIndustry,
-        ...industryAnalysisFromFull,
-        verifiedSkills: industryAnalysisFromFull.verifiedSkills || topLevelIndustry.verifiedSkills || [],
-        skillsByCategory: industryAnalysisFromFull.skillsByCategory || topLevelIndustry.skillsByCategory || {},
-        infraSignals: industryAnalysisFromFull.infraSignals || topLevelIndustry.infraSignals || {},
-        architecture: industryAnalysisFromFull.architecture || topLevelIndustry.architecture || null,
+        verifiedSkills: verifiedSkills,
+        skillsByCategory: skillsByCategory,
+        totalSkills: verifiedSkills.length,
+        highConfidenceSkills: verifiedSkills.filter((s: any) => s.confidence >= 0.8).length,
+        resumeReadySkills: verifiedSkills.filter((s: any) => s.resumeReady).length,
+        overallScore: raw.overallScore || raw.auraContribution || 0,
+        engineeringLevel: fullAnalysis.architecture?.engineeringLevel || topLevelIndustry.engineeringLevel || 'Unknown',
+        technologies: topLevelIndustry.technologies || [],
+        infraSignals: fullAnalysis.infraSignals || topLevelIndustry.infraSignals || {},
+        architecture: fullAnalysis.architecture || topLevelIndustry.architecture || null,
       }
       
       return {
@@ -1388,15 +1432,90 @@ export default function ProjectDetail() {
     enabled: !!id,
   })
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <div className="text-center">
-          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading project details...</p>
+function ProjectDetailSkeleton() {
+  return (
+    <div className="min-h-screen pb-12 animate-in fade-in duration-500">
+      {/* Hero Skeleton */}
+      <div className="relative border-b border-border/40 bg-card/30 backdrop-blur-xl mb-8">
+        <div className="container max-w-7xl mx-auto px-4 py-8 md:py-10">
+          <div className="flex flex-col md:flex-row gap-6 md:items-start justify-between">
+            <div className="flex items-start gap-5">
+              <Skeleton className="w-16 h-16 md:w-20 md:h-20 rounded-2xl shrink-0" />
+              <div className="space-y-3">
+                <Skeleton className="h-8 w-64 md:w-96" />
+                <Skeleton className="h-4 w-full md:w-[600px]" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-6 w-24 rounded-full" />
+                  <Skeleton className="h-6 w-24 rounded-full" />
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Skeleton className="h-10 w-32" />
+              <Skeleton className="h-10 w-10 md:w-32" />
+            </div>
+          </div>
         </div>
       </div>
-    )
+
+      <div className="container max-w-7xl mx-auto px-4">
+        {/* Stats Grid Skeleton */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="p-5 rounded-xl border border-border/50 bg-card/40 space-y-3">
+              <div className="flex justify-between">
+                <Skeleton className="w-8 h-8 rounded-lg" />
+                <Skeleton className="w-12 h-5 rounded-full" />
+              </div>
+              <Skeleton className="h-8 w-24" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+          ))}
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-8">
+            {/* Tech Stack Skeleton */}
+            <div className="bg-card/40 border border-border/50 rounded-xl p-6 space-y-4">
+              <Skeleton className="h-6 w-32 mb-4" />
+              <div className="flex flex-wrap gap-2">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <Skeleton key={i} className="h-9 w-24 rounded-full" />
+                ))}
+              </div>
+            </div>
+
+            {/* Analysis Skeleton */}
+            <div className="bg-card/40 border border-border/50 rounded-xl p-6 space-y-6">
+              <Skeleton className="h-6 w-48" />
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="space-y-2">
+                    <div className="flex justify-between">
+                      <Skeleton className="h-5 w-32" />
+                      <Skeleton className="h-5 w-12" />
+                    </div>
+                    <Skeleton className="h-2 w-full rounded-full" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+             {/* Radar Chart Skeleton */}
+             <div className="bg-card/40 border border-border/50 rounded-xl p-6 flex flex-col items-center justify-center h-[400px]">
+                <Skeleton className="w-64 h-64 rounded-full rounded-full" />
+             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+  if (isLoading) {
+    return <ProjectDetailSkeleton />
   }
 
   if (error || !project) {
@@ -1422,6 +1541,7 @@ export default function ProjectDetail() {
   const verifiedSkills = industryAnalysis.verifiedSkills || []
   const skillsByCategory = industryAnalysis.skillsByCategory || {}
   const overallScore = industryAnalysis.overallScore || project.auraContribution || 0
+  
   
   // Metrics for radar chart
   const metrics = project.metrics
@@ -1806,7 +1926,10 @@ export default function ProjectDetail() {
       {/* ===== ARCHITECTURE & TECH STACK ===== */}
       {fullAnalysis.industryAnalysis?.architecture && (
         <div className="grid md:grid-cols-2 gap-4">
-          <LegacyArchitectureCard architecture={fullAnalysis.industryAnalysis.architecture} />
+          <LegacyArchitectureCard 
+            architecture={fullAnalysis.industryAnalysis.architecture} 
+            folderStructure={fullAnalysis.folderStructure}
+          />
           {(fullAnalysis.techStack || verifiedSkills.length > 0) && (
             <TechStackCard 
               techStack={fullAnalysis.techStack || {}} 

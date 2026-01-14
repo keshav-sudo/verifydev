@@ -162,9 +162,10 @@ export default function Jobs() {
       try {
         const response = await get<any>(`${endpoint}?${params}`)
         
-        // Handle response differences
-        const jobs = response.data?.jobs || response.jobs || []
-        const total = response.data?.totalMatched || response.meta?.total || response.total || 0
+        // Handle response differences - get() returns response.data.data,
+        // so 'response' is already the inner data object { jobs: [...], totalMatched: N }
+        const jobs = response?.jobs || response?.data?.jobs || []
+        const total = response?.totalMatched || response?.total || response?.meta?.total || response?.data?.totalMatched || jobs.length || 0
         const totalPages = Math.ceil(total / 10) || 0
         
         return {

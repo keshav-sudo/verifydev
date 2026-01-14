@@ -19,8 +19,11 @@ interface SkillMatch {
 }
 
 export function JobMatchDetails({ job, userSkills, userAura, className }: JobMatchDetailsProps) {
+  // Use requiredSkills array (strings), fallback to empty array
+  const jobSkills = job.requiredSkills || [];
+  
   // Calculate skill matches
-  const skillMatches: SkillMatch[] = job.skills.map(required => {
+  const skillMatches: SkillMatch[] = jobSkills.map(required => {
     const userSkill = userSkills.find(s => 
       s.name.toLowerCase() === required.toLowerCase() ||
       s.name.toLowerCase().includes(required.toLowerCase()) ||
@@ -34,8 +37,8 @@ export function JobMatchDetails({ job, userSkills, userAura, className }: JobMat
   })
 
   const matchedSkills = skillMatches.filter(s => s.hasSkill)
-  const skillMatchPercent = job.skills.length > 0 
-    ? Math.round((matchedSkills.length / job.skills.length) * 100) 
+  const skillMatchPercent = jobSkills.length > 0 
+    ? Math.round((matchedSkills.length / jobSkills.length) * 100) 
     : 0
 
   // Aura match
@@ -76,7 +79,7 @@ export function JobMatchDetails({ job, userSkills, userAura, className }: JobMat
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">Skills Match</span>
             <span className="text-sm text-muted-foreground">
-              {matchedSkills.length}/{job.skills.length} skills
+              {matchedSkills.length}/{jobSkills.length} skills
             </span>
           </div>
           <Progress value={skillMatchPercent} className="h-2 mb-3" />

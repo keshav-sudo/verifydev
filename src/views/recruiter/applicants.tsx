@@ -28,12 +28,14 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import { toast } from '@/hooks/use-toast'
 import { get, put } from '@/api/client'
 import { AuraScore } from '@/components/aura-score'
 import { MatchScore } from '@/components/match-score'
 import { VerifiedBadge } from '@/components/verified-badge'
+import { SendMessageDialog } from '@/components/messaging/send-message-dialog'
 import {
   ArrowLeft,
   User,
@@ -49,6 +51,7 @@ import {
   MapPin,
   Star,
   ChevronDown,
+  Mail,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
@@ -61,7 +64,15 @@ interface Applicant {
   appliedAt: string
   note?: string
   recruiterNotes?: string
-  user: {
+  // API returns flat candidate data - we'll transform it
+  candidateName?: string
+  candidateEmail?: string
+  candidatePhone?: string
+  candidateAura?: number
+  candidateCores?: number
+  candidateSkills?: string[]
+  // Transformed user object for UI
+  user?: {
     id: string
     name: string
     email: string
@@ -104,6 +115,11 @@ export default function ApplicantsPage() {
   const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState('all')
   const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null)
+  
+  // Messaging & Notes state
+  const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false)
+  const [messageApplicant, setMessageApplicant] = useState<Applicant | null>(null)
+  
   const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false)
   const [noteText, setNoteText] = useState('')
 
@@ -121,8 +137,31 @@ export default function ApplicantsPage() {
   const { data: applicants = [], isLoading: applicantsLoading } = useQuery({
     queryKey: ['applicants', jobId],
     queryFn: async () => {
-      const res = await get<{ applications: Applicant[] }>(`/v1/recruiters/jobs/${jobId}/applications`)
-      return res.applications
+      // Use /v1/recruiter (singular) -> goes to job-service
+      const res = await get<{ applications: any[] }>(`/v1/recruiter/jobs/${jobId}/applicants`)
+      
+      // Transform flat API response to expected UI format
+      return res.applications.map((app: any) => ({
+        ...app,
+        // Create nested user object from flat candidate fields
+        user: {
+          id: app.userId,
+          name: app.candidateName || 'Unknown',
+          email: app.candidateEmail || '',
+          avatarUrl: undefined, // API doesn't return this
+          location: undefined,
+          title: undefined,
+          githubUsername: undefined,
+        },
+        // Map aura data
+        aura: app.candidateAura ? {
+          overallScore: app.candidateAura,
+          level: app.candidateCores || 1,
+          isVerified: false,
+        } : undefined,
+        // Map skills for matching
+        matchedSkills: app.candidateSkills || [],
+      })) as Applicant[]
     },
     enabled: !!jobId,
   })
@@ -187,7 +226,6 @@ export default function ApplicantsPage() {
           <ArrowLeft className="w-4 h-4" />
           Back to jobs
         </Link>
-
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-2">{job?.title}</h1>
@@ -235,6 +273,10 @@ export default function ApplicantsPage() {
                     setNoteText(applicant.recruiterNotes || '')
                     setIsNoteDialogOpen(true)
                   }}
+                  onMessage={() => {
+                    setMessageApplicant(applicant)
+                    setIsMessageDialogOpen(true)
+                  }}
                 />
               ))
             )}
@@ -248,7 +290,7 @@ export default function ApplicantsPage() {
           <DialogHeader>
             <DialogTitle>Internal Notes</DialogTitle>
             <DialogDescription>
-              Add private notes about {selectedApplicant?.user.name}
+              Add private notes about {selectedApplicant?.user?.name || 'Applicant'}
             </DialogDescription>
           </DialogHeader>
           <Textarea
@@ -276,6 +318,19 @@ export default function ApplicantsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Send Message Dialog */}
+      {messageApplicant && (
+        <SendMessageDialog
+          open={isMessageDialogOpen}
+          onOpenChange={setIsMessageDialogOpen}
+          candidateId={messageApplicant.userId}
+          candidateName={messageApplicant.user?.name || 'Applicant'}
+          candidateAvatar={messageApplicant.user?.avatarUrl}
+          jobId={jobId}
+          jobTitle={job?.title}
+        />
+      )}
     </div>
   )
 }
@@ -286,9 +341,10 @@ interface ApplicantCardProps {
   index: number
   onStatusChange: (status: string) => void
   onAddNote: () => void
+  onMessage: () => void
 }
 
-function ApplicantCard({ applicant, job, index, onStatusChange, onAddNote }: ApplicantCardProps) {
+function ApplicantCard({ applicant, job, index, onStatusChange, onAddNote, onMessage }: ApplicantCardProps) {
   const status = STATUS_CONFIG[applicant.status]
   const StatusIcon = status.icon
 
@@ -299,156 +355,188 @@ function ApplicantCard({ applicant, job, index, onStatusChange, onAddNote }: App
       exit={{ opacity: 0, y: -20 }}
       transition={{ delay: index * 0.05 }}
     >
-      <Card className="border border-border/50 hover:shadow-md transition-shadow">
-        <CardContent className="p-6">
-          <div className="flex items-start gap-6">
-            {/* Avatar */}
-            <Avatar className="w-16 h-16">
-              <AvatarImage src={applicant.user.avatarUrl} />
-              <AvatarFallback className="text-lg">
-                {applicant.user.name.split(' ').map(n => n[0]).join('')}
-              </AvatarFallback>
-            </Avatar>
+      <Card className="border border-border/50 hover:shadow-lg transition-all duration-300">
+        <CardContent className="p-4 md:p-6">
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Avatar & Header Section - Stacked on Mobile */}
+            <div className="flex items-start md:w-auto gap-4">
+               {/* Avatar */}
+               <Avatar className="w-16 h-16 md:w-20 md:h-20 border-2 border-border shadow-sm">
+                <AvatarImage src={applicant.user?.avatarUrl} className="object-cover" />
+                <AvatarFallback className="text-xl md:text-2xl font-bold bg-gradient-to-br from-primary/10 to-primary/5 text-primary">
+                  {(applicant.user?.name || applicant.candidateName || 'U').substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              
+               {/* Mobile-only Title Section (hidden on desktop to avoid dup) */}
+               <div className="md:hidden flex-1">
+                  <div className="flex justify-between items-start">
+                     <div>
+                        <Link
+                          href={`/recruiter/candidates/${applicant.userId}`}
+                          className="text-lg font-bold hover:text-primary transition-colors block"
+                        >
+                          {applicant.user?.name || applicant.candidateName || 'Unknown'}
+                        </Link>
+                        <p className="text-sm text-muted-foreground">{applicant.user?.title || 'Developer'}</p>
+                     </div>
+                     <Badge className={cn('gap-1 ml-2 whitespace-nowrap', status.color)}>
+                        <StatusIcon className="w-3 h-3" />
+                        {status.label}
+                     </Badge>
+                  </div>
+               </div>
+            </div>
 
-            {/* Main Info */}
+            {/* Main Content */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between mb-2">
+               {/* Desktop Header */}
+               <div className="hidden md:flex items-start justify-between mb-2">
                 <div>
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/recruiter/candidates/${applicant.userId}`}
-                      className="text-xl font-semibold hover:underline"
+                      className="text-xl font-bold hover:text-primary transition-colors"
                     >
-                      {applicant.user.name}
+                      {applicant.user?.name || applicant.candidateName || 'Unknown'}
                     </Link>
-                    {applicant.aura?.isVerified && <VerifiedBadge size="sm" />}
+                    {/* Simplified verification check if available */}
+                    {(applicant as any).isVerified && <VerifiedBadge size="sm" />}
                   </div>
-                  {applicant.user.title && (
-                    <p className="text-muted-foreground">{applicant.user.title}</p>
-                  )}
+                  <p className="text-muted-foreground">{applicant.user?.title}</p>
                 </div>
 
-                {/* Status Badge */}
-                <Badge className={cn('gap-1', status.color, 'text-white')}>
+                <Badge className={cn('gap-1', status.color)}>
                   <StatusIcon className="w-3 h-3" />
                   {status.label}
                 </Badge>
               </div>
 
-              {/* Meta */}
-              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-4">
-                {applicant.user.location && (
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
-                    {applicant.user.location}
+              {/* Meta Info Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-6 text-sm text-muted-foreground mb-4">
+                {applicant.user?.location && (
+                  <span className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-muted-foreground/70" />
+                    {applicant.user?.location}
                   </span>
                 )}
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
+                <span className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground/70" />
                   Applied {format(new Date(applicant.appliedAt), 'MMM d, yyyy')}
                 </span>
-                {applicant.user.githubUsername && (
-                  <a
-                    href={`https://github.com/${applicant.user.githubUsername}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 hover:text-foreground"
-                  >
-                    <Github className="w-4 h-4" />
-                    {applicant.user.githubUsername}
-                  </a>
-                )}
+                
+                <span className="flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-muted-foreground/70" />
+                    <span className="truncate max-w-[150px] sm:max-w-[200px]">
+                        {applicant.user?.email || applicant.candidateEmail}
+                    </span>
+                </span>
               </div>
 
-              {/* Scores */}
-              <div className="flex items-center gap-6 mb-4">
+              {/* Scores & Skills */}
+               <div className="flex flex-wrap items-center gap-4 mb-4 p-3 bg-muted/30 rounded-lg border border-border/50">
                 {applicant.aura && (
-                  <AuraScore score={applicant.aura.overallScore} level={applicant.aura.overallScore} size="sm" showLevel />
+                   <div className="flex items-center gap-2">
+                     <span className="text-xs font-medium uppercase text-muted-foreground">Aura</span>
+                     <span className="font-bold text-foreground">{applicant.aura.overallScore}</span>
+                   </div>
                 )}
+                <div className="h-4 w-px bg-border mx-2 hidden sm:block" />
                 {applicant.matchScore !== undefined && (
-                  <MatchScore score={applicant.matchScore} size="sm" />
+                   <div className="flex items-center gap-2">
+                     <span className="text-xs font-medium uppercase text-muted-foreground">Match</span>
+                     <span className={`font-bold ${applicant.matchScore > 80 ? 'text-green-500' : applicant.matchScore > 50 ? 'text-yellow-500' : 'text-muted-foreground'}`}>
+                        {applicant.matchScore}%
+                     </span>
+                   </div>
                 )}
               </div>
 
-              {/* Skill Match */}
+              {/* Matched Skills Chips */}
               {applicant.matchedSkills && applicant.matchedSkills.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-green-600 dark:text-green-400">
-                    Matched Skills ({applicant.matchedSkills.length}/{job.requiredSkills.length})
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {applicant.matchedSkills.map(skill => (
-                      <Badge key={skill} variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                <div className="mb-4">
+                   <div className="flex flex-wrap gap-2">
+                    {applicant.matchedSkills.slice(0, 5).map(skill => (
+                      <Badge key={skill} variant="secondary" className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-200 dark:border-green-900">
                         {skill}
                       </Badge>
                     ))}
-                    {applicant.missingSkills?.map(skill => (
-                      <Badge key={skill} variant="outline" className="text-muted-foreground">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
+                    {applicant.matchedSkills.length > 5 && (
+                         <span className="text-xs text-muted-foreground self-center">+{applicant.matchedSkills.length - 5} more</span>
+                    )}
+                   </div>
                 </div>
               )}
 
               {/* Recruiter Notes */}
               {applicant.recruiterNotes && (
-                <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    <strong>Note:</strong> {applicant.recruiterNotes}
+                <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                  <p className="text-sm text-yellow-600 dark:text-yellow-400 flex gap-2">
+                    <FileText className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <span className="italic">{applicant.recruiterNotes}</span>
                   </p>
                 </div>
               )}
             </div>
-
-            {/* Actions */}
-            <div className="flex items-center gap-2">
-              <Link href={`/recruiter/candidates/${applicant.userId}`}>
-                <Button variant="outline" size="sm">
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  View Profile
-                </Button>
-              </Link>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    Update Status
-                    <ChevronDown className="w-4 h-4 ml-2" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onStatusChange('REVIEWING')}>
-                    <FileText className="w-4 h-4 mr-2" />
-                    Mark as Reviewing
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onStatusChange('SHORTLISTED')}>
-                    <Star className="w-4 h-4 mr-2" />
-                    Shortlist
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onStatusChange('INTERVIEW')}>
-                    <Calendar className="w-4 h-4 mr-2" />
-                    Move to Interview
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onStatusChange('OFFER')}>
-                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                    Extend Offer
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => onStatusChange('REJECTED')}
-                    className="text-red-600"
+           </div>
+           
+            {/* Footer Actions - Responsive */}
+            <div className="mt-6 pt-4 border-t border-border/50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+               <div className="flex gap-2 w-full sm:w-auto">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={onMessage}
+                    className="flex-1 sm:flex-none gap-2"
                   >
-                    <XCircle className="w-4 h-4 mr-2" />
-                    Reject
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    <MessageSquare className="w-4 h-4" />
+                    Message
+                  </Button>
+                  <Button 
+                    variant="default" 
+                    size="sm"
+                    asChild
+                    className="flex-1 sm:flex-none gap-2"
+                  >
+                    <Link href={`/recruiter/candidates/${applicant.userId}`}>
+                        View Profile <ExternalLink className="w-3 h-3 opacity-70" />
+                    </Link>
+                  </Button>
+               </div>
 
-              <Button variant="ghost" size="icon" onClick={onAddNote}>
-                <MessageSquare className="w-4 h-4" />
-              </Button>
+               <div className="flex items-center gap-2 justify-end">
+                   <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                        Update Status
+                        <ChevronDown className="w-4 h-4 ml-2" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem onClick={() => onStatusChange('REVIEWING')}>
+                        <FileText className="w-4 h-4 mr-2" /> Reviewing
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onStatusChange('SHORTLISTED')}>
+                        <Star className="w-4 h-4 mr-2" /> Shortlist
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onStatusChange('INTERVIEW')}>
+                        <Calendar className="w-4 h-4 mr-2" /> Interview
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onStatusChange('OFFER')}>
+                        <CheckCircle2 className="w-4 h-4 mr-2" /> Extended Offer
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => onStatusChange('REJECTED')} className="text-red-500 focus:text-red-500">
+                        <XCircle className="w-4 h-4 mr-2" /> Reject
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  
+                  <Button variant="ghost" size="icon" onClick={onAddNote} title="Add Internal Note">
+                    <FileText className="w-4 h-4" />
+                  </Button>
+               </div>
             </div>
-          </div>
         </CardContent>
       </Card>
     </motion.div>

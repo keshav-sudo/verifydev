@@ -13,7 +13,7 @@ import type {
   InterviewFeedbackRequest,
 } from '@/types/interview';
 
-const BASE_URL = '/interviews';
+const BASE_URL = '/v1/interviews';
 
 // ============================================
 // INTERVIEW CRUD

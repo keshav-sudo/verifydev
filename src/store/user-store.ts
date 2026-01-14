@@ -15,7 +15,7 @@ interface AuraState {
     github: number
   }
   breakdownDetails: Record<string, any[]>
-  recentGains: Array<{ source: string; points: number; date: string }>
+  recentGains: Array<{ source?: string; description?: string; type?: string; points: number; date: string }>
 }
 
 interface UserState {
@@ -65,12 +65,26 @@ export const useUserStore = create<UserState>((set, get) => ({
   fetchProfile: async () => {
     set({ isLoadingProfile: true, error: null })
     try {
-      const res = await apiClient.get<{ data: { profile: User } }>('/v1/users/me')
-      // Backend returns { data: { profile: {...} } }
-      set({ profile: res.data.data?.profile ?? null, isLoadingProfile: false })
+      const res = await apiClient.get<any>('/v1/users/me')
+      // Handle multiple response formats
+      const responseData = res.data
+      let profile = null
+      
+      if (responseData?.data?.profile) {
+        profile = responseData.data.profile
+      } else if (responseData?.data && responseData.data.id) {
+        profile = responseData.data
+      } else if (responseData?.profile) {
+        profile = responseData.profile
+      } else if (responseData?.id) {
+        profile = responseData
+      }
+      
+      set({ profile, isLoadingProfile: false })
     } catch (err: any) {
+      console.warn('fetchProfile error:', err?.message)
       set({
-        error: err?.message || 'Failed to fetch profile',
+        error: err?.response?.data?.message || err?.message || 'Failed to fetch profile',
         isLoadingProfile: false,
       })
     }
@@ -80,11 +94,13 @@ export const useUserStore = create<UserState>((set, get) => ({
   fetchAura: async () => {
     set({ isLoadingAura: true, error: null })
     try {
-      const res = await apiClient.get<{ data: any }>('/v1/users/me/aura')
-      const data = res.data.data
+      const res = await apiClient.get<any>('/v1/users/me/aura')
+      // Handle multiple response formats
+      const responseData = res.data
+      const data = responseData?.data || responseData || {}
 
       const aura: AuraState = {
-        total: data.total ?? 0,
+        total: data.total ?? data.score ?? 0,
         level: data.level ?? 'novice',
         trend: data.trend ?? 'stable',
         percentile: data.percentile ?? 0,
@@ -107,8 +123,9 @@ export const useUserStore = create<UserState>((set, get) => ({
         lastAuraUpdate: Date.now(),
       })
     } catch (err: any) {
+      console.warn('fetchAura error:', err?.message)
       set({
-        error: err?.message || 'Failed to fetch aura',
+        error: err?.response?.data?.message || err?.message || 'Failed to fetch aura',
         isLoadingAura: false,
       })
     }
@@ -118,21 +135,44 @@ export const useUserStore = create<UserState>((set, get) => ({
   fetchGitHubRepos: async () => {
     set({ isLoadingRepos: true, error: null })
     try {
-      const res = await apiClient.get<{ data: { repos: GitHubRepo[] } }>(
-        '/v1/users/me/repos'
-      )
-      // Backend returns { data: { repos: [...] } }
-      set({ githubRepos: res.data.data?.repos ?? [], isLoadingRepos: false })
+      const res = await apiClient.get<any>('/v1/users/me/repos')
+      // Handle multiple response formats
+      const responseData = res.data
+      let repos: GitHubRepo[] = []
+      
+      if (Array.isArray(responseData?.data?.repos)) {
+        repos = responseData.data.repos
+      } else if (Array.isArray(responseData?.data)) {
+        repos = responseData.data
+      } else if (Array.isArray(responseData?.repos)) {
+        repos = responseData.repos
+      } else if (Array.isArray(responseData)) {
+        repos = responseData
+      }
+      
+      set({ githubRepos: repos, isLoadingRepos: false })
     } catch {
       try {
         await get().syncGitHubProfile()
-        const res = await apiClient.get<{ data: { repos: GitHubRepo[] } }>(
-          '/v1/users/me/repos'
-        )
-        set({ githubRepos: res.data.data?.repos ?? [], isLoadingRepos: false })
+        const res = await apiClient.get<any>('/v1/users/me/repos')
+        const responseData = res.data
+        let repos: GitHubRepo[] = []
+        
+        if (Array.isArray(responseData?.data?.repos)) {
+          repos = responseData.data.repos
+        } else if (Array.isArray(responseData?.data)) {
+          repos = responseData.data
+        } else if (Array.isArray(responseData?.repos)) {
+          repos = responseData.repos
+        } else if (Array.isArray(responseData)) {
+          repos = responseData
+        }
+        
+        set({ githubRepos: repos, isLoadingRepos: false })
       } catch (err: any) {
+        console.warn('fetchGitHubRepos error:', err?.message)
         set({
-          error: err?.message || 'Failed to fetch GitHub repos',
+          error: err?.response?.data?.message || err?.message || 'Failed to fetch GitHub repos',
           isLoadingRepos: false,
         })
       }
@@ -143,14 +183,26 @@ export const useUserStore = create<UserState>((set, get) => ({
   fetchProjects: async () => {
     set({ isLoadingProjects: true, error: null })
     try {
-      const res = await apiClient.get<{ data: { projects: Project[] } }>(
-        '/v1/users/me/projects'
-      )
-      // Backend returns { data: { projects: [...] } }
-      set({ projects: res.data.data?.projects ?? [], isLoadingProjects: false })
+      const res = await apiClient.get<any>('/v1/users/me/projects')
+      // Handle multiple response formats
+      const responseData = res.data
+      let projects: Project[] = []
+      
+      if (Array.isArray(responseData?.data?.projects)) {
+        projects = responseData.data.projects
+      } else if (Array.isArray(responseData?.data)) {
+        projects = responseData.data
+      } else if (Array.isArray(responseData?.projects)) {
+        projects = responseData.projects
+      } else if (Array.isArray(responseData)) {
+        projects = responseData
+      }
+      
+      set({ projects, isLoadingProjects: false })
     } catch (err: any) {
+      console.warn('fetchProjects error:', err?.message)
       set({
-        error: err?.message || 'Failed to fetch projects',
+        error: err?.response?.data?.message || err?.message || 'Failed to fetch projects',
         isLoadingProjects: false,
       })
     }
@@ -160,11 +212,26 @@ export const useUserStore = create<UserState>((set, get) => ({
   fetchSkills: async () => {
     set({ isLoadingSkills: true, error: null })
     try {
-      const res = await apiClient.get<{ data: VerifiedSkill[] }>('/v1/users/me/skills')
-      set({ skills: res.data.data ?? [], isLoadingSkills: false })
+      const res = await apiClient.get<any>('/v1/users/me/skills')
+      // Handle multiple response formats
+      const responseData = res.data
+      let skills: VerifiedSkill[] = []
+      
+      if (Array.isArray(responseData?.data?.skills)) {
+        skills = responseData.data.skills
+      } else if (Array.isArray(responseData?.data)) {
+        skills = responseData.data
+      } else if (Array.isArray(responseData?.skills)) {
+        skills = responseData.skills
+      } else if (Array.isArray(responseData)) {
+        skills = responseData
+      }
+      
+      set({ skills, isLoadingSkills: false })
     } catch (err: any) {
+      console.warn('fetchSkills error:', err?.message)
       set({
-        error: err?.message || 'Failed to fetch skills',
+        error: err?.response?.data?.message || err?.message || 'Failed to fetch skills',
         isLoadingSkills: false,
       })
     }

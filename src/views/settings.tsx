@@ -47,6 +47,7 @@ import {
   Sparkles,
   BellRing,
   UserCheck,
+  Layers, // Added Layers
 } from 'lucide-react'
 
 // Animation variants
@@ -590,7 +591,7 @@ export default function Settings() {
                 <CardContent className="space-y-8 relative">
                   <div>
                     <h3 className="font-semibold mb-5 text-base">Theme Preference</h3>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                       <motion.button
                         whileHover={{ scale: 1.03, y: -4 }}
                         whileTap={{ scale: 0.98 }}
@@ -638,6 +639,34 @@ export default function Settings() {
                         <p className="font-semibold text-sm">Dark</p>
                         <p className="text-xs text-muted-foreground mt-1">Easy on eyes</p>
                         {theme === 'dark' && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="absolute top-3 right-3"
+                          >
+                            <Check className="h-5 w-5 text-primary" />
+                          </motion.div>
+                        )}
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.03, y: -4 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setTheme('neutral')}
+                        className={cn(
+                          "p-5 rounded-xl border-2 transition-all duration-300 relative overflow-hidden group",
+                          theme === 'neutral' 
+                            ? "border-primary bg-primary/5 shadow-lg shadow-primary/20" 
+                            : "border-border/50 hover:border-primary/40 hover:shadow-md"
+                        )}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-br from-slate-500/10 via-zinc-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="h-20 w-full rounded-xl bg-gradient-to-br from-slate-900 to-zinc-900 border border-slate-700 mb-4 flex items-center justify-center shadow-md relative overflow-hidden">
+                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(148,163,184,0.1),transparent)]" />
+                          <Layers className="h-10 w-10 text-slate-400 relative z-10" />
+                        </div>
+                        <p className="font-semibold text-sm">Neutral</p>
+                        <p className="text-xs text-muted-foreground mt-1">Modern Slate</p>
+                        {theme === 'neutral' && (
                           <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}

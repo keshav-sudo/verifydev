@@ -174,7 +174,7 @@ export const markAllAsRead = async (): Promise<{
   success: boolean;
   data: { count: number };
 }> => {
-  return post(`${BASE_URL}/read-all`);
+  return post(`${BASE_URL}/mark-all-read`);
 };
 
 /**

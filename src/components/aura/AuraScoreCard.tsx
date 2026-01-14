@@ -19,7 +19,7 @@ interface AuraScoreCardProps {
   trend: 'up' | 'down' | 'stable'
   percentile: number
   breakdown: AuraBreakdownSimple
-  recentGains?: Array<{ source: string; points: number; date: string }>
+  recentGains?: Array<{ source?: string; description?: string; type?: string; points: number; date: string }>
 }
 
 const categoryConfig: Record<string, { icon: React.ComponentType<any>; color: string; maxPoints: number; description: string }> = {
@@ -307,7 +307,7 @@ export function AuraScoreCard({ total, level, trend, percentile, breakdown, rece
                     transition={{ delay: idx * 0.1 }}
                     className="flex items-center justify-between text-sm"
                   >
-                    <span className="text-muted-foreground">{gain.source}</span>
+                    <span className="text-muted-foreground truncate">{gain.description || gain.source || 'Activity Gain'}</span>
                     <span className="text-green-400 font-mono">+{gain.points}</span>
                   </motion.div>
                 ))}

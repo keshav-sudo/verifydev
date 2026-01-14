@@ -1,4 +1,6 @@
-﻿/**
+﻿"use client"
+
+/**
  * Skill Card v2 Component
  * Displays skills with VERIFIED/INFERRED/CLAIMED states and evidence chain support
  */
@@ -32,9 +34,18 @@ export interface SkillCardV2Props {
 }
 
 // Verification status helpers
+
+// Verification status helpers
 function getVerificationStatus(skill: SkillNode): SkillVerificationStatus {
+  // Relaxed Verification Logic matching user expectation:
+  // 1. Explicit Usage Verification (Code usage found)
+  // 2. High Confidence (>= 70%) (Strong patterns found)
+  // 3. Resume Ready (Backend flag)
+  const isHighConfidence = skill.netConfidence >= 70
+  
+  if (skill.usageVerified || isHighConfidence) return 'VERIFIED' 
   if (skill.isInferred) return 'INFERRED'
-  if (skill.isClaimed) return 'VERIFIED'
+  if (skill.isClaimed) return 'CLAIMED'
   return 'CLAIMED'
 }
 
@@ -347,7 +358,7 @@ export function SkillCardV2({ skill, showEvidence = true, compact = false, class
             <h3 className="font-semibold truncate">{skill.name}</h3>
             <StatusBadge status={status} />
           </div>
-          <p className="text-xs text-muted-foreground flex items-center gap-2">
+          <div className="text-xs text-muted-foreground flex items-center gap-2">
             <span>{getTierLabel(skill.tier)}</span>
             {skill.category && (
               <>
@@ -363,7 +374,7 @@ export function SkillCardV2({ skill, showEvidence = true, compact = false, class
                 </Badge>
               </>
             )}
-          </p>
+          </div>
         </div>
         
         {/* Confidence score */}

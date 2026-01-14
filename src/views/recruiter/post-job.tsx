@@ -53,6 +53,19 @@ const jobSchema = z.object({
   isRemote: z.boolean(),
   type: z.enum(['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP']),
   level: z.enum(['ENTRY', 'JUNIOR', 'MID', 'SENIOR', 'LEAD']),
+  category: z.enum([
+    'FRONTEND',
+    'BACKEND',
+    'FULLSTACK',
+    'MOBILE',
+    'DEVOPS',
+    'DATA_ENGINEERING',
+    'MACHINE_LEARNING',
+    'SECURITY',
+    'DESIGN',
+    'QA',
+    'GENERAL',
+  ]),
   salaryMin: z.number().optional(),
   salaryMax: z.number().optional(),
   currency: z.string().default('USD'),
@@ -66,6 +79,20 @@ const POPULAR_SKILLS = [
   'Java', 'PostgreSQL', 'MongoDB', 'Docker', 'Kubernetes', 'AWS',
   'GraphQL', 'REST API', 'Git', 'CI/CD', 'Agile', 'Testing',
 ]
+
+const JOB_CATEGORIES = [
+  { value: 'FRONTEND', label: 'Frontend Development' },
+  { value: 'BACKEND', label: 'Backend Development' },
+  { value: 'FULLSTACK', label: 'Full Stack Development' },
+  { value: 'MOBILE', label: 'Mobile Development' },
+  { value: 'DEVOPS', label: 'DevOps & Infrastructure' },
+  { value: 'DATA_ENGINEERING', label: 'Data Engineering' },
+  { value: 'MACHINE_LEARNING', label: 'AI & Machine Learning' },
+  { value: 'SECURITY', label: 'Cybersecurity' },
+  { value: 'DESIGN', label: 'UI/UX Design' },
+  { value: 'QA', label: 'Quality Assurance' },
+  { value: 'GENERAL', label: 'General / Other' },
+] as const
 
 export default function JobPostingPage() {
   const router = useRouter()
@@ -88,6 +115,7 @@ export default function JobPostingPage() {
       isRemote: false,
       type: 'FULL_TIME',
       level: 'MID',
+      category: 'FULLSTACK',
       currency: 'USD',
     },
   })
@@ -169,7 +197,7 @@ export default function JobPostingPage() {
         isRemote: data.isRemote,
         type: data.type,
         level: data.level,
-        category: 'ENGINEERING' as any, // Default category for dev jobs
+        category: data.category as any,
         salaryMin: data.salaryMin,
         salaryMax: data.salaryMax,
         salaryCurrency: data.currency,
@@ -273,6 +301,31 @@ export default function JobPostingPage() {
                           <SelectItem value="PART_TIME">Part Time</SelectItem>
                           <SelectItem value="CONTRACT">Contract</SelectItem>
                           <SelectItem value="INTERNSHIP">Internship</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {JOB_CATEGORIES.map((category) => (
+                            <SelectItem key={category.value} value={category.value}>
+                              {category.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />

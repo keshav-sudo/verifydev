@@ -215,9 +215,15 @@ function SkillRow({ skill }: { skill: VerifiedSkill }) {
         >
           <Icon className={`h-4 w-4 ${config.color} flex-shrink-0`} />
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="font-medium text-sm truncate">{skill.name}</span>
-              {skill.resumeReady && (
+              {skill.usageVerified && (
+                 <Badge variant="outline" className="h-4 px-1 text-[10px] bg-emerald-500/10 text-emerald-400 border-emerald-500/30 gap-1">
+                    <CheckCircle2 className="h-2 w-2" />
+                    Verified
+                 </Badge>
+              )}
+              {skill.resumeReady && !skill.usageVerified && (
                 <CheckCircle2 className="h-3 w-3 text-emerald-400 flex-shrink-0" />
               )}
             </div>
@@ -241,6 +247,18 @@ function SkillRow({ skill }: { skill: VerifiedSkill }) {
           <p className="text-xs text-muted-foreground">
             Category: <span className={config.color}>{config.label}</span>
           </p>
+          {skill.usageVerified && (
+            <div className="flex items-center gap-2 mt-1 mb-1">
+                <Badge variant="secondary" className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    Code Usage Verified
+                </Badge>
+                {skill.usageStrength && (
+                    <span className="text-[10px] text-muted-foreground">
+                        Strength: {Math.round(skill.usageStrength * 100)}%
+                    </span>
+                )}
+            </div>
+          )}
           {(skill.evidence?.length || 0) > 0 && (
             <div>
               <p className="text-xs font-medium mb-1">Evidence:</p>

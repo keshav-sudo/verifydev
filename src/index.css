@@ -72,6 +72,32 @@
     --gradient-glow: radial-gradient(ellipse at center, hsl(var(--primary) / 0.15), transparent 70%);
   }
 
+  /* Neutral Theme (True Gray/Graphite) - No blue tint, matches standard VSCode/System Dark */
+  .neutral.dark {
+    --background: 0 0% 9%; /* Pure Gray */
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 0 0% 16%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 16%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 0 0% 16%;
+    --accent-foreground: 0 0% 98%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+  }
+
   * {
     @apply border-border;
   }
@@ -488,7 +514,7 @@
     background-size: 200% auto;
     animation: gradient-shift 3s ease infinite;
   }
-
+  
   @keyframes gradient-shift {
     0%, 100% { background-position: 0% center; }
     50% { background-position: 100% center; }
