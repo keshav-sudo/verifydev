@@ -105,7 +105,7 @@ export const useAuthStore = create<AuthState>()(
         // Redirect directly to gateway - browser redirects don't go through Vite proxy
         // In production, this should be the actual API domain
         // In production, this should be the actual API domain
-        const gatewayUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8000'
+        const gatewayUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://api.verifydev.me'
           window.location.href = `${gatewayUrl}/api/v1/auth/github`
       },
 

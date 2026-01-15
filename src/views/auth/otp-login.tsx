@@ -48,7 +48,7 @@ export default function OtpLogin() {
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost'
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://api.verifydev.me'
 
   // Request OTP
   const handleRequestOtp = async (e?: React.FormEvent) => {

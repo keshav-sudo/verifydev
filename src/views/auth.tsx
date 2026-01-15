@@ -76,7 +76,7 @@ export default function AuthPage() {
     position: ''
   })
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost'
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://api.verifydev.me'
 
   // Handle role switch
   const handleRoleSwitch = (newRole: UserRole) => {
