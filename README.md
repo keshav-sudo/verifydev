@@ -1,4 +1,4 @@
-# 🎯 VerifyDev Frontend
+  # 🎯 VerifyDev Frontend
 
 > Modern, production-ready React frontend for the VerifyDev developer verification platform.
 

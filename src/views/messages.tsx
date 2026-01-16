@@ -162,10 +162,12 @@ export default function MessagesPage() {
         return roomArray.map(room => {
             // Find "other" participant - the person we're chatting WITH
             let otherUser;
+            let displayName = 'Unknown User'; // Better default than "Recruiter" or "Candidate"
             
             // Backend helper might return it, or we parse participants
             if (room.otherParticipant) {
                 otherUser = room.otherParticipant;
+                displayName = otherUser.name || displayName;
             } else {
                 // Fallback parsing: determine other participant based on current user role
                 // If I'm a recruiter, show the candidate's info
@@ -173,20 +175,21 @@ export default function MessagesPage() {
                 if (isRecruiter) {
                     otherUser = {
                         userId: room.candidateId,
-                        name: room.candidateName || 'Candidate',
+                        name: room.candidateName,
                         role: 'candidate'
                     };
+                    // Priority: candidateName from room > fallback
+                    displayName = room.candidateName || displayName;
                 } else {
                     otherUser = {
                         userId: room.recruiterId,
-                        name: room.recruiterName || 'Recruiter',
+                        name: room.recruiterName,
                         role: 'recruiter'
                     };
+                    // Priority: recruiterName from room > fallback
+                    displayName = room.recruiterName || displayName;
                 }
             }
-            
-           // Determine display name - always show the OTHER person's name
-           const displayName = otherUser?.name || 'Unknown User';
 
            return {
                roomId: room.roomId,
@@ -210,17 +213,17 @@ export default function MessagesPage() {
     // Fetch target user details when targetUserId changes
     useEffect(() => {
         if (targetUserId && !targetUserDetails) {
-            // Fetch user/recruiter details based on current user role
-            // For now, we'll use a simple approach - the name will be populated when room is fetched
-            // In production, you'd want to fetch the user's profile here
+            // For new conversations, we'll use the userName from URL params if available
+            // Otherwise, we'll show "Chat" temporarily until the room is created with proper names
+            const nameFromUrl = searchParams.get('userName');
             setTargetUserDetails({ 
-                name: isRecruiter ? 'Candidate' : 'Recruiter',
+                name: nameFromUrl || 'Chat',
                 role: isRecruiter ? 'candidate' : 'recruiter'
             });
         } else if (!targetUserId) {
             setTargetUserDetails(null);
         }
-    }, [targetUserId, isRecruiter]);
+    }, [targetUserId, isRecruiter, searchParams]);
 
     // 3. Handle Target User (URL) -> Find or Create Room
     // Track if we've already attempted creation for this targetUserId
@@ -278,14 +281,13 @@ export default function MessagesPage() {
                 const payload: any = {};
                 if (isRecruiter) {
                     payload.candidateId = targetUserId;
-                    // We pass the name from URL params or fetch it
-                    // Backend will use this to populate candidateName in the room
-                    payload.candidateName = searchParams.get('userName') || targetUserDetails?.name || 'Candidate';
+                    // Use userName from URL params, or targetUserDetails, or fallback
+                    payload.candidateName = searchParams.get('userName') || targetUserDetails?.name || 'User';
                     payload.recruiterId = currentUserId;
                     payload.recruiterName = currentUserName || recruiterUser?.companyName || 'Recruiter';
                 } else {
                     payload.recruiterId = targetUserId;
-                    // Same for recruiter name
+                    // Use userName from URL params, or targetUserDetails, or fallback
                     payload.recruiterName = searchParams.get('userName') || targetUserDetails?.name || 'Recruiter';
                     payload.candidateId = currentUserId;
                     payload.candidateName = currentUserName || candidateUser?.username || 'User';

@@ -86,8 +86,8 @@ class ChatService {
     // In development, connect directly to chat-service
     // Support both Next.js (NEXT_PUBLIC_*) and Vite (VITE_*) env vars
     const apiUrl = typeof window !== 'undefined' 
-      ? (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8000')
-      : 'http://localhost:8000';
+      ? (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://api.verifydev.me')
+      : 'https://api.verifydev.me';
     
     try {
         const url = new URL(apiUrl);
@@ -99,7 +99,7 @@ class ChatService {
 
   // Connect to WebSocket server
   connect(token: string): Promise<ConnectionState> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       if (this.socket?.connected) {
         resolve(this.connectionState);
         return;
