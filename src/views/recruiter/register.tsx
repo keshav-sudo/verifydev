@@ -93,14 +93,17 @@ export default function RecruiterRegisterPage() {
     }
   }
 
+  // Check if we have server-side validation error details
+  const serverErrors = (registerMutation.error as any)?.response?.data?.error?.details || {};
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 py-12 px-4 flex justify-center items-start overflow-y-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-2xl"
+        className="w-full max-w-2xl my-auto"
       >
-        <Card className="border-2">
+        <Card className="border-2 shadow-lg">
           <CardHeader className="text-center space-y-2">
             <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-2">
               <Building2 className="w-8 h-8 text-primary" />
@@ -109,36 +112,45 @@ export default function RecruiterRegisterPage() {
             <CardDescription>
               Find verified developers with real, analyzed skills
             </CardDescription>
+            {registerMutation.isError && (
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm mt-4">
+                {(registerMutation.error as any)?.response?.data?.message || 'Registration failed. Please check your inputs.'}
+              </div>
+            )}
           </CardHeader>
 
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-6">
               {/* Personal Information Section */}
               <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-foreground border-b pb-2">Personal Information</h3>
+                <h3 className="text-sm font-semibold text-foreground border-b pb-2 flex items-center gap-2">
+                  <User className="w-4 h-4" /> Personal Information
+                </h3>
                 
                 {/* Name */}
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full Name *</Label>
+                  <Label htmlFor="name" className={errors.name ? 'text-destructive' : ''}>Full Name *</Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <User className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${errors.name ? 'text-destructive' : 'text-muted-foreground'}`} />
                     <Input
                       id="name"
                       name="name"
                       placeholder="John Doe"
                       value={formData.name}
                       onChange={handleChange}
-                      className="pl-10"
+                      className={`pl-10 ${errors.name || serverErrors.name ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                     />
                   </div>
-                  {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+                  {(errors.name || serverErrors.name) && (
+                    <p className="text-sm text-destructive">{errors.name || serverErrors.name?._errors?.[0]}</p>
+                  )}
                 </div>
 
                 {/* Email */}
                 <div className="space-y-2">
-                  <Label htmlFor="email">Work Email *</Label>
+                  <Label htmlFor="email" className={errors.email ? 'text-destructive' : ''}>Work Email *</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${errors.email ? 'text-destructive' : 'text-muted-foreground'}`} />
                     <Input
                       id="email"
                       name="email"
@@ -146,79 +158,92 @@ export default function RecruiterRegisterPage() {
                       placeholder="john@company.com"
                       value={formData.email}
                       onChange={handleChange}
-                      className="pl-10"
+                      className={`pl-10 ${errors.email || serverErrors.email ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                     />
                   </div>
-                  {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+                  {(errors.email || serverErrors.email) && (
+                    <p className="text-sm text-destructive">{errors.email || serverErrors.email?._errors?.[0]}</p>
+                  )}
                 </div>
 
                 {/* Position */}
                 <div className="space-y-2">
-                  <Label htmlFor="position">Your Position *</Label>
+                  <Label htmlFor="position" className={errors.position ? 'text-destructive' : ''}>Your Position *</Label>
                   <div className="relative">
-                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Briefcase className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${errors.position ? 'text-destructive' : 'text-muted-foreground'}`} />
                     <Input
                       id="position"
                       name="position"
                       placeholder="HR Manager, Talent Acquisition Lead, etc."
                       value={formData.position}
                       onChange={handleChange}
-                      className="pl-10"
+                      className={`pl-10 ${errors.position || serverErrors.position ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                     />
                   </div>
-                  {errors.position && <p className="text-sm text-destructive">{errors.position}</p>}
+                  {(errors.position || serverErrors.position) && (
+                    <p className="text-sm text-destructive">{errors.position || serverErrors.position?._errors?.[0]}</p>
+                  )}
                 </div>
               </div>
 
               {/* Organization Details Section */}
               <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-foreground border-b pb-2">Organization Details</h3>
+                <h3 className="text-sm font-semibold text-foreground border-b pb-2 flex items-center gap-2">
+                  <Building2 className="w-4 h-4" /> Organization Details
+                </h3>
                 
                 {/* Company Name */}
                 <div className="space-y-2">
-                  <Label htmlFor="organizationName">Company Name *</Label>
+                  <Label htmlFor="organizationName" className={errors.organizationName ? 'text-destructive' : ''}>Company Name *</Label>
                   <div className="relative">
-                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Building2 className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${errors.organizationName ? 'text-destructive' : 'text-muted-foreground'}`} />
                     <Input
                       id="organizationName"
                       name="organizationName"
                       placeholder="Acme Inc."
                       value={formData.organizationName}
                       onChange={handleChange}
-                      className="pl-10"
+                      className={`pl-10 ${errors.organizationName || serverErrors.organizationName ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                     />
                   </div>
-                  {errors.organizationName && <p className="text-sm text-destructive">{errors.organizationName}</p>}
+                  {(errors.organizationName || serverErrors.organizationName) && (
+                    <p className="text-sm text-destructive">{errors.organizationName || serverErrors.organizationName?._errors?.[0]}</p>
+                  )}
                 </div>
 
                 {/* Company Website */}
                 <div className="space-y-2">
-                  <Label htmlFor="organizationWebsite">Company Website *</Label>
+                  <Label htmlFor="organizationWebsite" className={errors.organizationWebsite ? 'text-destructive' : ''}>Company Website *</Label>
                   <div className="relative">
-                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Globe className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${errors.organizationWebsite ? 'text-destructive' : 'text-muted-foreground'}`} />
                     <Input
                       id="organizationWebsite"
                       name="organizationWebsite"
                       placeholder="https://company.com"
                       value={formData.organizationWebsite}
                       onChange={handleChange}
-                      className="pl-10"
+                      className={`pl-10 ${errors.organizationWebsite || serverErrors.organizationWebsite ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                     />
                   </div>
-                  {errors.organizationWebsite && <p className="text-sm text-destructive">{errors.organizationWebsite}</p>}
+                  <p className="text-xs text-muted-foreground">Must start with http:// or https://</p>
+                  {(errors.organizationWebsite || serverErrors.organizationWebsite) && (
+                    <p className="text-sm text-destructive">{errors.organizationWebsite || serverErrors.organizationWebsite?._errors?.[0]}</p>
+                  )}
                 </div>
 
                 {/* Industry */}
                 <div className="space-y-2">
-                  <Label htmlFor="industry">Industry *</Label>
+                  <Label htmlFor="industry" className={errors.industry ? 'text-destructive' : ''}>Industry *</Label>
                   <div className="relative">
-                    <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+                    <Building className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 z-10 ${errors.industry ? 'text-destructive' : 'text-muted-foreground'}`} />
                     <select
                       id="industry"
                       name="industry"
                       value={formData.industry}
                       onChange={handleChange}
-                      className="w-full pl-10 pr-3 py-2 border border-input bg-background rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      className={`w-full pl-10 pr-3 py-2 border bg-background rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring ${
+                        errors.industry || serverErrors.industry ? 'border-destructive focus:ring-destructive' : 'border-input'
+                      }`}
                     >
                       <option value="">Select industry...</option>
                       <option value="Technology">Technology</option>
@@ -235,20 +260,24 @@ export default function RecruiterRegisterPage() {
                       <option value="Other">Other</option>
                     </select>
                   </div>
-                  {errors.industry && <p className="text-sm text-destructive">{errors.industry}</p>}
+                  {(errors.industry || serverErrors.industry) && (
+                    <p className="text-sm text-destructive">{errors.industry || serverErrors.industry?._errors?.[0]}</p>
+                  )}
                 </div>
 
                 {/* Company Size */}
                 <div className="space-y-2">
-                  <Label htmlFor="organizationSize">Company Size *</Label>
+                  <Label htmlFor="organizationSize" className={errors.organizationSize ? 'text-destructive' : ''}>Company Size *</Label>
                   <div className="relative">
-                    <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+                    <Users className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 z-10 ${errors.organizationSize ? 'text-destructive' : 'text-muted-foreground'}`} />
                     <select
                       id="organizationSize"
                       name="organizationSize"
                       value={formData.organizationSize}
                       onChange={handleChange}
-                      className="w-full pl-10 pr-3 py-2 border border-input bg-background rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      className={`w-full pl-10 pr-3 py-2 border bg-background rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring ${
+                        errors.organizationSize || serverErrors.organizationSize ? 'border-destructive focus:ring-destructive' : 'border-input'
+                      }`}
                     >
                       <option value="">Select company size...</option>
                       <option value="STARTUP">1-10 employees</option>
@@ -258,7 +287,9 @@ export default function RecruiterRegisterPage() {
                       <option value="ENTERPRISE">1000+ employees</option>
                     </select>
                   </div>
-                  {errors.organizationSize && <p className="text-sm text-destructive">{errors.organizationSize}</p>}
+                  {(errors.organizationSize || serverErrors.organizationSize) && (
+                    <p className="text-sm text-destructive">{errors.organizationSize || serverErrors.organizationSize?._errors?.[0]}</p>
+                  )}
                 </div>
 
                 {/* Organization Description */}
@@ -281,13 +312,15 @@ export default function RecruiterRegisterPage() {
 
               {/* Security Section */}
               <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-foreground border-b pb-2">Security</h3>
+                <h3 className="text-sm font-semibold text-foreground border-b pb-2 flex items-center gap-2">
+                  <Lock className="w-4 h-4" /> Security
+                </h3>
                 
                 {/* Password */}
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password *</Label>
+                  <Label htmlFor="password" className={errors.password ? 'text-destructive' : ''}>Password *</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Lock className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${errors.password ? 'text-destructive' : 'text-muted-foreground'}`} />
                     <Input
                       id="password"
                       name="password"
@@ -295,17 +328,20 @@ export default function RecruiterRegisterPage() {
                       placeholder="••••••••"
                       value={formData.password}
                       onChange={handleChange}
-                      className="pl-10"
+                      className={`pl-10 ${errors.password || serverErrors.password ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                     />
                   </div>
-                  {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+                  <p className="text-xs text-muted-foreground">At least 8 characters</p>
+                  {(errors.password || serverErrors.password) && (
+                    <p className="text-sm text-destructive">{errors.password || serverErrors.password?._errors?.[0]}</p>
+                  )}
                 </div>
 
                 {/* Confirm Password */}
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                  <Label htmlFor="confirmPassword" className={errors.confirmPassword ? 'text-destructive' : ''}>Confirm Password *</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Lock className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${errors.confirmPassword ? 'text-destructive' : 'text-muted-foreground'}`} />
                     <Input
                       id="confirmPassword"
                       name="confirmPassword"
@@ -313,7 +349,7 @@ export default function RecruiterRegisterPage() {
                       placeholder="••••••••"
                       value={formData.confirmPassword}
                       onChange={handleChange}
-                      className="pl-10"
+                      className={`pl-10 ${errors.confirmPassword ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                     />
                   </div>
                   {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
