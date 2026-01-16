@@ -278,7 +278,7 @@ export default function RecruiterLayout({ children }: RecruiterLayoutProps) {
             </div>
           </div>
         </div>
-        <div className="flex-1 relative overflow-hidden bg-muted/60 dark:bg-black p-4 sm:p-6 lg:p-8 min-h-[calc(100vh-3.5rem)]">
+        <div className="flex-1 relative overflow-auto bg-muted/60 dark:bg-black p-4 sm:p-6 lg:p-8 h-[calc(100vh-3.5rem)]">
           {/* Premium Background Elements */}
           <div className="absolute inset-0 bg-grid-premium opacity-40 mix-blend-overlay pointer-events-none" />
           <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
