@@ -221,9 +221,11 @@ export default function AuthPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-primary">
-              <Code2 className="w-6 h-6 text-primary-foreground" />
-            </div>
+            <img 
+              src="/logo.png" 
+              alt="VerifyDev" 
+              className="w-10 h-10 rounded-xl shadow-lg"
+            />
             <span className="text-2xl font-bold text-foreground">VerifyDev</span>
           </Link>
         </div>

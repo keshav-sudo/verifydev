@@ -420,10 +420,10 @@ export default function LandingPage() {
 
         <motion.div
           style={{ y: heroY, opacity: heroOpacity }}
-          className="relative z-10 container mx-auto px-4 py-20"
+          className="relative z-10 container mx-auto px-4 py-8 lg:py-12"
         >
           {/* Horizontal Layout: Text Left, Visual Right */}
-          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Left: Text Content */}
             <motion.div
               initial="hidden"
@@ -443,7 +443,7 @@ export default function LandingPage() {
               {/* Main Heading - ULTRA Premium Typography */}
               <motion.h1
                 variants={fadeInUp}
-                className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold mb-6 sm:mb-8 leading-[1.1] tracking-tight"
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 leading-[1.1] tracking-tight"
               >
                 <motion.span
                   className="block bg-gradient-to-r from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent"
@@ -470,7 +470,7 @@ export default function LandingPage() {
               {/* Subheading */}
               <motion.p
                 variants={fadeInUp}
-                className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-xl lg:max-w-none mb-8 sm:mb-12 leading-relaxed px-2 sm:px-0"
+                className="text-lg sm:text-xl md:text-xl text-muted-foreground max-w-xl lg:max-w-none mb-6 sm:mb-8 leading-relaxed px-2 sm:px-0"
               >
                 AI-powered code analysis that creates a <span className="text-foreground font-medium">verified profile</span> of your actual abilities.
                 <br className="hidden md:block" />
@@ -480,7 +480,7 @@ export default function LandingPage() {
               {/* CTA Buttons */}
               <motion.div
                 variants={fadeInUp}
-                className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center lg:justify-start items-center mb-10 sm:mb-16 px-4 sm:px-0"
+                className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center mb-6 sm:mb-10 px-4 sm:px-0"
               >
                 {isAuthenticated ? (
                   <Link href="/dashboard">
