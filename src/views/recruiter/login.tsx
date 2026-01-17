@@ -31,9 +31,11 @@ export default function RecruiterLogin() {
     email: '',
     password: '',
     name: '',
-    company: '',
-    companyWebsite: '',
-    position: ''
+    organizationName: '',
+    organizationWebsite: '',
+    position: '',
+    industry: '',
+    organizationSize: '',
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,7 +54,7 @@ export default function RecruiterLogin() {
     }
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value
@@ -161,7 +163,7 @@ export default function RecruiterLogin() {
                       <input
                         type="text"
                         name="name"
-                        placeholder="Your Name"
+                        placeholder="Your Name *"
                         value={formData.name}
                         onChange={handleInputChange}
                         required
@@ -173,9 +175,9 @@ export default function RecruiterLogin() {
                       <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <input
                         type="text"
-                        name="company"
-                        placeholder="Company Name"
-                        value={formData.company}
+                        name="organizationName"
+                        placeholder="Company Name *"
+                        value={formData.organizationName}
                         onChange={handleInputChange}
                         required
                         className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -186,10 +188,12 @@ export default function RecruiterLogin() {
                       <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <input
                         type="url"
-                        name="companyWebsite"
-                        placeholder="Company Website (optional)"
-                        value={formData.companyWebsite}
+                        name="organizationWebsite"
+                        placeholder="Company Website (https://...) *"
+                        value={formData.organizationWebsite}
                         onChange={handleInputChange}
+                        required
+                        pattern="https?://.+"
                         className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
                       />
                     </div>
@@ -199,11 +203,50 @@ export default function RecruiterLogin() {
                       <input
                         type="text"
                         name="position"
-                        placeholder="Your Position (optional)"
+                        placeholder="Your Position *"
                         value={formData.position}
                         onChange={handleInputChange}
+                        required
                         className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
                       />
+                    </div>
+                    
+                    <div className="relative">
+                      <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                      <select
+                        name="industry"
+                        value={formData.industry}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 appearance-none"
+                      >
+                        <option value="">Select Industry *</option>
+                        <option value="Technology">Technology</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Healthcare">Healthcare</option>
+                        <option value="Education">Education</option>
+                        <option value="E-commerce">E-commerce</option>
+                        <option value="Consulting">Consulting</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    
+                    <div className="relative">
+                      <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                      <select
+                        name="organizationSize"
+                        value={formData.organizationSize}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 appearance-none"
+                      >
+                        <option value="">Select Company Size *</option>
+                        <option value="STARTUP">1-10 employees</option>
+                        <option value="SMALL">11-50 employees</option>
+                        <option value="MEDIUM">51-200 employees</option>
+                        <option value="LARGE">201-1000 employees</option>
+                        <option value="ENTERPRISE">1000+ employees</option>
+                      </select>
                     </div>
                   </>
                 )}
