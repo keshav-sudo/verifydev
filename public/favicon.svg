@@ -1,4 +1,32 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <rect width="32" height="32" rx="8" fill="#8b5cf6"/>
-  <text x="16" y="22" text-anchor="middle" fill="white" font-family="system-ui" font-weight="bold" font-size="18">V</text>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#a855f7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Shield/V Shape -->
+  <path d="M 120 140 Q 120 100, 160 100 L 256 100 L 352 100 Q 392 100, 392 140 L 392 200 L 256 420 L 120 200 Z" 
+        fill="url(#purpleGradient)" 
+        stroke="url(#purpleGradient)" 
+        stroke-width="40" 
+        stroke-linejoin="round" 
+        stroke-linecap="round"/>
+  
+  <!-- V Letter (Code Brackets Style) -->
+  <path d="M 140 140 L 140 180 Q 140 200, 160 220 L 220 320 L 256 380 L 292 320 L 352 220 Q 372 200, 372 180 L 372 140" 
+        fill="none" 
+        stroke="url(#purpleGradient)" 
+        stroke-width="45" 
+        stroke-linejoin="round" 
+        stroke-linecap="round"/>
+  
+  <!-- Orange Checkmark -->
+  <path d="M 200 260 L 240 300 L 340 200" 
+        fill="none" 
+        stroke="#f97316" 
+        stroke-width="35" 
+        stroke-linejoin="round" 
+        stroke-linecap="round"/>
 </svg>

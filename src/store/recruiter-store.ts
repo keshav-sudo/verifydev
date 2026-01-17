@@ -52,9 +52,11 @@ interface RegisterData {
   email: string
   password: string
   name: string
-  company: string
-  companyWebsite?: string
-  position?: string
+  organizationName: string        // Required
+  organizationWebsite: string     // Required
+  position: string                // Required
+  industry: string                // Required
+  organizationSize: string        // Required: STARTUP | SMALL | MEDIUM | LARGE | ENTERPRISE
 }
 
 export const useRecruiterStore = create<RecruiterState>()(
@@ -101,18 +103,10 @@ export const useRecruiterStore = create<RecruiterState>()(
       register: async (data) => {
         set({ isLoading: true, error: null })
         try {
-          // Map frontend field names to backend expected format
-          const payload = {
-            email: data.email,
-            password: data.password,
-            name: data.name,
-            organizationName: data.company, // Backend expects organizationName
-            organizationWebsite: data.companyWebsite,
-            position: data.position
-          };
+          // Send directly - field names now match backend schema exactly
           const response = await apiClient.post<{ data: { recruiter: Recruiter; accessToken: string; refreshToken?: string } }>(
             '/v1/recruiters/register',
-            payload
+            data
           )
           const { recruiter, accessToken, refreshToken } = response.data.data
           set({ 
