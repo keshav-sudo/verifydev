@@ -66,14 +66,16 @@ export default function AuthPage() {
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
 
-  // Recruiter form
+  // Recruiter form - matches backend schema
   const [recruiterForm, setRecruiterForm] = useState({
     email: '',
     password: '',
     name: '',
-    company: '',
-    companyWebsite: '',
-    position: ''
+    organizationName: '',
+    organizationWebsite: '',
+    position: '',
+    industry: '',
+    organizationSize: '',
   })
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://api.verifydev.me'
@@ -193,7 +195,7 @@ export default function AuthPage() {
     }
   }
 
-  const handleRecruiterInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleRecruiterInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setRecruiterForm(prev => ({
       ...prev,
       [e.target.name]: e.target.value
@@ -512,7 +514,7 @@ export default function AuthPage() {
                         <input
                           type="text"
                           name="name"
-                          placeholder="Your Name"
+                          placeholder="Your Name *"
                           value={recruiterForm.name}
                           onChange={handleRecruiterInputChange}
                           required
@@ -524,9 +526,9 @@ export default function AuthPage() {
                         <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <input
                           type="text"
-                          name="company"
-                          placeholder="Company Name"
-                          value={recruiterForm.company}
+                          name="organizationName"
+                          placeholder="Company Name *"
+                          value={recruiterForm.organizationName}
                           onChange={handleRecruiterInputChange}
                           required
                           className="w-full pl-10 pr-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground"
@@ -537,10 +539,12 @@ export default function AuthPage() {
                         <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <input
                           type="url"
-                          name="companyWebsite"
-                          placeholder="Company Website (optional)"
-                          value={recruiterForm.companyWebsite}
+                          name="organizationWebsite"
+                          placeholder="Company Website (https://...) *"
+                          value={recruiterForm.organizationWebsite}
                           onChange={handleRecruiterInputChange}
+                          required
+                          pattern="https?://.+"
                           className="w-full pl-10 pr-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground"
                         />
                       </div>
@@ -550,11 +554,50 @@ export default function AuthPage() {
                         <input
                           type="text"
                           name="position"
-                          placeholder="Your Position (optional)"
+                          placeholder="Your Position *"
                           value={recruiterForm.position}
                           onChange={handleRecruiterInputChange}
+                          required
                           className="w-full pl-10 pr-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground"
                         />
+                      </div>
+                      
+                      <div className="relative">
+                        <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                        <select
+                          name="industry"
+                          value={recruiterForm.industry}
+                          onChange={handleRecruiterInputChange}
+                          required
+                          className="w-full pl-10 pr-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary text-foreground appearance-none"
+                        >
+                          <option value="">Select Industry *</option>
+                          <option value="Technology">Technology</option>
+                          <option value="Finance">Finance</option>
+                          <option value="Healthcare">Healthcare</option>
+                          <option value="Education">Education</option>
+                          <option value="E-commerce">E-commerce</option>
+                          <option value="Consulting">Consulting</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                      
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                        <select
+                          name="organizationSize"
+                          value={recruiterForm.organizationSize}
+                          onChange={handleRecruiterInputChange}
+                          required
+                          className="w-full pl-10 pr-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary text-foreground appearance-none"
+                        >
+                          <option value="">Select Company Size *</option>
+                          <option value="STARTUP">1-10 employees</option>
+                          <option value="SMALL">11-50 employees</option>
+                          <option value="MEDIUM">51-200 employees</option>
+                          <option value="LARGE">201-1000 employees</option>
+                          <option value="ENTERPRISE">1000+ employees</option>
+                        </select>
                       </div>
                     </>
                   )}
