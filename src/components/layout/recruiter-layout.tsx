@@ -101,9 +101,11 @@ export default function RecruiterLayout({ children }: RecruiterLayoutProps) {
         {/* Logo Section with Detailing */}
         <div className="flex h-16 items-center px-4 border-b border-border/50 bg-muted/5">
           <Link href="/recruiter/dashboard" className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 lg:w-9 lg:h-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-bold shadow-lg shadow-primary/20 border border-primary/20">
-              V
-            </div>
+            <img 
+              src="/logo.png" 
+              alt="VerifyDev" 
+              className="w-10 h-10 lg:w-9 lg:h-9 rounded-xl shadow-lg"
+            />
             {(sidebarOpen || mobileMenuOpen) && (
               <div className="flex flex-col">
                 <span className="font-bold text-lg tracking-tight text-foreground leading-none">VerifyDev</span>
