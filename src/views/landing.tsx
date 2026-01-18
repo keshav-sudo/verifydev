@@ -1,11 +1,12 @@
 ﻿"use client"
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { useAuthStore } from '@/store/auth-store'
-import { LottieWrapper } from '@/components/ui/animated-backgrounds'
+import { InteractiveDashboardShowcase } from '@/components/dashboard-showcase'
 import {
   Github,
   Zap,
@@ -70,10 +71,6 @@ const scaleIn = {
   visible: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } }
 }
 
-const floatAnimation = {
-  y: [-10, 10, -10],
-  transition: { duration: 4, repeat: Infinity, ease: "easeInOut" }
-}
 
 // Features data - Enhanced with more info
 const features = [
@@ -232,9 +229,9 @@ const comparisons = {
   ]
 }
 
-// Floating particles component - Theme Aware (optimized for mobile)
+// Floating particles component - Optimized for performance
 function FloatingParticles() {
-  // Check if mobile - skip particles entirely on mobile
+  // Skip particles on mobile entirely
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
   if (isMobile) {
@@ -243,33 +240,24 @@ function FloatingParticles() {
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Glowing orbs - reduced count for performance */}
-      {[...Array(15)].map((_, i) => (
+      {/* Minimal glowing orbs - reduced to 6 for performance */}
+      {[...Array(6)].map((_, i) => (
         <motion.div
           key={i}
-          className={`absolute rounded-full blur-sm ${i % 4 === 0 ? 'bg-primary/40' :
-            i % 4 === 1 ? 'bg-primary/30' :
-              i % 4 === 2 ? 'bg-primary/25' : 'bg-primary/20'
-            }`}
+          className="absolute rounded-full blur-sm bg-primary/30"
           style={{
-            width: Math.random() * 6 + 3,
-            height: Math.random() * 6 + 3,
-          }}
-          initial={{
-            x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
-            y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 800),
+            width: 4 + (i % 3) * 2,
+            height: 4 + (i % 3) * 2,
+            left: `${15 + i * 15}%`,
+            top: `${20 + (i % 3) * 25}%`,
           }}
           animate={{
-            y: [null, Math.random() * -400 - 100],
-            x: [null, `${(Math.random() - 0.5) * 100}px`],
-            opacity: [0, 0.9, 0],
-            scale: [0.3, 1.2, 0.3],
+            y: [-20, 20, -20],
+            opacity: [0.3, 0.6, 0.3],
           }}
           transition={{
-            duration: Math.random() * 6 + 4,
+            duration: 4 + i,
             repeat: Infinity,
-            repeatType: "loop",
-            delay: Math.random() * 4,
             ease: "easeInOut",
           }}
         />
@@ -278,48 +266,13 @@ function FloatingParticles() {
   )
 }
 
-// Aurora background component - Enhanced with more layers
+// Aurora background component - Static for performance
 function AuroraBackground() {
-  // Check if mobile - use simpler static background
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
-
-  if (isMobile) {
-    return (
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="aurora-layer aurora-1" />
-        <div className="aurora-layer aurora-2" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(var(--primary)/0.15),transparent_50%)]" />
-      </div>
-    )
-  }
-
   return (
     <div className="absolute inset-0 overflow-hidden">
-      <motion.div
-        className="aurora-layer aurora-1"
-        animate={{
-          scale: [1, 1.1, 1],
-          rotate: [0, 5, 0],
-        }}
-        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="aurora-layer aurora-2"
-        animate={{
-          scale: [1, 1.15, 1],
-          rotate: [0, -5, 0],
-        }}
-        transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="aurora-layer aurora-3"
-        style={{ willChange: 'transform' }}
-        animate={{
-          scale: [1, 1.2, 1],
-        }}
-        transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
-      />
-      {/* Extra glow layer - uses CSS variable for theme awareness */}
+      <div className="aurora-layer aurora-1" />
+      <div className="aurora-layer aurora-2" />
+      {/* Static glow layers */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(var(--primary)/0.15),transparent_50%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,hsl(var(--primary)/0.1),transparent_50%)]" />
     </div>
@@ -330,6 +283,129 @@ function AuroraBackground() {
 function AnimatedCounter({ value, suffix = "" }: { value: string; suffix?: string }) {
   return (
     <span className="stat-number">{value}{suffix}</span>
+  )
+}
+
+// Horizontal Scroll Features Component - Optimized for less whitespace
+function HorizontalScrollFeatures() {
+  const targetRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [scrollRange, setScrollRange] = useState(0)
+  const [isReady, setIsReady] = useState(false)
+
+  // Measure content to ensure perfect scroll sync
+  useEffect(() => {
+    if (typeof window === "undefined" || !scrollRef.current) return
+
+    const updateScroll = () => {
+      if (!scrollRef.current) return
+      
+      const scrollWidth = scrollRef.current.scrollWidth
+      const clientWidth = window.innerWidth
+      
+      // Calculate exactly how much we need to move - reduced buffer for tighter scroll
+      const scrollNeeded = scrollWidth - clientWidth
+      setScrollRange(scrollNeeded > 0 ? scrollNeeded : 0)
+      setIsReady(true)
+    }
+
+    // Initial measure with small delay for accurate measurements
+    const timer = setTimeout(updateScroll, 100)
+    
+    window.addEventListener("resize", updateScroll)
+    return () => {
+      window.removeEventListener("resize", updateScroll)
+      clearTimeout(timer)
+    }
+  }, [])
+
+  const { scrollYProgress } = useScroll({
+    target: targetRef,
+  })
+
+  // Map vertical scroll to horizontal movement - tighter mapping
+  const x = useTransform(scrollYProgress, [0, 1], [0, -scrollRange])
+
+  // Reduced container height - uses 80vh base for tighter vertical space
+  // The sticky section will pin during the horizontal scroll
+  const containerHeight = isReady && scrollRange > 0 
+    ? `${Math.max(scrollRange * 0.8, window.innerHeight * 1.2)}px` 
+    : "150vh"
+
+  return (
+    <section 
+      ref={targetRef} 
+      style={{ height: containerHeight }} 
+      className="relative bg-background w-full" 
+      id="features"
+    >
+      <div className="sticky top-0 h-screen flex items-center overflow-hidden w-full">
+        {/* Background Effects */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8882_1px,transparent_1px),linear-gradient(to_bottom,#8882_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-[0.05]" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[400px] bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
+
+        <div className="w-full h-full flex items-center max-w-[1920px] mx-auto">
+          <motion.div 
+            ref={scrollRef}
+            style={{ x }} 
+            className="flex gap-6 px-6 md:px-16 items-center w-max"
+          >
+              {/* Header Section as the first "Slide" - More compact */}
+              <div className="w-[80vw] md:w-[450px] flex-shrink-0 pr-8">
+                  <Badge variant="outline" className="mb-4 px-4 py-1.5 border-primary/30">
+                  <Zap className="w-3 h-3 mr-2 text-primary" />
+                  Powerful Features
+                </Badge>
+                <h2 className="section-headline text-3xl md:text-4xl lg:text-5xl mb-4 leading-tight">
+                   <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                    Skills That Speak
+                  </span>
+                  <br />
+                  <span className="bg-gradient-to-r from-primary via-orange-500 to-pink-500 bg-clip-text text-transparent">
+                    For Themselves
+                  </span>
+                </h2>
+                 <p className="subheadline text-base md:text-lg text-muted-foreground max-w-lg leading-relaxed">
+                   We don't just scan your resume. We understand your code at a fundamental level.
+                 </p>
+                 <div className="mt-6 flex items-center gap-2 text-primary font-medium">
+                    <ArrowRight className="w-5 h-5"/> 
+                    <span>Keep scrolling...</span>
+                 </div>
+              </div>
+
+              {/* Feature Cards - Simple & Fast */}
+              {features.map((feature) => (
+                 <div key={feature.title}>
+                   <Card className="w-[280px] md:w-[340px] h-[380px] flex-shrink-0 bg-card/60 backdrop-blur border-border/40 hover:border-primary/50 hover:shadow-xl transition-all duration-300 rounded-[1.5rem] overflow-hidden group">
+                      <CardContent className="p-6 flex flex-col h-full justify-between relative">
+                         {/* Static Gradient Glow */}
+                         <div className={`absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br ${feature.gradient} blur-[60px] opacity-10 group-hover:opacity-30 transition-opacity duration-300`} />
+                         
+                         <div>
+                            <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${feature.gradient} flex items-center justify-center mb-4 shadow-lg`}>
+                               <feature.icon className="w-6 h-6 text-white" />
+                            </div>
+                            <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">{feature.title}</h3>
+                            <p className="text-muted-foreground leading-relaxed text-sm">{feature.description}</p>
+                         </div>
+                         
+                         <div className="pt-4 border-t border-border/20">
+                            <div className="text-sm text-primary font-bold tracking-wide flex items-center justify-between uppercase">
+                               <span>{feature.stats}</span>
+                               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all">
+                                  <ArrowRight className="w-4 h-4 -rotate-45 group-hover:rotate-0 transition-transform duration-300" />
+                               </div>
+                            </div>
+                         </div>
+                      </CardContent>
+                   </Card>
+                 </div>
+              ))}
+          </motion.div>
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -362,10 +438,13 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-2">
-              <img 
+              <Image 
                 src="/logo.png" 
-                alt="VerifyDev" 
-                className="w-9 h-9 rounded-xl shadow-lg"
+                alt="VerifyDev"
+                width={36}
+                height={36}
+                className="rounded-xl shadow-lg"
+                priority
               />
               <span className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">VerifyDev</span>
             </Link>
@@ -422,18 +501,18 @@ export default function LandingPage() {
           style={{ y: heroY, opacity: heroOpacity }}
           className="relative z-10 container mx-auto px-4 py-8 lg:py-12"
         >
-          {/* Horizontal Layout: Text Left, Visual Right */}
-          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            {/* Left: Text Content */}
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={staggerContainer}
-              className="text-center lg:text-left"
-            >
+            {/* Horizontal Layout: Unified Grid */}
+            <div className="grid lg:grid-cols-12 gap-12 items-center">
+              {/* Left: Text Content - Span 7 */}
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={staggerContainer}
+                className="lg:col-span-7 flex flex-col justify-center text-center lg:text-left pt-10 lg:pt-0"
+              >
               {/* Announcement Badge */}
               <motion.div variants={fadeInUp} className="mb-8">
-                <Badge variant="outline" className="px-6 py-2.5 text-sm font-medium border-primary/50 bg-primary/5 backdrop-blur-sm hover:bg-primary/10 transition-colors cursor-pointer group">
+                <Badge variant="outline" className="badge-text px-6 py-2.5 text-sm border-primary/50 bg-primary/5 backdrop-blur-sm hover:bg-primary/10 transition-colors cursor-pointer group">
                   <Sparkles className="w-4 h-4 mr-2 text-primary animate-pulse" />
                   <span>Introducing AI-Powered Skill Verification</span>
                   <ArrowUpRight className="w-3 h-3 ml-2 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
@@ -443,10 +522,10 @@ export default function LandingPage() {
               {/* Main Heading - ULTRA Premium Typography */}
               <motion.h1
                 variants={fadeInUp}
-                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 leading-[1.1] tracking-tight"
+                className="hero-headline text-6xl sm:text-7xl md:text-8xl lg:text-[7rem] mb-6 sm:mb-8 leading-[0.9] tracking-tighter"
               >
                 <motion.span
-                  className="block bg-gradient-to-r from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent"
+                  className="block text-foreground"
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
@@ -454,27 +533,25 @@ export default function LandingPage() {
                   Stop Claiming.
                 </motion.span>
                 <motion.span
-                  className="block mt-2 relative"
+                  className="block mt-2 relative hero-headline-gradient"
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.4 }}
                 >
-                  <span className="bg-gradient-to-r from-primary via-purple-500 to-pink-600 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto] drop-shadow-sm">
+                  <span className="bg-gradient-to-r from-primary via-orange-500 to-pink-600 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">
                     Start Proving.
                   </span>
                   {/* Glow effect behind text - theme aware */}
-                  <span className="absolute inset-0 bg-gradient-to-r from-primary/30 via-primary/20 to-primary/10 blur-2xl -z-10" />
+                  <span className="absolute inset-0 bg-gradient-to-r from-primary/30 via-orange-500/20 to-pink-500/10 blur-3xl -z-10" />
                 </motion.span>
               </motion.h1>
 
               {/* Subheading */}
               <motion.p
                 variants={fadeInUp}
-                className="text-lg sm:text-xl md:text-xl text-muted-foreground max-w-xl lg:max-w-none mb-6 sm:mb-8 leading-relaxed px-2 sm:px-0"
+                className="subheadline text-xl sm:text-2xl md:text-3xl text-muted-foreground max-w-xl lg:max-w-2xl mb-8 sm:mb-12 px-2 sm:px-0 font-light"
               >
-                AI-powered code analysis that creates a <span className="text-foreground font-medium">verified profile</span> of your actual abilities.
-                <br className="hidden md:block" />
-                <span className="text-primary font-medium">Your code tells your story.</span> Let it speak for you.
+                AI-powered code analysis that creates a <span className="text-foreground font-medium">verified profile</span> of your actual abilities. Your code tells your story.
               </motion.p>
 
               {/* CTA Buttons */}
@@ -525,75 +602,15 @@ export default function LandingPage() {
                 ))}
               </motion.div>
 
-            </motion.div>
-
-            {/* Right: Visual Content */}
-            <motion.div
-              variants={scaleIn}
-              className="relative"
-            >
-              {/* Floating Cards - Hidden on mobile, visible on md+ */}
-              <motion.div
-                className="absolute -top-8 left-8 p-4 rounded-xl bg-card/90 backdrop-blur-xl border shadow-xl z-20 hidden md:block"
-                animate={{ y: [-5, 5, -5], rotate: [-2, 2, -2] }}
-                transition={{ duration: 4, repeat: Infinity }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
-                    <CheckCircle2 className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Code Quality</p>
-                    <p className="text-lg font-bold text-green-500">Excellent</p>
-                  </div>
-                </div>
               </motion.div>
 
+              {/* Right: Visual Content - Span 5 */}
               <motion.div
-                className="absolute -top-4 right-8 p-4 rounded-xl bg-card/90 backdrop-blur-xl border shadow-xl z-20 hidden md:block"
-                animate={{ y: [5, -5, 5], rotate: [2, -2, 2] }}
-                transition={{ duration: 3.5, repeat: Infinity }}
+                variants={scaleIn}
+                className="lg:col-span-5 relative h-full flex items-center justify-center lg:justify-end"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center">
-                    <Trophy className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">AURA Score</p>
-                    <p className="text-lg font-bold text-primary">847</p>
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div
-                className="absolute -bottom-4 left-1/4 p-4 rounded-xl bg-card/90 backdrop-blur-xl border shadow-xl z-20 hidden md:block"
-                animate={{ y: [-3, 3, -3], rotate: [-1, 1, -1] }}
-                transition={{ duration: 5, repeat: Infinity }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                    <GitBranch className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Commits Analyzed</p>
-                    <p className="text-lg font-bold text-blue-500">2,847</p>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Main Lottie Animation */}
-              <motion.div
-                animate={floatAnimation}
-                className="relative z-10"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/15 to-primary/10 rounded-[40px] blur-3xl" />
-                <div className="relative bg-card/30 backdrop-blur-sm rounded-3xl border border-border/30 p-8 overflow-hidden">
-                  <LottieWrapper
-                    src="https://assets5.lottiefiles.com/packages/lf20_w51pcehl.json"
-                    style={{ height: '100%', width: '100%', minHeight: '250px', maxHeight: '400px' }}
-                  />
-                </div>
-              </motion.div>
+              {/* Interactive Dashboard Showcase with multiple previews */}
+              <InteractiveDashboardShowcase />
             </motion.div>
           </div>
         </motion.div>
@@ -659,11 +676,11 @@ export default function LandingPage() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-4xl md:text-6xl font-bold mb-6">
+            <motion.h2 variants={fadeInUp} className="section-headline text-4xl md:text-6xl mb-6">
               <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                 Built for
               </span>{" "}
-              <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary via-orange-500 to-pink-500 bg-clip-text text-transparent">
                 Everyone
               </span>
             </motion.h2>
@@ -722,81 +739,20 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Features Section - Enhanced */}
-      <section id="features" className="py-16 md:py-32 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8882_1px,transparent_1px),linear-gradient(to_bottom,#8882_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-[0.05]" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={staggerContainer}
-            className="text-center mb-20"
-          >
-            <motion.div variants={fadeInUp}>
-              <Badge variant="outline" className="mb-6 px-4 py-1.5 border-primary/30">
-                <Zap className="w-3 h-3 mr-2 text-primary" />
-                Powerful Features
-              </Badge>
-            </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-4xl md:text-6xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                Skills That Speak
-              </span>
-              <br />
-              <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-                For Themselves
-              </span>
-            </motion.h2>
-            <motion.p variants={fadeInUp} className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              We don't just scan your resume. We understand your code at a fundamental level.
-            </motion.p>
-          </motion.div>
+      {/* Features Section - Horizontal Scroll Carousel */}
+      <HorizontalScrollFeatures />
 
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={staggerContainer}
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            {features.map((feature) => (
-              <motion.div
-                key={feature.title}
-                variants={scaleIn}
-                whileHover={{ y: -12, scale: 1.02 }}
-                className="group relative"
-              >
-                <div className={`absolute inset-0 bg-gradient-to-r ${feature.gradient} rounded-3xl blur-xl opacity-0 group-hover:opacity-25 transition-opacity duration-500`} />
-                <Card className="relative h-full bg-card/40 backdrop-blur-2xl border-border/40 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 transition-all rounded-3xl overflow-hidden">
-                  <CardContent className="p-8">
-                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-r ${feature.gradient} flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all shadow-lg`}>
-                      <feature.icon className="w-7 h-7 text-white group-hover:scale-110 transition-transform" />
-                    </div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <h3 className="text-xl font-bold group-hover:text-primary transition-colors">{feature.title}</h3>
-                    </div>
-                    <p className="text-muted-foreground leading-relaxed mb-4">{feature.description}</p>
-                    <div className="text-xs text-primary font-medium">{feature.stats}</div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* How It Works Section - Enhanced */}
-      <section id="how-it-works" className="py-12 md:py-20 relative overflow-hidden bg-gradient-to-b from-primary/5 via-background to-background">
+      {/* How It Works Section - Clean & Fast */}
+      <section id="how-it-works" className="py-16 md:py-24 relative overflow-hidden bg-gradient-to-b from-primary/5 via-background to-background">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.03)_1px,transparent_1px)] bg-[size:24px_24px] opacity-50" />
-        <div className="container mx-auto px-4">
+        
+        <div className="container mx-auto px-4 relative">
           <motion.div
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
+            viewport={{ once: true }}
             variants={staggerContainer}
-            className="text-center mb-20"
+            className="text-center mb-16"
           >
             <motion.div variants={fadeInUp}>
               <Badge variant="outline" className="mb-6 px-4 py-1.5 border-primary/30">
@@ -815,44 +771,38 @@ export default function LandingPage() {
             </motion.h2>
           </motion.div>
 
-          {/* Steps - Timeline Style */}
+          {/* Steps - Simple Timeline */}
           <div className="max-w-5xl mx-auto relative">
-            {/* Connection Line */}
+            {/* Static Connection Line */}
             <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-purple-500 to-green-500" />
 
             {steps.map((step, index) => (
               <motion.div
                 key={step.number}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-50px" }}
-                variants={index % 2 === 0 ? fadeInLeft : fadeInRight}
-                className={`flex flex-col md:flex-row items-center gap-8 mb-20 ${index % 2 === 1 ? 'md:flex-row-reverse' : ''}`}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className={`flex flex-col md:flex-row items-center gap-8 mb-16 ${index % 2 === 1 ? 'md:flex-row-reverse' : ''}`}
               >
-                {/* Content */}
+                {/* Content Card */}
                 <div className="flex-1 text-center md:text-left">
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    className="relative"
-                  >
-                    <div className={`absolute inset-0 bg-gradient-to-r ${step.color} rounded-3xl blur-2xl opacity-10`} />
-                    <div className="relative bg-card/50 backdrop-blur-xl rounded-2xl border border-border/80 p-8 hover:border-primary/30 transition-all">
-                      <div className="inline-flex items-center gap-4 mb-4">
-                        <span className={`text-5xl font-black bg-gradient-to-r ${step.color} bg-clip-text text-transparent`}>
-                          {step.number}
-                        </span>
-                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${step.color} flex items-center justify-center`}>
-                          <step.icon className="w-6 h-6 text-white" />
-                        </div>
+                  <div className="relative bg-card/60 backdrop-blur-sm rounded-2xl border border-border/80 p-6 md:p-8 hover:border-primary/30 hover:shadow-lg transition-all duration-300">
+                    <div className="inline-flex items-center gap-4 mb-4">
+                      <span className={`text-5xl font-black bg-gradient-to-r ${step.color} bg-clip-text text-transparent`}>
+                        {step.number}
+                      </span>
+                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${step.color} flex items-center justify-center shadow-lg`}>
+                        <step.icon className="w-6 h-6 text-white" />
                       </div>
-                      <h3 className="text-2xl md:text-3xl font-bold mb-4">{step.title}</h3>
-                      <p className="text-lg text-muted-foreground leading-relaxed">{step.description}</p>
                     </div>
-                  </motion.div>
+                    <h3 className="text-2xl md:text-3xl font-bold mb-3">{step.title}</h3>
+                    <p className="text-base text-muted-foreground leading-relaxed">{step.description}</p>
+                  </div>
                 </div>
 
                 {/* Center Dot */}
-                <div className="hidden md:flex w-8 h-8 rounded-full bg-gradient-to-r from-primary to-purple-500 items-center justify-center z-10 shadow-lg shadow-primary/30">
+                <div className="hidden md:flex w-8 h-8 rounded-full bg-gradient-to-r from-primary to-purple-500 items-center justify-center z-10 shadow-lg">
                   <div className="w-3 h-3 rounded-full bg-white" />
                 </div>
 
@@ -1036,10 +986,71 @@ export default function LandingPage() {
             >
               <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-[40px] blur-3xl" />
               <div className="relative bg-card/50 backdrop-blur-xl rounded-[40px] border border-border/50 p-8 overflow-hidden">
-                <LottieWrapper
-                  src="https://assets9.lottiefiles.com/packages/lf20_iorpbol0.json"
-                  style={{ height: '400px', width: '100%' }}
-                />
+                {/* Lightweight CSS Illustration - Developer Verified */}
+                <div className="h-[400px] w-full flex flex-col items-center justify-center gap-6">
+                  {/* Animated Checkmark Badge */}
+                  <motion.div 
+                    className="relative"
+                    initial={{ scale: 0, rotate: -180 }}
+                    whileInView={{ scale: 1, rotate: 0 }}
+                    transition={{ duration: 0.8, type: "spring", bounce: 0.5 }}
+                  >
+                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary via-orange-500 to-pink-500 flex items-center justify-center shadow-2xl shadow-primary/30">
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        whileInView={{ scale: 1 }}
+                        transition={{ delay: 0.5, duration: 0.4, type: "spring" }}
+                      >
+                        <CheckCircle2 className="w-16 h-16 text-white" />
+                      </motion.div>
+                    </div>
+                    {/* Pulse rings */}
+                    <motion.div 
+                      className="absolute inset-0 rounded-full border-2 border-primary/50"
+                      initial={{ scale: 1, opacity: 1 }}
+                      animate={{ scale: 1.5, opacity: 0 }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
+                    />
+                    <motion.div 
+                      className="absolute inset-0 rounded-full border-2 border-primary/30"
+                      initial={{ scale: 1, opacity: 1 }}
+                      animate={{ scale: 2, opacity: 0 }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut", delay: 0.3 }}
+                    />
+                  </motion.div>
+                  
+                  {/* Text */}
+                  <motion.div 
+                    className="text-center"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 }}
+                  >
+                    <h3 className="text-2xl font-bold text-foreground mb-2">100% Free Forever</h3>
+                    <p className="text-muted-foreground">No hidden costs. No premium tiers.</p>
+                  </motion.div>
+                  
+                  {/* Floating stats */}
+                  <div className="flex gap-6">
+                    {[
+                      { label: '50K+', desc: 'Developers' },
+                      { label: '2.5M+', desc: 'Commits' },
+                      { label: '500+', desc: 'Companies' },
+                    ].map((stat, i) => (
+                      <motion.div 
+                        key={i}
+                        className="text-center p-3 rounded-xl bg-muted/30 border border-border/50"
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.8 + i * 0.1 }}
+                        whileHover={{ scale: 1.05, borderColor: 'hsl(var(--primary))' }}
+                      >
+                        <div className="text-lg font-bold text-primary">{stat.label}</div>
+                        <div className="text-xs text-muted-foreground">{stat.desc}</div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </motion.div>
           </div>
@@ -1103,10 +1114,12 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6 md:gap-12 mb-8 md:mb-12">
             <div className="col-span-2">
               <div className="flex items-center gap-2 mb-4">
-                <img 
+                <Image 
                   src="/logo.png" 
-                  alt="VerifyDev" 
-                  className="w-10 h-10 rounded-xl shadow-lg"
+                  alt="VerifyDev"
+                  width={40}
+                  height={40}
+                  className="rounded-xl shadow-lg"
                 />
                 <span className="text-xl font-bold">VerifyDev</span>
               </div>
