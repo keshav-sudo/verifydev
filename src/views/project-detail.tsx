@@ -53,6 +53,19 @@ import {
   ChevronDown,
   ChevronUp,
   FolderTree,
+  Brain,
+  Award,
+  Clock,
+  Eye,
+  Fingerprint,
+  BarChart3,
+  GraduationCap,
+  ShieldCheck,
+  ShieldAlert,
+  MessageSquare,
+  FileCheck,
+  Wrench,
+  Rocket,
 } from 'lucide-react'
 import {
   RadarChart,
@@ -203,7 +216,10 @@ const mapToArchitectureVerdict = (arch: any): ArchitectureVerdict => {
   const maturityMap: Record<string, number> = {
     'SENIOR': 8,
     'INTERMEDIATE': 5,
-    'JUNIOR': 3
+    'JUNIOR': 3,
+    'PRODUCTION': 7,
+    'ADVANCED': 6,
+    'EXPERT': 9,
   }
   const maturity = maturityMap[arch.engineeringLevel?.toUpperCase()] || 5
   
@@ -420,13 +436,27 @@ function LegacyArchitectureCard({ architecture, folderStructure }: { architectur
   
   const archTypeLabels: Record<string, string> = {
     microservices: 'Microservices',
+    MICROSERVICES: 'Microservices',
     monolith: 'Monolithic',
+    MONOLITH: 'Monolithic',
+    monorepo: 'Monorepo',
+    MONOREPO: 'Monorepo',
     serverless: 'Serverless',
+    SERVERLESS: 'Serverless',
     event_driven: 'Event-Driven',
+    EVENT_DRIVEN: 'Event-Driven',
     modular_monolith: 'Modular Monolith',
+    MODULAR_MONOLITH: 'Modular Monolith',
     layered: 'Layered',
+    LAYERED: 'Layered',
     hexagonal: 'Hexagonal',
+    HEXAGONAL: 'Hexagonal',
     clean_architecture: 'Clean Architecture',
+    CLEAN_ARCHITECTURE: 'Clean Architecture',
+    MVC: 'MVC',
+    mvc: 'MVC',
+    FULLSTACK: 'Full Stack',
+    fullstack: 'Full Stack',
   }
   
   return (
@@ -537,12 +567,35 @@ function LegacyArchitectureCard({ architecture, folderStructure }: { architectur
               <Badge className={cn(
                 architecture.engineeringLevel === 'Production-grade' || architecture.engineeringLevel === 'PRODUCTION'
                   ? 'bg-emerald-500/20 text-emerald-400'
-                  : architecture.engineeringLevel === 'Advanced'
+                  : architecture.engineeringLevel === 'Advanced' || architecture.engineeringLevel === 'ADVANCED'
                     ? 'bg-blue-500/20 text-blue-400'
                     : 'bg-amber-500/20 text-amber-400'
               )}>
                 {architecture.engineeringLevel}
               </Badge>
+            </div>
+          )}
+          
+          {/* Architecture Feature Flags */}
+          {(architecture as any).hasAPIGateway != null && (
+            <div className="flex flex-wrap gap-3 mt-3 pt-3 border-t border-border/20">
+              {[
+                { key: 'hasAPIGateway', label: 'API Gateway', icon: '🌐' },
+                { key: 'hasMessageQueue', label: 'Message Queue', icon: '📨' },
+                { key: 'hasSharedLibraries', label: 'Shared Libraries', icon: '📦' },
+              ].map(({ key, label, icon }) => {
+                const val = (architecture as any)[key]
+                if (val == null) return null
+                return (
+                  <div key={key} className={cn("flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border",
+                    val ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-muted/30 text-muted-foreground border-border/30'
+                  )}>
+                    <span>{icon}</span>
+                    <span>{label}</span>
+                    {val ? <CheckCircle2 className="w-3 h-3" /> : <span className="opacity-50">✗</span>}
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>
@@ -1370,6 +1423,612 @@ function ArchitectureGraphView({ graph }: { graph?: ArchitectureGraphData }) {
 }
 
 // ============================================
+// CODE QUALITY INDICATORS CARD
+// ============================================
+function CodeQualityIndicatorsCard({ codeQuality, folderStructure, metrics: fileMetrics }: { 
+  codeQuality: any; 
+  folderStructure?: any;
+  metrics?: any 
+}) {
+  if (!codeQuality) return null
+  
+  const checks = [
+    { label: 'README', value: codeQuality.hasReadme, icon: '📄' },
+    { label: 'License', value: codeQuality.hasLicense, icon: '📜' },
+    { label: '.gitignore', value: codeQuality.hasGitignore, icon: '🔒' },
+    { label: '.env Example', value: codeQuality.hasEnvExample, icon: '⚙️' },
+    { label: 'Dockerfile', value: codeQuality.hasDockerfile, icon: '🐳' },
+    { label: 'Docker Compose', value: codeQuality.hasDockerCompose, icon: '🐙' },
+    { label: 'CI/CD', value: codeQuality.hasCI, icon: '🔄' },
+    { label: 'Linting', value: codeQuality.hasLinting, icon: '🧹' },
+    { label: 'Prettier', value: codeQuality.hasPrettier, icon: '✨' },
+    { label: 'TypeScript', value: codeQuality.hasTypeScript, icon: '🔷' },
+    { label: 'Makefile', value: codeQuality.hasMakefile, icon: '🔧' },
+  ].filter(c => c.value != null)
+  
+  const passed = checks.filter(c => c.value).length
+  const total = checks.length
+  
+  return (
+    <Card className="border-border/50 bg-card/50 backdrop-blur overflow-hidden">
+      <CardHeader className="border-b border-border/30">
+        <CardTitle className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500/20 to-green-500/20 border border-emerald-500/30 flex items-center justify-center">
+            <FileCheck className="h-5 w-5 text-emerald-400" />
+          </div>
+          Code Quality Indicators
+          <Badge variant="secondary" className="ml-auto">{passed}/{total} passed</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-6">
+        {/* File Metrics */}
+        {fileMetrics && (
+          <div className="grid grid-cols-3 gap-3 mb-5 pb-5 border-b border-border/20">
+            {fileMetrics.totalLines != null && (
+              <div className="text-center p-3 rounded-xl bg-muted/20 border border-border/20">
+                <p className="text-2xl font-bold text-primary">{fileMetrics.totalLines.toLocaleString()}</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Lines of Code</p>
+              </div>
+            )}
+            {fileMetrics.totalFiles != null && (
+              <div className="text-center p-3 rounded-xl bg-muted/20 border border-border/20">
+                <p className="text-2xl font-bold text-blue-400">{fileMetrics.totalFiles}</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Files</p>
+              </div>
+            )}
+            {codeQuality.testFilesCount != null && (
+              <div className="text-center p-3 rounded-xl bg-muted/20 border border-border/20">
+                <p className="text-2xl font-bold text-amber-400">{codeQuality.testFilesCount}</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Test Files</p>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Check Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {checks.map((check, i) => (
+            <div key={i} className={cn(
+              "flex items-center gap-2 p-2.5 rounded-lg border text-sm",
+              check.value 
+                ? 'bg-emerald-500/5 border-emerald-500/15 text-foreground' 
+                : 'bg-muted/10 border-border/20 text-muted-foreground'
+            )}>
+              <span className="text-base">{check.icon}</span>
+              <span className="flex-1 truncate">{check.label}</span>
+              {check.value 
+                ? <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                : <AlertTriangle className="w-4 h-4 text-muted-foreground/40 shrink-0" />
+              }
+            </div>
+          ))}
+        </div>
+        
+        {/* CI Platform */}
+        {codeQuality.ciPlatform && (
+          <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+            <span>CI Platform:</span>
+            <Badge variant="secondary" className="text-xs">{codeQuality.ciPlatform}</Badge>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// ============================================
+// DIMENSIONAL ANALYSIS CARD - 6 Dimensions
+// ============================================
+interface DimensionalData {
+  fundamentalsScore?: number
+  fundamentalsConfidence?: number
+  engineeringDepthScore?: number
+  engineeringDepthConfidence?: number
+  productionReadinessScore?: number
+  productionReadinessConfidence?: number
+  testingMaturityScore?: number
+  testingMaturityConfidence?: number
+  architectureScore?: number
+  architectureConfidence?: number
+  infraDevOpsScore?: number
+  infraDevOpsConfidence?: number
+}
+
+function DimensionalAnalysisCard({ dimensional }: { dimensional: DimensionalData }) {
+  if (!dimensional) return null
+  
+  const dimensions = [
+    { key: 'fundamentals', label: 'Fundamentals', score: dimensional.fundamentalsScore, confidence: dimensional.fundamentalsConfidence, icon: Code, color: 'from-blue-500 to-indigo-500', bg: 'bg-blue-500' },
+    { key: 'engineeringDepth', label: 'Engineering Depth', score: dimensional.engineeringDepthScore, confidence: dimensional.engineeringDepthConfidence, icon: Wrench, color: 'from-purple-500 to-violet-500', bg: 'bg-purple-500' },
+    { key: 'productionReadiness', label: 'Production Readiness', score: dimensional.productionReadinessScore, confidence: dimensional.productionReadinessConfidence, icon: Rocket, color: 'from-emerald-500 to-green-500', bg: 'bg-emerald-500' },
+    { key: 'testingMaturity', label: 'Testing Maturity', score: dimensional.testingMaturityScore, confidence: dimensional.testingMaturityConfidence, icon: TestTube, color: 'from-amber-500 to-orange-500', bg: 'bg-amber-500' },
+    { key: 'architecture', label: 'Architecture', score: dimensional.architectureScore, confidence: dimensional.architectureConfidence, icon: Building2, color: 'from-rose-500 to-pink-500', bg: 'bg-rose-500' },
+    { key: 'infraDevOps', label: 'Infra & DevOps', score: dimensional.infraDevOpsScore, confidence: dimensional.infraDevOpsConfidence, icon: Server, color: 'from-cyan-500 to-teal-500', bg: 'bg-cyan-500' },
+  ].filter(d => d.score != null)
+  
+  if (dimensions.length === 0) return null
+  
+  // For radar chart, only include dimensions with score > 0 (radar looks weird with all-zero)
+  const radarData = dimensions.filter(d => (d.score || 0) > 0).map(d => ({
+    subject: d.label.replace(' & ', '\n& '),
+    A: Math.round(d.score || 0),
+    fullMark: 100,
+  }))
+  
+  return (
+    <Card className="border-border/50 bg-gradient-to-br from-card via-card/90 to-primary/5 backdrop-blur overflow-hidden">
+      <CardHeader className="border-b border-border/30">
+        <CardTitle className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/30 flex items-center justify-center">
+            <BarChart3 className="h-5 w-5 text-primary" />
+          </div>
+          6-Dimensional Analysis
+          <Badge variant="secondary" className="ml-auto">{dimensions.length} dimensions</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-6">
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Radar Chart */}
+          {radarData.length >= 3 && (
+            <div className="flex items-center justify-center">
+              <div className="h-[280px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
+                    <PolarGrid stroke="hsl(var(--border))" />
+                    <PolarAngleAxis 
+                      dataKey="subject" 
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} 
+                    />
+                    <PolarRadiusAxis 
+                      angle={30} 
+                      domain={[0, 100]} 
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                    />
+                    <Radar
+                      name="Score"
+                      dataKey="A"
+                      stroke="hsl(var(--primary))"
+                      fill="hsl(var(--primary))"
+                      fillOpacity={0.25}
+                      strokeWidth={2}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        borderRadius: '12px', 
+                        backgroundColor: 'hsl(var(--card))', 
+                        borderColor: 'hsl(var(--border))' 
+                      }}
+                      formatter={(value: number) => [`${value}/100`, 'Score']}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+          
+          {/* Dimension Bars */}
+          <div className="space-y-4">
+            {dimensions.map(dim => {
+              const score = Math.round(dim.score || 0)
+              const confidence = dim.confidence != null ? Math.round(dim.confidence * 100) : null
+              const Icon = dim.icon
+              return (
+                <div key={dim.key} className="group">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center bg-gradient-to-br", dim.color)}>
+                      <Icon className="w-3.5 h-3.5 text-white" />
+                    </div>
+                    <span className="text-sm font-medium flex-1">{dim.label}</span>
+                    <div className="flex items-center gap-2">
+                      <span className={cn("text-sm font-bold", 
+                        score >= 70 ? 'text-emerald-400' : score >= 40 ? 'text-amber-400' : 'text-red-400'
+                      )}>{score}</span>
+                      <span className="text-xs text-muted-foreground">/100</span>
+                    </div>
+                  </div>
+                  <div className="h-2.5 rounded-full bg-muted/40 overflow-hidden">
+                    <div 
+                      className={cn("h-full rounded-full bg-gradient-to-r transition-all duration-700", dim.color)}
+                      style={{ width: `${score}%` }}
+                    />
+                  </div>
+                  {confidence != null && (
+                    <p className="text-[10px] text-muted-foreground mt-1 text-right">
+                      Confidence: {confidence}%
+                    </p>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// ============================================
+// EXPERIENCE ANALYSIS CARD
+// ============================================
+interface ExperienceData {
+  level?: string
+  yearRange?: string
+  confidence?: number
+}
+
+function ExperienceAnalysisCard({ experience }: { experience: ExperienceData }) {
+  if (!experience) return null
+  // Render if we have level OR yearRange OR confidence
+  if (!experience.level && !experience.yearRange && experience.confidence == null) return null
+  
+  const levelLabels: Record<string, { label: string; color: string; icon: typeof GraduationCap }> = {
+    'INTERN': { label: '🎓 Intern / Learning', color: 'bg-slate-500/15 text-slate-400 border-slate-500/30', icon: BookOpen },
+    'JUNIOR': { label: '🌱 Junior Developer', color: 'bg-green-500/15 text-green-400 border-green-500/30', icon: GraduationCap },
+    'MID_LEVEL': { label: '⚡ Mid-Level Developer', color: 'bg-blue-500/15 text-blue-400 border-blue-500/30', icon: Target },
+    'SENIOR': { label: '🔥 Senior Developer', color: 'bg-purple-500/15 text-purple-400 border-purple-500/30', icon: Award },
+    'STAFF': { label: '🏆 Staff Engineer', color: 'bg-amber-500/15 text-amber-400 border-amber-500/30', icon: Award },
+    'PRINCIPAL': { label: '👑 Principal Engineer', color: 'bg-rose-500/15 text-rose-400 border-rose-500/30', icon: Award },
+  }
+  
+  // Derive a label from yearRange if level is null
+  const derivedLevel = experience.level || (
+    experience.yearRange?.includes('0-1') ? 'JUNIOR' :
+    experience.yearRange?.includes('1-2') ? 'JUNIOR' :
+    experience.yearRange?.includes('2-4') ? 'MID_LEVEL' :
+    experience.yearRange?.includes('4-7') ? 'SENIOR' :
+    experience.yearRange?.includes('7-10') ? 'STAFF' :
+    experience.yearRange?.includes('10+') ? 'PRINCIPAL' : null
+  )
+  const info = derivedLevel ? (levelLabels[derivedLevel] || { label: derivedLevel, color: 'bg-muted/50 text-muted-foreground border-border', icon: Target }) : null
+  const confidence = experience.confidence != null ? Math.round(experience.confidence * 100) : null
+  
+  return (
+    <Card className="border-border/50 bg-gradient-to-br from-blue-500/5 to-purple-500/5 backdrop-blur overflow-hidden">
+      <CardHeader className="border-b border-border/30">
+        <CardTitle className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 flex items-center justify-center">
+            <GraduationCap className="h-5 w-5 text-blue-400" />
+          </div>
+          Experience Assessment
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-6">
+        <div className="flex flex-col sm:flex-row items-center gap-6">
+          {/* Level Badge */}
+          <div className="flex flex-col items-center gap-3">
+            {info && (
+              <div className={cn("px-6 py-3 rounded-2xl border text-lg font-bold", info.color)}>
+                {info.label}
+              </div>
+            )}
+            {experience.yearRange && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Clock className="w-4 h-4" />
+                <span className="text-sm font-medium">{experience.yearRange} experience</span>
+              </div>
+            )}
+          </div>
+          
+          {/* Confidence */}
+          {confidence != null && (
+            <div className="flex-1 flex flex-col items-center">
+              <CircularScore value={confidence} size={90} label="Confidence" />
+              <p className="text-xs text-muted-foreground mt-2">Assessment confidence</p>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// ============================================
+// TRUST ANALYSIS CARD
+// ============================================
+interface TrustData {
+  level?: string
+  score?: number
+  effortClass?: string
+  authenticityScore?: number
+  authenticityFlags?: string[]
+  hasOriginalWork?: boolean
+}
+
+function TrustAnalysisCard({ trust }: { trust: TrustData }) {
+  if (!trust) return null
+  // Render if we have any meaningful data
+  if (!trust.level && trust.score == null && !trust.effortClass && trust.authenticityScore == null) return null
+  
+  const trustLevelColors: Record<string, string> = {
+    'HIGH': 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+    'MEDIUM': 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+    'LOW': 'bg-red-500/15 text-red-400 border-red-500/30',
+    'SUSPICIOUS': 'bg-rose-500/15 text-rose-300 border-rose-500/30',
+  }
+  
+  const effortLabels: Record<string, { label: string; color: string }> = {
+    'SIGNIFICANT': { label: '💪 Significant Effort', color: 'text-emerald-400' },
+    'MODERATE': { label: '👍 Moderate Effort', color: 'text-blue-400' },
+    'MINIMAL': { label: '⚡ Minimal Effort', color: 'text-amber-400' },
+    'SUSPICIOUS': { label: '⚠️ Suspicious', color: 'text-red-400' },
+  }
+  
+  // Derive trust level from score if null
+  const derivedLevel = trust.level || (
+    trust.score != null ? (
+      trust.score >= 80 ? 'HIGH' :
+      trust.score >= 50 ? 'MEDIUM' :
+      trust.score >= 30 ? 'LOW' : 'SUSPICIOUS'
+    ) : null
+  )
+  const trustColor = trustLevelColors[derivedLevel || ''] || 'bg-muted/50 text-muted-foreground border-border'
+  const effortInfo = effortLabels[trust.effortClass || ''] || null
+  
+  return (
+    <Card className="border-border/50 bg-gradient-to-br from-emerald-500/5 to-cyan-500/5 backdrop-blur overflow-hidden">
+      <CardHeader className="border-b border-border/30">
+        <CardTitle className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 flex items-center justify-center">
+            <ShieldCheck className="h-5 w-5 text-emerald-400" />
+          </div>
+          Trust & Authenticity Analysis
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {/* Trust Level */}
+          {derivedLevel && (
+            <div className={cn("p-4 rounded-xl border text-center", trustColor)}>
+              <ShieldCheck className="h-6 w-6 mx-auto mb-2" />
+              <p className="text-xs opacity-70 mb-1">Trust Level</p>
+              <p className="text-lg font-bold">{derivedLevel}</p>
+            </div>
+          )}
+          
+          {/* Trust Score */}
+          {trust.score != null && (
+            <div className="p-4 rounded-xl bg-muted/20 border border-border/30 flex flex-col items-center justify-center">
+              <CircularScore value={trust.score} size={70} />
+              <p className="text-xs text-muted-foreground mt-2">Trust Score</p>
+            </div>
+          )}
+          
+          {/* Effort Class */}
+          {effortInfo && (
+            <div className="p-4 rounded-xl bg-muted/20 border border-border/30 text-center">
+              <Zap className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+              <p className="text-xs text-muted-foreground mb-1">Effort Class</p>
+              <p className={cn("text-sm font-bold", effortInfo.color)}>{effortInfo.label}</p>
+            </div>
+          )}
+          
+          {/* Authenticity Score */}
+          {trust.authenticityScore != null && (
+            <div className="p-4 rounded-xl bg-muted/20 border border-border/30 flex flex-col items-center justify-center">
+              <CircularScore value={trust.authenticityScore} size={70} />
+              <p className="text-xs text-muted-foreground mt-2">Authenticity</p>
+            </div>
+          )}
+        </div>
+        
+        {/* Original Work Badge */}
+        {trust.hasOriginalWork != null && (
+          <div className={cn("flex items-center gap-2 p-3 rounded-xl border mb-4",
+            trust.hasOriginalWork 
+              ? 'bg-emerald-500/10 border-emerald-500/20' 
+              : 'bg-amber-500/10 border-amber-500/20'
+          )}>
+            {trust.hasOriginalWork 
+              ? <><CheckCircle2 className="h-4 w-4 text-emerald-400" /><span className="text-sm text-emerald-400 font-medium">Original work detected</span></>
+              : <><AlertTriangle className="h-4 w-4 text-amber-400" /><span className="text-sm text-amber-400 font-medium">Original work could not be verified</span></>
+            }
+          </div>
+        )}
+        
+        {/* Authenticity Flags */}
+        {trust.authenticityFlags && trust.authenticityFlags.length > 0 && (
+          <div>
+            <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5">
+              <Fingerprint className="w-3.5 h-3.5" />
+              Authenticity Flags ({trust.authenticityFlags.length})
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {trust.authenticityFlags.map((flag, i) => (
+                <Badge key={i} variant="outline" className="text-xs">
+                  {flag}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// ============================================
+// VERDICT CARD
+// ============================================
+interface VerdictData {
+  summary?: string
+  strengths?: string[]
+  growthAreas?: string[]
+  justification?: string
+}
+
+function VerdictCard({ verdict }: { verdict: VerdictData }) {
+  if (!verdict || !verdict.summary) return null
+  
+  return (
+    <Card className="border-border/50 bg-gradient-to-br from-amber-500/5 to-orange-500/5 backdrop-blur overflow-hidden">
+      <CardHeader className="border-b border-border/30">
+        <CardTitle className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30 flex items-center justify-center">
+            <Brain className="h-5 w-5 text-amber-400" />
+          </div>
+          Analysis Verdict
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-6 space-y-5">
+        {/* Summary */}
+        <div className="p-4 rounded-xl bg-muted/20 border border-border/30">
+          <p className="text-sm leading-relaxed">{verdict.summary}</p>
+        </div>
+        
+        <div className="grid sm:grid-cols-2 gap-4">
+          {/* Strengths */}
+          {verdict.strengths && verdict.strengths.length > 0 && (
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-emerald-400 flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4" />
+                Strengths ({verdict.strengths.length})
+              </p>
+              <div className="space-y-2">
+                {verdict.strengths.map((s, i) => (
+                  <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
+                    <TrendingUp className="h-3.5 w-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                    <span className="text-sm text-muted-foreground">{s}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Growth Areas */}
+          {verdict.growthAreas && verdict.growthAreas.length > 0 && (
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-amber-400 flex items-center gap-2">
+                <Lightbulb className="h-4 w-4" />
+                Growth Areas ({verdict.growthAreas.length})
+              </p>
+              <div className="space-y-2">
+                {verdict.growthAreas.map((g, i) => (
+                  <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-500/5 border border-amber-500/10">
+                    <Target className="h-3.5 w-3.5 text-amber-500 mt-0.5 shrink-0" />
+                    <span className="text-sm text-muted-foreground">{g}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Justification */}
+        {verdict.justification && (
+          <div className="p-4 rounded-xl bg-gradient-to-r from-blue-500/10 to-blue-500/5 border border-blue-500/20">
+            <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1.5">
+              <MessageSquare className="w-3.5 h-3.5" />
+              Hiring Recommendation
+            </p>
+            <p className="text-sm font-medium">{verdict.justification}</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// ============================================
+// SCORES BREAKDOWN CARD
+// ============================================
+interface ScoresData {
+  structure?: number
+  codeQuality?: number
+  testing?: number
+  documentation?: number
+  techStack?: number
+  complexity?: number
+  industryBonus?: number
+  projectTypeBonus?: number
+}
+
+function ScoresBreakdownCard({ scores }: { scores: ScoresData }) {
+  if (!scores) return null
+  
+  const scoreItems = [
+    { label: 'Structure', value: scores.structure, icon: FolderTree, color: 'from-blue-500 to-indigo-500' },
+    { label: 'Code Quality', value: scores.codeQuality, icon: FileCheck, color: 'from-emerald-500 to-green-500' },
+    { label: 'Testing', value: scores.testing, icon: TestTube, color: 'from-amber-500 to-orange-500' },
+    { label: 'Documentation', value: scores.documentation, icon: BookOpen, color: 'from-purple-500 to-violet-500' },
+    { label: 'Tech Stack', value: scores.techStack, icon: Cpu, color: 'from-cyan-500 to-teal-500' },
+    { label: 'Complexity', value: scores.complexity, icon: Gauge, color: 'from-rose-500 to-pink-500' },
+    { label: 'Industry Bonus', value: scores.industryBonus, icon: Award, color: 'from-yellow-500 to-amber-500' },
+    { label: 'Project Type Bonus', value: scores.projectTypeBonus, icon: Sparkles, color: 'from-fuchsia-500 to-pink-500' },
+  ].filter(s => s.value != null)
+  
+  if (scoreItems.length === 0) return null
+  
+  const barData = scoreItems.map(s => ({
+    name: s.label,
+    score: Math.round(s.value || 0),
+  }))
+  
+  return (
+    <Card className="border-border/50 bg-card/50 backdrop-blur overflow-hidden">
+      <CardHeader className="border-b border-border/30">
+        <CardTitle className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 flex items-center justify-center">
+            <BarChart3 className="h-5 w-5 text-indigo-400" />
+          </div>
+          Score Breakdown
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-6">
+        <div className="grid sm:grid-cols-2 gap-x-8 gap-y-4">
+          {scoreItems.map(item => {
+            const score = Math.round(item.value || 0)
+            const Icon = item.icon
+            return (
+              <div key={item.label}>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Icon className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm flex-1">{item.label}</span>
+                  <span className={cn("text-sm font-bold",
+                    score >= 70 ? 'text-emerald-400' : score >= 40 ? 'text-amber-400' : 'text-red-400'
+                  )}>{score}</span>
+                </div>
+                <div className="h-2 rounded-full bg-muted/40 overflow-hidden">
+                  <div 
+                    className={cn("h-full rounded-full bg-gradient-to-r transition-all duration-700", item.color)}
+                    style={{ width: `${Math.min(score, 100)}%` }}
+                  />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+        
+        {/* Bar Chart for visual comparison */}
+        {barData.length >= 3 && (
+          <div className="mt-6 pt-6 border-t border-border/30">
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={barData} layout="vertical">
+                <XAxis type="number" domain={[0, 100]} hide />
+                <YAxis 
+                  type="category" 
+                  dataKey="name" 
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                  width={110}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    borderRadius: '12px', 
+                    backgroundColor: 'hsl(var(--card))', 
+                    borderColor: 'hsl(var(--border))' 
+                  }}
+                  formatter={(value: number) => [`${value}/100`, 'Score']}
+                />
+                <Bar dataKey="score" radius={[0, 6, 6, 0]} fill="hsl(var(--primary))" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// ============================================
 // MAIN COMPONENT
 // ============================================
 export default function ProjectDetail() {
@@ -1892,6 +2551,40 @@ function ProjectDetailSkeleton() {
         </div>
       )}
 
+      {/* ===== DIMENSIONAL ANALYSIS (6 Dimensions) ===== */}
+      {fullAnalysis.dimensionalAnalysis && (
+        <DimensionalAnalysisCard dimensional={fullAnalysis.dimensionalAnalysis} />
+      )}
+
+      {/* ===== EXPERIENCE & TRUST ANALYSIS ===== */}
+      <div className="grid md:grid-cols-2 gap-4">
+        {fullAnalysis.experienceAnalysis && (
+          <ExperienceAnalysisCard experience={fullAnalysis.experienceAnalysis} />
+        )}
+        {fullAnalysis.trustAnalysis && (
+          <TrustAnalysisCard trust={fullAnalysis.trustAnalysis} />
+        )}
+      </div>
+
+      {/* ===== VERDICT ===== */}
+      {fullAnalysis.verdict && fullAnalysis.verdict.summary && (
+        <VerdictCard verdict={fullAnalysis.verdict} />
+      )}
+
+      {/* ===== SCORES BREAKDOWN ===== */}
+      {fullAnalysis.scores && (
+        <ScoresBreakdownCard scores={fullAnalysis.scores} />
+      )}
+
+      {/* ===== CODE QUALITY INDICATORS ===== */}
+      {fullAnalysis.codeQuality && (
+        <CodeQualityIndicatorsCard 
+          codeQuality={fullAnalysis.codeQuality} 
+          folderStructure={fullAnalysis.folderStructure}
+          metrics={fullAnalysis.metrics}
+        />
+      )}
+
       {/* ===== COMPLEXITY & GRAPH ===== */}
       <div className="grid gap-4">
         {project.complexity && (
@@ -1907,15 +2600,16 @@ function ProjectDetailSkeleton() {
       {(project.intelligenceVerdict || fullAnalysis.intelligenceVerdict) && (
         <IntelligenceVerdictCard verdict={project.intelligenceVerdict || fullAnalysis.intelligenceVerdict} />
       )}
+
       {/* ===== V2 ARCHITECTURE & RISK ASSESSMENT ===== */}
-      {fullAnalysis.industryAnalysis?.architecture && (
+      {(fullAnalysis.architecture || fullAnalysis.industryAnalysis?.architecture) && (
         <div className="grid md:grid-cols-2 gap-4">
           <ArchitectureCard 
-            architecture={mapToArchitectureVerdict(fullAnalysis.industryAnalysis.architecture)} 
+            architecture={mapToArchitectureVerdict(fullAnalysis.architecture || fullAnalysis.industryAnalysis?.architecture)} 
           />
           <RiskPanel 
             riskProfile={mapToRiskProfile({
-              riskSignals: fullAnalysis.industryAnalysis.infraSignals?.signalDetails?.incomplete_project 
+              riskSignals: (fullAnalysis.infraSignals?.signalDetails?.incomplete_project || fullAnalysis.industryAnalysis?.infraSignals?.signalDetails?.incomplete_project)
                 ? ['Project flagged as incomplete - may affect assessment accuracy']
                 : []
             })} 
@@ -1924,17 +2618,19 @@ function ProjectDetailSkeleton() {
       )}
 
       {/* ===== ARCHITECTURE & TECH STACK ===== */}
-      {fullAnalysis.industryAnalysis?.architecture && (
+      {(fullAnalysis.architecture || fullAnalysis.industryAnalysis?.architecture || fullAnalysis.techStack || verifiedSkills.length > 0) && (
         <div className="grid md:grid-cols-2 gap-4">
-          <LegacyArchitectureCard 
-            architecture={fullAnalysis.industryAnalysis.architecture} 
-            folderStructure={fullAnalysis.folderStructure}
-          />
+          {(fullAnalysis.architecture || fullAnalysis.industryAnalysis?.architecture) && (
+            <LegacyArchitectureCard 
+              architecture={fullAnalysis.architecture || fullAnalysis.industryAnalysis?.architecture} 
+              folderStructure={fullAnalysis.folderStructure}
+            />
+          )}
           {(fullAnalysis.techStack || verifiedSkills.length > 0) && (
             <TechStackCard 
               techStack={fullAnalysis.techStack || {}} 
               skills={verifiedSkills} 
-              infraSignals={fullAnalysis.industryAnalysis?.infraSignals}
+              infraSignals={fullAnalysis.infraSignals || fullAnalysis.industryAnalysis?.infraSignals}
             />
           )}
         </div>
@@ -1942,7 +2638,6 @@ function ProjectDetailSkeleton() {
 
       {/* ===== METRICS & LANGUAGES ===== */}
       <div className="grid gap-4 lg:grid-cols-2">
-
 
         {/* Languages */}
         <Card className="border-border/50 bg-card/50 backdrop-blur">
@@ -2069,25 +2764,32 @@ function ProjectDetailSkeleton() {
         </div>
       )}
 
-      {/* ===== INFRASTRUCTURE SIGNALS (Debug/Advanced) ===== */}
-      {industryAnalysis.infraSignals && industryAnalysis.infraSignals.signals && industryAnalysis.infraSignals.signals.length > 0 && (
+      {/* ===== INFRASTRUCTURE SIGNALS ===== */}
+      {(fullAnalysis.infraSignals?.signals?.length > 0 || (industryAnalysis.infraSignals?.signals?.length > 0)) && (
         <Card className="border-border/50 bg-card/50 backdrop-blur">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Server className="h-5 w-5 text-orange-500" />
               Infrastructure Signals
               <Badge variant="secondary" className="ml-auto">
-                {industryAnalysis.infraSignals.signals.length} signals
+                {(fullAnalysis.infraSignals?.signals || industryAnalysis.infraSignals?.signals || []).length} signals
               </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
-              {industryAnalysis.infraSignals.signals.map((signal: string, i: number) => (
-                <Badge key={i} variant="outline" className="text-xs">
-                  {signal.replace(/_/g, ' ')}
-                </Badge>
-              ))}
+              {(fullAnalysis.infraSignals?.signals || industryAnalysis.infraSignals?.signals || []).map((signal: string, i: number) => {
+                const tech = signalToTechMapping[signal]
+                return (
+                  <Badge 
+                    key={i} 
+                    variant="outline" 
+                    className={cn("text-xs", tech ? 'bg-orange-500/10 text-orange-300 border-orange-500/20' : '')}
+                  >
+                    {tech ? tech.name : signal.replace(/_/g, ' ')}
+                  </Badge>
+                )
+              })}
             </div>
           </CardContent>
         </Card>
