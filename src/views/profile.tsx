@@ -49,6 +49,8 @@ import {
   Award,
   Trash2,
   GraduationCap,
+  Users,
+  Github,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Label } from '@/components/ui/label'
@@ -206,6 +208,7 @@ export default function Profile() {
   const [githubStats, setGithubStats] = useState<{ username: string, submissionCalendar: Record<string, number> } | null>(null)
   const [showAllSkills, setShowAllSkills] = useState(false)
   const [activeTab, setActiveTab] = useState("overview")
+  const [skillsRef, setSkillsRef] = useState<HTMLDivElement | null>(null)
 
   // Edit profile state
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -517,6 +520,8 @@ export default function Profile() {
           <TabsTrigger value="experience" className="rounded-lg">Experience</TabsTrigger>
           <TabsTrigger value="projects" className="rounded-lg">Projects</TabsTrigger>
           <TabsTrigger value="skills" className="rounded-lg">Skills</TabsTrigger>
+          <TabsTrigger value="github" className="rounded-lg">GitHub</TabsTrigger>
+          <TabsTrigger value="leetcode" className="rounded-lg">LeetCode</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -542,7 +547,16 @@ export default function Profile() {
                       variant="ghost"
                       size="sm"
                       className="w-full mt-2 text-muted-foreground hover:text-foreground"
-                      onClick={() => setShowAllSkills(!showAllSkills)}
+                      onClick={() => {
+                        if (!showAllSkills) {
+                          setActiveTab('skills')
+                          setTimeout(() => {
+                            skillsRef?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                          }, 100)
+                        } else {
+                          setShowAllSkills(false)
+                        }
+                      }}
                     >
                       {showAllSkills ? "Show Less" : `Show ${skills.length - 10} More`}
                     </Button>
@@ -795,15 +809,16 @@ export default function Profile() {
         </TabsContent>
 
         <TabsContent value="skills">
-          <GlassCard className="p-6 mb-6">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h3 className="font-semibold text-lg flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-emerald-500" /> Verified Skills
-                </h3>
-                <p className="text-sm text-muted-foreground">Detected automatically from your projects.</p>
+          <div ref={(el) => setSkillsRef(el)}>
+            <GlassCard className="p-6 mb-6">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h3 className="font-semibold text-lg flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-emerald-500" /> Verified Skills
+                  </h3>
+                  <p className="text-sm text-muted-foreground">Detected automatically from your projects.</p>
+                </div>
               </div>
-            </div>
 
             <div className="flex flex-wrap gap-3">
               {skills.filter(s => s.isVerified || (s.source === 'GITHUB' || s.source === 'ANALYSIS')).map((skill) => (
@@ -839,6 +854,360 @@ export default function Profile() {
               {skills.filter(s => !s.isVerified && (s.source === 'MANUAL' || !s.source)).length === 0 && <p className="text-muted-foreground text-sm">No claimed skills yet.</p>}
             </div>
           </GlassCard>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="github">
+          <div className="space-y-6">
+            {/* GitHub Stats Overview */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              <GlassCard className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
+                    <FolderGit2 className="w-4 h-4 text-primary" />
+                    Repositories
+                  </h3>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-3xl font-bold text-foreground">{user?.publicRepos || 0}</p>
+                  <p className="text-xs text-muted-foreground">Public projects</p>
+                </div>
+              </GlassCard>
+
+              <GlassCard className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
+                    <Star className="w-4 h-4 text-amber-500" />
+                    Total Stars
+                  </h3>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-3xl font-bold text-foreground">{projects.reduce((sum: number, p: any) => sum + (p.stars || 0), 0)}</p>
+                  <p className="text-xs text-muted-foreground">Earned across repos</p>
+                </div>
+              </GlassCard>
+
+              <GlassCard className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
+                    <Users className="w-4 h-4 text-emerald-500" />
+                    Followers
+                  </h3>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-3xl font-bold text-foreground">{user?.followers || 0}</p>
+                  <p className="text-xs text-muted-foreground">Community size</p>
+                </div>
+              </GlassCard>
+
+              <GlassCard className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    Contributions
+                  </h3>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-3xl font-bold text-foreground">
+                    {githubStats ? Object.values(githubStats.submissionCalendar).reduce((a: any, b: any) => a + b, 0) : (user?.githubContributions || 0)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">in the last year</p>
+                </div>
+              </GlassCard>
+            </div>
+
+            {/* Contribution Heatmap */}
+            <GlassCard className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <Github className="w-5 h-5 text-emerald-500" />
+                  Contribution Activity
+                </h3>
+                <Button variant="ghost" size="sm" asChild>
+                  <a href={`https://github.com/${user?.username}`} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    View on GitHub
+                  </a>
+                </Button>
+              </div>
+              <ContributionHeatmap
+                type="github"
+                username={githubStats?.username || user?.username || ''}
+                totalContributions={githubStats ? Object.values(githubStats.submissionCalendar).reduce((a: any, b: any) => a + b, 0) : (user?.githubContributions || 0)}
+                data={githubStats?.submissionCalendar || {}}
+              />
+            </GlassCard>
+
+            <div className="grid lg:grid-cols-3 gap-6">
+               {/* Top Repositories */}
+              <GlassCard className="p-6 lg:col-span-2">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <FolderGit2 className="w-5 h-5 text-primary" />
+                    Top Repositories
+                  </h3>
+                  <Button variant="ghost" size="sm" onClick={() => setActiveTab('projects')}>
+                    View All
+                  </Button>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {projects
+                    .sort((a: any, b: any) => (b.stars || 0) - (a.stars || 0))
+                    .slice(0, 6)
+                    .map((project: any) => (
+                      <Link key={project.id} href={`/projects/${project.id}`} className="block h-full">
+                        <div className="group flex flex-col h-full justify-between p-4 rounded-xl border border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all bg-card/50">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                  <FolderGit2 className="h-5 w-5 text-primary" />
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                                    {project.repoName || project.name}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground mt-0.5 line-clamp-1">
+                                    {project.description || 'No description'}
+                                  </p>
+                                </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between mt-4 border-t border-border/30 pt-3">
+                             <Badge variant="secondary" className="bg-muted text-muted-foreground font-normal text-xs pointer-events-none">
+                              {project.language || 'Unknown'}
+                            </Badge>
+                            <span className="flex items-center gap-1 text-sm font-medium text-amber-500">
+                              <Star className="h-4 w-4 fill-amber-500" /> {project.stars || 0}
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  {projects.length === 0 && (
+                    <div className="col-span-full text-center py-12 text-muted-foreground border-2 border-dashed border-muted rounded-xl">
+                      <FolderGit2 className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                      <p className="font-medium mb-1">No repositories found</p>
+                      <p className="text-sm">Connect your GitHub to import projects</p>
+                    </div>
+                  )}
+                </div>
+              </GlassCard>
+
+              {/* Language Distribution */}
+              <GlassCard className="p-6 h-fit">
+                <h3 className="font-semibold mb-6 flex items-center gap-2">
+                  <Code className="w-5 h-5 text-primary" />
+                  Languages
+                </h3>
+                {projects.length > 0 ? (
+                  <div className="space-y-4">
+                    {(() => {
+                      const languageCounts: Record<string, number> = {}
+                      projects.forEach((p: any) => {
+                        if (p.language) {
+                          languageCounts[p.language] = (languageCounts[p.language] || 0) + 1
+                        }
+                      })
+                      const sortedLanguages = Object.entries(languageCounts)
+                        .sort(([, a], [, b]) => b - a)
+                        .slice(0, 6)
+                      const total = sortedLanguages.reduce((sum, [, count]) => sum + count, 0)
+                      // Colors for languages
+                      const colors = [
+                        'bg-blue-500', 'bg-yellow-500', 'bg-emerald-500', 
+                        'bg-red-500', 'bg-purple-500', 'bg-pink-500'
+                      ]
+
+                      return sortedLanguages.map(([lang, count], index) => (
+                        <div key={lang} className="space-y-1.5">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="font-medium">{lang}</span>
+                            <span className="text-muted-foreground text-xs">
+                              {Math.round((count / total) * 100)}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-muted/50 rounded-full h-2 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${colors[index % colors.length]}`}
+                              style={{ width: `${(count / total) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))
+                    })()}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                     <p className="text-sm">No language data available</p>
+                  </div>
+                )}
+              </GlassCard>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="leetcode">
+          {!user?.leetcodeUsername ? (
+            <GlassCard className="p-12 text-center">
+              <div className="max-w-md mx-auto space-y-4">
+                <div className="h-20 w-20 rounded-full bg-orange-500/10 flex items-center justify-center mx-auto">
+                  <Code className="h-10 w-10 text-orange-500" />
+                </div>
+                <h3 className="text-xl font-semibold">Connect Your LeetCode Account</h3>
+                <p className="text-muted-foreground">
+                  Showcase your competitive programming skills. Connect your LeetCode account to display your problem-solving achievements.
+                </p>
+                <Button asChild className="mt-4">
+                  <Link href="/settings">
+                    <LinkIcon className="h-4 w-4 mr-2" />
+                    Connect in Settings
+                  </Link>
+                </Button>
+              </div>
+            </GlassCard>
+          ) : !leetcodeStats ? (
+            <GlassCard className="p-12 text-center">
+              <div className="max-w-md mx-auto space-y-4">
+                <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center mx-auto">
+                  <Code className="h-10 w-10 text-muted-foreground animate-pulse" />
+                </div>
+                <h3 className="text-xl font-semibold">Loading LeetCode Stats...</h3>
+                <p className="text-muted-foreground">
+                  Fetching your problem-solving data from LeetCode
+                </p>
+              </div>
+            </GlassCard>
+          ) : (
+            <div className="space-y-6">
+              {/* Stats Overview */}
+              <div className="grid md:grid-cols-3 gap-6">
+                <GlassCard className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <Award className="w-5 h-5 text-orange-500" />
+                      Total Solved
+                    </h3>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-4xl font-bold text-foreground">{leetcodeStats.totalSolved}</p>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span>Ranking: #{formatNumber(leetcodeStats.ranking)}</span>
+                    </div>
+                  </div>
+                </GlassCard>
+
+                <GlassCard className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-emerald-500" />
+                      Acceptance Rate
+                    </h3>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-4xl font-bold text-foreground">{leetcodeStats.acceptanceRate.toFixed(1)}%</p>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div
+                        className="bg-emerald-500 h-2 rounded-full transition-all"
+                        style={{ width: `${leetcodeStats.acceptanceRate}%` }}
+                      />
+                    </div>
+                  </div>
+                </GlassCard>
+
+                <GlassCard className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <Star className="w-5 h-5 text-amber-500" />
+                      Contribution Points
+                    </h3>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-4xl font-bold text-foreground">{formatNumber(leetcodeStats.contributionPoints)}</p>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span>Reputation: {formatNumber(leetcodeStats.reputation)}</span>
+                    </div>
+                  </div>
+                </GlassCard>
+              </div>
+
+              {/* Difficulty Breakdown */}
+              <GlassCard className="p-6">
+                <h3 className="font-semibold mb-4 flex items-center gap-2">
+                  <Code className="w-5 h-5 text-orange-500" />
+                  Problems by Difficulty
+                </h3>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">Easy</span>
+                      <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
+                        {leetcodeStats.easySolved}
+                      </Badge>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div
+                        className="bg-emerald-500 h-2 rounded-full transition-all"
+                        style={{ width: `${(leetcodeStats.easySolved / leetcodeStats.totalSolved) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-amber-600 dark:text-amber-400">Medium</span>
+                      <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20">
+                        {leetcodeStats.mediumSolved}
+                      </Badge>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div
+                        className="bg-amber-500 h-2 rounded-full transition-all"
+                        style={{ width: `${(leetcodeStats.mediumSolved / leetcodeStats.totalSolved) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-red-600 dark:text-red-400">Hard</span>
+                      <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/20">
+                        {leetcodeStats.hardSolved}
+                      </Badge>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div
+                        className="bg-red-500 h-2 rounded-full transition-all"
+                        style={{ width: `${(leetcodeStats.hardSolved / leetcodeStats.totalSolved) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </GlassCard>
+
+              {/* Submission Heatmap */}
+              <GlassCard className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-orange-500" />
+                    Submission Activity
+                  </h3>
+                  <Button variant="ghost" size="sm" asChild>
+                    <a href={`https://leetcode.com/${leetcodeStats.username}`} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      View on LeetCode
+                    </a>
+                  </Button>
+                </div>
+                <ContributionHeatmap
+                  type="leetcode"
+                  username={leetcodeStats.username}
+                  totalContributions={leetcodeStats.totalSolved}
+                  data={leetcodeStats.submissionCalendar}
+                />
+              </GlassCard>
+            </div>
+          )}
         </TabsContent>
 
       </Tabs>

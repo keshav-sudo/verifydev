@@ -1061,9 +1061,16 @@ export default function Settings() {
                         if (user) {
                           useAuthStore.getState().setUser({ ...user, leetcodeUsername: res.leetcodeUsername })
                         }
-                        toast.success("LeetCode connected successfully")
+                        toast({
+                          title: "Success",
+                          description: "LeetCode connected successfully",
+                        })
                       } catch (error) {
-                        toast.error("Failed to connect LeetCode. Please check username.")
+                        toast({
+                          title: "Error",
+                          description: "Failed to connect LeetCode. Please check username.",
+                          variant: "destructive",
+                        })
                         throw error
                       }
                     }}
@@ -1073,9 +1080,16 @@ export default function Settings() {
                         if (user) {
                           useAuthStore.getState().setUser({ ...user, leetcodeUsername: undefined })
                         }
-                        toast.success("LeetCode disconnected")
+                        toast({
+                          title: "Success",
+                          description: "LeetCode disconnected",
+                        })
                       } catch (error) {
-                        toast.error("Failed to disconnect LeetCode")
+                        toast({
+                          title: "Error",
+                          description: "Failed to disconnect LeetCode",
+                          variant: "destructive",
+                        })
                         throw error
                       }
                     }}

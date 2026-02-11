@@ -2029,6 +2029,749 @@ function ScoresBreakdownCard({ scores }: { scores: ScoresData }) {
 }
 
 // ============================================
+// CONFIDENCE REPORT CARD
+// ============================================
+interface ConfidenceReportData {
+  analysisConfidence?: number
+  qualityMetrics?: {
+    organizationScore?: number
+    modularityScore?: number
+    testCoverageProxy?: number
+    testMaturity?: string
+    documentationScore?: number
+    complexityScore?: number
+    complexityLevel?: string
+    productionReadiness?: number
+    overallQuality?: number
+    qualityTier?: string
+  }
+  evolutionSignals?: {
+    authorshipLevel?: string
+    authorshipFactor?: number
+    developmentPattern?: string
+    iterationCount?: number
+    refactorRatio?: number
+    projectAge?: string
+    maturityFactor?: number
+    commitConsistency?: number
+  }
+  ensembleVerdict?: {
+    astScore?: number
+    graphScore?: number
+    infraScore?: number
+    intelligenceScore?: number
+    qualityScore?: number
+    gitScore?: number
+    finalScore?: number
+    confidence?: number
+    scoreLabel?: string
+    totalSkills?: number
+    highConfSkills?: number
+    resumeReadySkills?: number
+    topFactors?: string[]
+    riskFactors?: string[]
+  }
+  skillConfidences?: Array<{
+    skillName?: string
+    category?: string
+    prior?: number
+    posterior?: number
+    astEvidence?: number
+    infraEvidence?: number
+    graphEvidence?: number
+    lowerBound?: number
+    upperBound?: number
+    finalConfidence?: number
+    resumeReady?: boolean
+    usageVerified?: boolean
+  }>
+}
+
+function ConfidenceReportCard({ report }: { report: ConfidenceReportData }) {
+  if (!report) return null
+  
+  const ensemble = report.ensembleVerdict
+  const quality = report.qualityMetrics
+  const evolution = report.evolutionSignals
+  const skills = report.skillConfidences || []
+  
+  // Don't render if completely empty
+  if (!ensemble && !quality && !evolution && skills.length === 0) return null
+  
+  const gradeLabelMap: Record<string, string> = {
+    'Expert': 'A+',
+    'Advanced': 'A',
+    'Proficient': 'B+',
+    'Intermediate': 'B',
+    'Basic': 'C',
+    'Novice': 'D',
+  }
+  
+  const gradeLabel = ensemble?.scoreLabel ? (gradeLabelMap[ensemble.scoreLabel] || ensemble.scoreLabel) : null
+  
+  const gradeColors: Record<string, string> = {
+    'A+': 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30',
+    'A': 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30',
+    'B+': 'text-blue-400 bg-blue-500/15 border-blue-500/30',
+    'B': 'text-blue-400 bg-blue-500/15 border-blue-500/30',
+    'C+': 'text-amber-400 bg-amber-500/15 border-amber-500/30',
+    'C': 'text-amber-400 bg-amber-500/15 border-amber-500/30',
+    'D': 'text-red-400 bg-red-500/15 border-red-500/30',
+    'F': 'text-red-400 bg-red-500/15 border-red-500/30',
+  }
+  
+  return (
+    <Card className="border-border/50 bg-gradient-to-br from-violet-500/5 to-indigo-500/5 backdrop-blur overflow-hidden">
+      <CardHeader className="border-b border-border/30">
+        <CardTitle className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/30 flex items-center justify-center">
+            <Eye className="h-5 w-5 text-violet-400" />
+          </div>
+          Confidence Report
+          {gradeLabel && (
+            <Badge className={cn("ml-auto text-lg px-3 py-1", gradeColors[gradeLabel] || 'bg-muted/50')}>
+              Grade: {gradeLabel}
+            </Badge>
+          )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-6 space-y-6">
+        {/* Ensemble Verdict Scores */}
+        {ensemble && (
+          <div>
+            <p className="text-sm font-semibold mb-4 flex items-center gap-2">
+              <Brain className="w-4 h-4 text-violet-400" />
+              Ensemble Analysis Scores
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { label: 'AST Score', value: ensemble.astScore, color: 'from-blue-500 to-indigo-500' },
+                { label: 'Graph Score', value: ensemble.graphScore, color: 'from-purple-500 to-violet-500' },
+                { label: 'Infra Score', value: ensemble.infraScore, color: 'from-emerald-500 to-teal-500' },
+                { label: 'Quality Score', value: ensemble.qualityScore, color: 'from-amber-500 to-orange-500' },
+                { label: 'Intelligence', value: ensemble.intelligenceScore, color: 'from-rose-500 to-pink-500' },
+                { label: 'Git Score', value: ensemble.gitScore, color: 'from-cyan-500 to-blue-500' },
+              ].filter(s => s.value != null).map(scoreItem => (
+                <div key={scoreItem.label} className="p-3 rounded-xl bg-muted/20 border border-border/30 text-center">
+                  <p className="text-2xl font-bold">{Math.round(scoreItem.value || 0)}</p>
+                  <div className="h-1.5 rounded-full bg-muted/40 overflow-hidden mt-2 mb-1">
+                    <div className={cn("h-full rounded-full bg-gradient-to-r", scoreItem.color)} style={{ width: `${Math.min(scoreItem.value || 0, 100)}%` }} />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{scoreItem.label}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex items-center justify-between text-sm">
+              <div className="flex items-center gap-4">
+                <div>
+                  <span className="text-muted-foreground">Final Score: </span>
+                  <span className="font-bold text-xl text-primary">{Math.round(ensemble.finalScore || 0)}</span>
+                </div>
+                {ensemble.confidence != null && (
+                  <div>
+                    <span className="text-muted-foreground">Confidence: </span>
+                    <span className="font-bold text-foreground">{Math.round(ensemble.confidence * 100)}%</span>
+                  </div>
+                )}
+              </div>
+              {(ensemble.totalSkills || ensemble.highConfSkills || ensemble.resumeReadySkills) && (
+                <div className="flex items-center gap-4 text-xs">
+                  {ensemble.totalSkills != null && (
+                    <span className="text-muted-foreground">Skills: <span className="text-foreground font-medium">{ensemble.totalSkills}</span></span>
+                  )}
+                  {ensemble.highConfSkills != null && (
+                    <span className="text-muted-foreground">High Conf: <span className="text-emerald-400 font-medium">{ensemble.highConfSkills}</span></span>
+                  )}
+                  {ensemble.resumeReadySkills != null && (
+                    <span className="text-muted-foreground">Resume Ready: <span className="text-blue-400 font-medium">{ensemble.resumeReadySkills}</span></span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Quality & Evolution Metrics */}
+        {(quality || evolution) && (
+          <div className="grid sm:grid-cols-2 gap-4">
+            {/* Quality Metrics */}
+            {quality && (
+              <div className="p-4 rounded-xl bg-muted/10 border border-border/30">
+                <p className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <FileCheck className="w-4 h-4 text-emerald-400" />
+                  Quality Metrics
+                </p>
+                <div className="space-y-2">
+                  {[
+                    { label: 'Organization', value: quality.organizationScore },
+                    { label: 'Modularity', value: quality.modularityScore },
+                    { label: 'Test Coverage', value: quality.testCoverageProxy },
+                    { label: 'Documentation', value: quality.documentationScore },
+                    { label: 'Production Ready', value: quality.productionReadiness },
+                  ].filter(q => q.value != null).map(q => (
+                    <div key={q.label} className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground flex-1">{q.label}</span>
+                      <div className="w-20 h-1.5 rounded-full bg-muted/40 overflow-hidden">
+                        <div 
+                          className={cn("h-full rounded-full",
+                            (q.value || 0) >= 70 ? 'bg-emerald-500' :
+                            (q.value || 0) >= 40 ? 'bg-amber-500' : 'bg-red-500'
+                          )}
+                          style={{ width: `${Math.min(q.value || 0, 100)}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-mono w-8 text-right">{Math.round(q.value || 0)}</span>
+                    </div>
+                  ))}
+                  {quality.testMaturity && (
+                    <div className="flex items-center justify-between text-xs pt-2 border-t border-border/20 mt-2">
+                      <span className="text-muted-foreground">Test Maturity</span>
+                      <Badge variant="secondary" className="text-xs">{quality.testMaturity}</Badge>
+                    </div>
+                  )}
+                  {quality.qualityTier && (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Quality Tier</span>
+                      <Badge variant="secondary" className="text-xs capitalize">{quality.qualityTier}</Badge>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {/* Evolution Signals */}
+            {evolution && (
+              <div className="p-4 rounded-xl bg-muted/10 border border-border/30">
+                <p className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-blue-400" />
+                  Evolution Signals
+                </p>
+                <div className="space-y-2">
+                  {[
+                    { label: 'Authorship Factor', value: evolution.authorshipFactor },
+                    { label: 'Maturity Factor', value: evolution.maturityFactor },
+                    { label: 'Refactor Ratio', value: evolution.refactorRatio },
+                    { label: 'Commit Consistency', value: evolution.commitConsistency },
+                  ].filter(e => e.value != null).map(e => (
+                    <div key={e.label} className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground flex-1">{e.label}</span>
+                      <div className="w-20 h-1.5 rounded-full bg-muted/40 overflow-hidden">
+                        <div 
+                          className={cn("h-full rounded-full",
+                            (e.value || 0) >= 0.7 ? 'bg-emerald-500' :
+                            (e.value || 0) >= 0.4 ? 'bg-amber-500' : 'bg-red-500'
+                          )}
+                          style={{ width: `${Math.min((e.value || 0) * 100, 100)}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-mono w-8 text-right">{((e.value || 0) * 100).toFixed(0)}</span>
+                    </div>
+                  ))}
+                  {evolution.authorshipLevel && (
+                    <div className="flex items-center justify-between text-xs pt-2 border-t border-border/20 mt-2">
+                      <span className="text-muted-foreground">Authorship</span>
+                      <Badge variant="secondary" className="text-xs">{evolution.authorshipLevel}</Badge>
+                    </div>
+                  )}
+                  {evolution.developmentPattern && (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Dev Pattern</span>
+                      <Badge variant="secondary" className="text-xs capitalize">{evolution.developmentPattern}</Badge>
+                    </div>
+                  )}
+                  {evolution.projectAge && (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Project Age</span>
+                      <Badge variant="secondary" className="text-xs capitalize">{evolution.projectAge}</Badge>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Skill Confidences */}
+        {skills.length > 0 && (
+          <div>
+            <p className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              Bayesian Skill Confidences ({skills.length})
+            </p>
+            <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
+              {skills
+                .sort((a, b) => (b.posterior || b.finalConfidence || 0) - (a.posterior || a.finalConfidence || 0))
+                .map((sc, i) => {
+                  const conf = Math.round(((sc.posterior || sc.finalConfidence) || 0) * 100)
+                  return (
+                    <div key={i} className="flex items-center gap-3">
+                      <span className="text-sm flex-1 truncate min-w-[100px]">{sc.skillName || 'Unknown'}</span>
+                      {sc.resumeReady && (
+                        <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[10px] h-5 px-1.5">
+                          ✓ Resume
+                        </Badge>
+                      )}
+                      <div className="w-28 h-2 rounded-full bg-muted/40 overflow-hidden">
+                        <div 
+                          className={cn("h-full rounded-full bg-gradient-to-r",
+                            conf >= 70 ? 'from-emerald-500 to-green-500' :
+                            conf >= 40 ? 'from-amber-500 to-yellow-500' :
+                            'from-red-500 to-rose-500'
+                          )}
+                          style={{ width: `${conf}%` }}
+                        />
+                      </div>
+                      <span className={cn("text-xs font-mono w-10 text-right",
+                        conf >= 70 ? 'text-emerald-400' : conf >= 40 ? 'text-amber-400' : 'text-red-400'
+                      )}>{conf}%</span>
+                    </div>
+                  )
+                })}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// ============================================
+// TECH DEPENDENCY GRAPH CARD
+// ============================================
+interface TechDependencyGraphData {
+  detectedStacks?: Array<{
+    name?: string
+    confidence?: number
+    technologies?: string[]
+  }>
+  inferredSkills?: Array<{
+    name?: string
+    reason?: string
+    confidence?: number
+  }>
+  clusters?: Array<{
+    name?: string
+    technologies?: string[]
+    role?: string
+  }>
+  totalNodes?: number
+  totalEdges?: number
+}
+
+function TechDependencyGraphCard({ graph }: { graph: TechDependencyGraphData }) {
+  if (!graph) return null
+  
+  const stacks = graph.detectedStacks || []
+  const inferred = graph.inferredSkills || []
+  const clusters = graph.clusters || []
+  
+  if (stacks.length === 0 && inferred.length === 0 && clusters.length === 0) return null
+  
+  const clusterColors = [
+    { bg: 'bg-blue-500/10', border: 'border-blue-500/20', text: 'text-blue-400', badge: 'bg-blue-500/15 text-blue-400 border-blue-500/30' },
+    { bg: 'bg-purple-500/10', border: 'border-purple-500/20', text: 'text-purple-400', badge: 'bg-purple-500/15 text-purple-400 border-purple-500/30' },
+    { bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', text: 'text-emerald-400', badge: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
+    { bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-400', badge: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
+    { bg: 'bg-rose-500/10', border: 'border-rose-500/20', text: 'text-rose-400', badge: 'bg-rose-500/15 text-rose-400 border-rose-500/30' },
+    { bg: 'bg-cyan-500/10', border: 'border-cyan-500/20', text: 'text-cyan-400', badge: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30' },
+  ]
+  
+  return (
+    <Card className="border-border/50 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 backdrop-blur overflow-hidden">
+      <CardHeader className="border-b border-border/30">
+        <CardTitle className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 flex items-center justify-center">
+            <Network className="h-5 w-5 text-cyan-400" />
+          </div>
+          Tech Dependency Graph
+          {graph.totalNodes != null && (
+            <span className="ml-auto text-xs text-muted-foreground font-normal">
+              {graph.totalNodes} nodes • {graph.totalEdges || 0} edges
+            </span>
+          )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-6 space-y-6">
+        {/* Detected Stacks */}
+        {stacks.length > 0 && (
+          <div>
+            <p className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <Layers className="w-4 h-4 text-cyan-400" />
+              Detected Stacks ({stacks.length})
+            </p>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {stacks.map((stack, i) => {
+                const colors = clusterColors[i % clusterColors.length]
+                const conf = stack.confidence != null ? Math.round(stack.confidence * 100) : null
+                return (
+                  <div key={i} className={cn("p-4 rounded-xl border", colors.bg, colors.border)}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={cn("font-bold text-sm", colors.text)}>{stack.name || 'Unknown Stack'}</span>
+                      {conf != null && (
+                        <span className="text-xs text-muted-foreground">{conf}%</span>
+                      )}
+                    </div>
+                    {stack.technologies && stack.technologies.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {stack.technologies.map((tech, j) => (
+                          <Badge key={j} variant="outline" className={cn("text-[10px] h-5 px-1.5", colors.badge)}>
+                            {tech}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+        
+        {/* Technology Clusters */}
+        {clusters.length > 0 && (
+          <div>
+            <p className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <Box className="w-4 h-4 text-purple-400" />
+              Technology Clusters ({clusters.length})
+            </p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {clusters.map((cluster, i) => {
+                const colors = clusterColors[i % clusterColors.length]
+                return (
+                  <div key={i} className={cn("p-3 rounded-xl border", colors.bg, colors.border)}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={cn("font-semibold text-sm", colors.text)}>{cluster.name || `Cluster ${i + 1}`}</span>
+                      {cluster.role && (
+                        <Badge variant="secondary" className="text-[10px] h-5">{cluster.role}</Badge>
+                      )}
+                    </div>
+                    {cluster.technologies && cluster.technologies.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {cluster.technologies.map((tech, j) => (
+                          <Badge key={j} variant="outline" className="text-[10px] h-5 px-1.5">
+                            {tech}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+        
+        {/* Inferred Skills */}
+        {inferred.length > 0 && (
+          <div>
+            <p className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <Lightbulb className="w-4 h-4 text-amber-400" />
+              Inferred Skills ({inferred.length})
+            </p>
+            <div className="space-y-2">
+              {inferred.map((skill, i) => {
+                const conf = skill.confidence != null ? Math.round(skill.confidence * 100) : null
+                return (
+                  <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/10 border border-border/20">
+                    <span className="text-sm font-medium flex-1">{skill.name || 'Unknown'}</span>
+                    {skill.reason && (
+                      <span className="text-[10px] text-muted-foreground max-w-[200px] truncate" title={skill.reason}>
+                        {skill.reason}
+                      </span>
+                    )}
+                    {conf != null && (
+                      <>
+                        <div className="w-16 h-1.5 rounded-full bg-muted/40 overflow-hidden">
+                          <div 
+                            className={cn("h-full rounded-full",
+                              conf >= 70 ? 'bg-emerald-500' : conf >= 40 ? 'bg-amber-500' : 'bg-red-500'
+                            )}
+                            style={{ width: `${conf}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-muted-foreground w-8 text-right">{conf}%</span>
+                      </>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// ============================================
+// ENHANCED INFRASTRUCTURE SIGNALS CARD
+// ============================================
+function EnhancedInfraSignalsCard({ infraSignals }: { infraSignals: any }) {
+  const [expanded, setExpanded] = useState<string | null>(null)
+  
+  if (!infraSignals) return null
+  
+  const signals = infraSignals.signals || []
+  const details = infraSignals.signalDetails || {}
+  const hasDetails = Object.keys(details).length > 0
+  
+  if (signals.length === 0 && !hasDetails) return null
+  
+  // Merge signals list and details to create full picture
+  const allSignals = signals.map((signal: string) => {
+    const detail = details[signal]
+    const tech = signalToTechMapping[signal]
+    return {
+      key: signal,
+      name: tech?.name || signal.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
+      category: tech?.category || 'other',
+      confidence: detail?.confidence != null ? Math.round(detail.confidence * 100) : null,
+      evidence: detail?.evidence || [],
+    }
+  })
+  
+  // Also add details that aren't in signals list
+  Object.keys(details).forEach(key => {
+    if (!signals.includes(key)) {
+      const detail = details[key]
+      const tech = signalToTechMapping[key]
+      allSignals.push({
+        key,
+        name: tech?.name || key.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
+        category: tech?.category || 'other',
+        confidence: detail?.confidence != null ? Math.round(detail.confidence * 100) : null,
+        evidence: detail?.evidence || [],
+      })
+    }
+  })
+  
+  // Sort by confidence desc
+  allSignals.sort((a: any, b: any) => (b.confidence || 0) - (a.confidence || 0))
+  
+  const categoryIcons: Record<string, string> = {
+    infrastructure: '🏗️',
+    database: '🗄️',
+    messaging: '📨',
+    realtime: '⚡',
+    api: '🔌',
+    observability: '👁️',
+    cloud: '☁️',
+    testing: '🧪',
+    ml: '🤖',
+    pattern: '🔧',
+    devops: '🚀',
+    security: '🔒',
+    other: '📦',
+  }
+  
+  return (
+    <Card className="border-border/50 bg-gradient-to-br from-orange-500/5 to-amber-500/5 backdrop-blur overflow-hidden">
+      <CardHeader className="border-b border-border/30">
+        <CardTitle className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500/20 to-amber-500/20 border border-orange-500/30 flex items-center justify-center">
+            <Server className="h-5 w-5 text-orange-400" />
+          </div>
+          Infrastructure Signals
+          <Badge variant="secondary" className="ml-auto">{allSignals.length} signals</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-6">
+        <div className="space-y-2">
+          {allSignals.map((signal: any) => (
+            <div key={signal.key} className="rounded-xl border border-border/30 overflow-hidden">
+              <button
+                onClick={() => signal.evidence.length > 0 ? setExpanded(expanded === signal.key ? null : signal.key) : null}
+                className={cn(
+                  "w-full flex items-center gap-3 p-3 text-left transition-colors",
+                  signal.evidence.length > 0 ? 'hover:bg-muted/20 cursor-pointer' : 'cursor-default',
+                  expanded === signal.key && 'bg-muted/10'
+                )}
+              >
+                <span className="text-base">{categoryIcons[signal.category] || '📦'}</span>
+                <span className="text-sm font-medium flex-1">{signal.name}</span>
+                {signal.confidence != null && (
+                  <>
+                    <div className="w-20 h-2 rounded-full bg-muted/40 overflow-hidden">
+                      <div 
+                        className={cn("h-full rounded-full",
+                          signal.confidence >= 80 ? 'bg-emerald-500' :
+                          signal.confidence >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                        )}
+                        style={{ width: `${signal.confidence}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-muted-foreground w-10 text-right">{signal.confidence}%</span>
+                  </>
+                )}
+                {signal.evidence.length > 0 && (
+                  expanded === signal.key 
+                    ? <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                    : <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                )}
+              </button>
+              {expanded === signal.key && signal.evidence.length > 0 && (
+                <div className="px-4 pb-3 pt-1 border-t border-border/20">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Evidence</p>
+                  <div className="space-y-1">
+                    {signal.evidence.map((ev: string, j: number) => (
+                      <div key={j} className="flex items-start gap-2 text-xs text-muted-foreground">
+                        <span className="text-emerald-400 mt-0.5">•</span>
+                        <span className="font-mono break-all">{ev}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// ============================================
+// FOLDER STRUCTURE PATTERNS CARD
+// ============================================
+function FolderStructurePatternsCard({ folderStructure }: { folderStructure: any }) {
+  if (!folderStructure) return null
+  
+  const orgScore = folderStructure.organizationScore
+  const maxDepth = folderStructure.maxDepth
+  const topLevelFolders = folderStructure.topLevelFolders || []
+  
+  // Gather all boolean pattern flags
+  const patterns = [
+    { key: 'hasSrcFolder', label: 'src/ folder', icon: '📁' },
+    { key: 'hasLibFolder', label: 'lib/ folder', icon: '📚' },
+    { key: 'hasComponents', label: 'Components', icon: '🧩' },
+    { key: 'hasPages', label: 'Pages/Routes', icon: '📄' },
+    { key: 'hasUtils', label: 'Utilities', icon: '🔧' },
+    { key: 'hasHooks', label: 'Hooks', icon: '🪝' },
+    { key: 'hasServices', label: 'Services', icon: '⚙️' },
+    { key: 'hasModels', label: 'Models', icon: '🗂️' },
+    { key: 'hasControllers', label: 'Controllers', icon: '🎮' },
+    { key: 'hasMiddleware', label: 'Middleware', icon: '🔀' },
+    { key: 'hasTests', label: 'Tests', icon: '🧪' },
+    { key: 'hasConfig', label: 'Config', icon: '⚙️' },
+    { key: 'hasTypes', label: 'Types', icon: '🔷' },
+    { key: 'hasStyles', label: 'Styles', icon: '🎨' },
+    { key: 'hasAssets', label: 'Assets', icon: '🖼️' },
+    { key: 'hasApi', label: 'API', icon: '🔌' },
+    { key: 'hasStore', label: 'Store/State', icon: '💾' },
+    { key: 'hasContext', label: 'Context', icon: '🔗' },
+    { key: 'hasHelpers', label: 'Helpers', icon: '🛠️' },
+    { key: 'hasPrisma', label: 'Prisma', icon: '💎' },
+    { key: 'hasDocker', label: 'Docker', icon: '🐳' },
+    { key: 'hasDocs', label: 'Documentation', icon: '📖' },
+    { key: 'hasScripts', label: 'Scripts', icon: '📜' },
+    { key: 'hasPublic', label: 'Public', icon: '🌐' },
+  ].filter(p => folderStructure[p.key] != null)
+  
+  const detectedPatterns = patterns.filter(p => folderStructure[p.key])
+  const missingPatterns = patterns.filter(p => !folderStructure[p.key])
+  
+  if (patterns.length === 0 && !orgScore && topLevelFolders.length === 0) return null
+  
+  return (
+    <Card className="border-border/50 bg-gradient-to-br from-teal-500/5 to-emerald-500/5 backdrop-blur overflow-hidden">
+      <CardHeader className="border-b border-border/30">
+        <CardTitle className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500/20 to-emerald-500/20 border border-teal-500/30 flex items-center justify-center">
+            <FolderTree className="h-5 w-5 text-teal-400" />
+          </div>
+          Folder Structure & Organization
+          {orgScore != null && (
+            <div className="ml-auto flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Organization</span>
+              <Badge className={cn(
+                orgScore >= 70 ? 'bg-emerald-500/20 text-emerald-400' :
+                orgScore >= 40 ? 'bg-amber-500/20 text-amber-400' :
+                'bg-red-500/20 text-red-400'
+              )}>
+                {Math.round(orgScore)}/100
+              </Badge>
+            </div>
+          )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-6 space-y-5">
+        {/* Organization Score Bar */}
+        {orgScore != null && (
+          <div>
+            <div className="h-3 rounded-full bg-muted/40 overflow-hidden">
+              <div 
+                className={cn("h-full rounded-full transition-all duration-700",
+                  orgScore >= 70 ? 'bg-gradient-to-r from-emerald-500 to-green-500' :
+                  orgScore >= 40 ? 'bg-gradient-to-r from-amber-500 to-yellow-500' :
+                  'bg-gradient-to-r from-red-500 to-rose-500'
+                )}
+                style={{ width: `${Math.min(orgScore, 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
+        
+        {/* Top Level Folders */}
+        {topLevelFolders.length > 0 && (
+          <div>
+            <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5">
+              <FolderTree className="w-3.5 h-3.5" />
+              Top-Level Folders ({topLevelFolders.length})
+              {maxDepth && <span className="ml-auto">Max Depth: {maxDepth}</span>}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {topLevelFolders.map((folder: string, i: number) => (
+                <Badge key={i} variant="outline" className="bg-muted/50 font-mono text-xs">
+                  📁 {folder}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Detected Patterns */}
+        {detectedPatterns.length > 0 && (
+          <div>
+            <p className="text-sm font-medium text-emerald-400 mb-2 flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              Detected Patterns ({detectedPatterns.length})
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+              {detectedPatterns.map(p => (
+                <div key={p.key} className="flex items-center gap-2 p-2 rounded-lg bg-emerald-500/5 border border-emerald-500/15 text-sm">
+                  <span>{p.icon}</span>
+                  <span className="flex-1 truncate">{p.label}</span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Missing Patterns */}
+        {missingPatterns.length > 0 && (
+          <div>
+            <p className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-muted-foreground/60" />
+              Not Detected ({missingPatterns.length})
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+              {missingPatterns.map(p => (
+                <div key={p.key} className="flex items-center gap-2 p-2 rounded-lg bg-muted/10 border border-border/20 text-sm text-muted-foreground/60">
+                  <span className="opacity-50">{p.icon}</span>
+                  <span className="flex-1 truncate">{p.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// ============================================
 // MAIN COMPONENT
 // ============================================
 export default function ProjectDetail() {
@@ -2551,9 +3294,19 @@ function ProjectDetailSkeleton() {
         </div>
       )}
 
+      {/* ===== VERDICT ===== */}
+      {fullAnalysis.verdict && fullAnalysis.verdict.summary && (
+        <VerdictCard verdict={fullAnalysis.verdict} />
+      )}
+
       {/* ===== DIMENSIONAL ANALYSIS (6 Dimensions) ===== */}
       {fullAnalysis.dimensionalAnalysis && (
         <DimensionalAnalysisCard dimensional={fullAnalysis.dimensionalAnalysis} />
+      )}
+
+      {/* ===== SCORES BREAKDOWN ===== */}
+      {fullAnalysis.scores && (
+        <ScoresBreakdownCard scores={fullAnalysis.scores} />
       )}
 
       {/* ===== EXPERIENCE & TRUST ANALYSIS ===== */}
@@ -2566,14 +3319,9 @@ function ProjectDetailSkeleton() {
         )}
       </div>
 
-      {/* ===== VERDICT ===== */}
-      {fullAnalysis.verdict && fullAnalysis.verdict.summary && (
-        <VerdictCard verdict={fullAnalysis.verdict} />
-      )}
-
-      {/* ===== SCORES BREAKDOWN ===== */}
-      {fullAnalysis.scores && (
-        <ScoresBreakdownCard scores={fullAnalysis.scores} />
+      {/* ===== CONFIDENCE REPORT ===== */}
+      {fullAnalysis.confidenceReport && (
+        <ConfidenceReportCard report={fullAnalysis.confidenceReport} />
       )}
 
       {/* ===== CODE QUALITY INDICATORS ===== */}
@@ -2585,16 +3333,10 @@ function ProjectDetailSkeleton() {
         />
       )}
 
-      {/* ===== COMPLEXITY & GRAPH ===== */}
-      <div className="grid gap-4">
-        {project.complexity && (
-          <ComplexityCard complexity={project.complexity} />
-        )}
-        
-        {project.architectureGraph && (
-          <ArchitectureGraphView graph={project.architectureGraph} />
-        )}
-      </div>
+      {/* ===== FOLDER STRUCTURE PATTERNS ===== */}
+      {fullAnalysis.folderStructure && (
+        <FolderStructurePatternsCard folderStructure={fullAnalysis.folderStructure} />
+      )}
 
       {/* ===== INTELLIGENCE VERDICT (Autonomous Engine Output) ===== */}
       {(project.intelligenceVerdict || fullAnalysis.intelligenceVerdict) && (
@@ -2634,6 +3376,16 @@ function ProjectDetailSkeleton() {
             />
           )}
         </div>
+      )}
+
+      {/* ===== TECH DEPENDENCY GRAPH ===== */}
+      {fullAnalysis.techDependencyGraph && (
+        <TechDependencyGraphCard graph={fullAnalysis.techDependencyGraph} />
+      )}
+
+      {/* ===== ENHANCED INFRASTRUCTURE SIGNALS ===== */}
+      {(fullAnalysis.infraSignals || industryAnalysis.infraSignals) && (
+        <EnhancedInfraSignalsCard infraSignals={fullAnalysis.infraSignals || industryAnalysis.infraSignals} />
       )}
 
       {/* ===== METRICS & LANGUAGES ===== */}
@@ -2719,6 +3471,11 @@ function ProjectDetailSkeleton() {
             )}
           </CardContent>
         </Card>
+
+        {/* Complexity */}
+        {project.complexity && (
+          <ComplexityCard complexity={project.complexity} />
+        )}
       </div>
 
       {/* ===== BEST PRACTICES & OPTIMIZATIONS ===== */}
@@ -2734,6 +3491,11 @@ function ProjectDetailSkeleton() {
       {/* ===== FRAMEWORK ANALYSIS ===== */}
       {fullAnalysis.frameworkAnalysis && (
         <FrameworkAnalysisCard frameworkAnalysis={fullAnalysis.frameworkAnalysis} />
+      )}
+
+      {/* ===== ARCHITECTURE GRAPH ===== */}
+      {project.architectureGraph && (
+        <ArchitectureGraphView graph={project.architectureGraph} />
       )}
 
       {/* ===== DETAILED ANALYSIS ===== */}
@@ -2762,37 +3524,6 @@ function ProjectDetailSkeleton() {
             Detailed code structure, optimization tips, and framework analysis will appear here once the deep scan is complete.
           </p>
         </div>
-      )}
-
-      {/* ===== INFRASTRUCTURE SIGNALS ===== */}
-      {(fullAnalysis.infraSignals?.signals?.length > 0 || (industryAnalysis.infraSignals?.signals?.length > 0)) && (
-        <Card className="border-border/50 bg-card/50 backdrop-blur">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Server className="h-5 w-5 text-orange-500" />
-              Infrastructure Signals
-              <Badge variant="secondary" className="ml-auto">
-                {(fullAnalysis.infraSignals?.signals || industryAnalysis.infraSignals?.signals || []).length} signals
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {(fullAnalysis.infraSignals?.signals || industryAnalysis.infraSignals?.signals || []).map((signal: string, i: number) => {
-                const tech = signalToTechMapping[signal]
-                return (
-                  <Badge 
-                    key={i} 
-                    variant="outline" 
-                    className={cn("text-xs", tech ? 'bg-orange-500/10 text-orange-300 border-orange-500/20' : '')}
-                  >
-                    {tech ? tech.name : signal.replace(/_/g, ' ')}
-                  </Badge>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
       )}
     </div>
   )
