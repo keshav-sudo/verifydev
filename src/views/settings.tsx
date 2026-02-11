@@ -17,13 +17,14 @@ import { useAuthStore } from '@/store/auth-store'
 import { useRecruiterStore } from '@/store/recruiter-store'
 import { useUIStore } from '@/store/ui-store'
 import { get, put, del } from '@/api/client'
+import { connectLeetcode, disconnectLeetcode } from "@/api/services/user.service"
 import { toast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
-import { 
-  Settings as SettingsIcon, 
-  User, 
-  Bell, 
-  Palette, 
+import {
+  Settings as SettingsIcon,
+  User,
+  Bell,
+  Palette,
   Shield,
   Moon,
   Sun,
@@ -39,6 +40,8 @@ import {
   AlertTriangle,
   Check,
   Loader2,
+
+  Code,
   Code2,
   Building,
   Twitter,
@@ -55,7 +58,7 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { 
+    transition: {
       staggerChildren: 0.08,
       delayChildren: 0.1
     }
@@ -64,9 +67,9 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20, scale: 0.95 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
+  visible: {
+    opacity: 1,
+    y: 0,
     scale: 1,
     transition: {
       type: "spring",
@@ -91,18 +94,18 @@ interface UserSettings {
 export default function Settings() {
   const pathname = usePathname()
   const isRecruiter = pathname.startsWith('/recruiter')
-  
+
   const { user, logout: userLogout, checkAuth } = useAuthStore()
   const { recruiter, logout: recruiterLogout } = useRecruiterStore()
   const { theme, setTheme, accentColor } = useUIStore()
   const queryClient = useQueryClient()
-  
+
   // Use appropriate user data based on role
   const currentUser = isRecruiter ? recruiter : user
   const logout = isRecruiter ? recruiterLogout : userLogout
-  
+
   const [activeSection, setActiveSection] = useState<SettingsSection>('profile')
-  
+
   // Profile form state
   const [profile, setProfile] = useState({
     name: currentUser?.name || '',
@@ -124,11 +127,11 @@ export default function Settings() {
         website: (currentUser as any).website || '',
         company: currentUser.company || (currentUser as any).companyName || '',
         twitter: (currentUser as any).twitterUsername || (currentUser as any).twitter || '',
-        linkedin: (currentUser as any).linkedin || '',
+        linkedin: (currentUser as any)?.linkedinUrl || (currentUser as any)?.socialLinks?.find((l: any) => l.platform === 'LINKEDIN')?.url || '',
       })
     }
   }, [currentUser])
-  
+
   // Fetch settings from backend (skip for recruiters for now)
   const { data: settingsData } = useQuery({
     queryKey: ['settings'],
@@ -146,7 +149,7 @@ export default function Settings() {
     pushJobMatch: true,
     pushRecruiterView: true,
   })
-  
+
   // Privacy settings from backend
   const [privacy, setPrivacy] = useState({
     showEmail: false,
@@ -173,10 +176,19 @@ export default function Settings() {
   // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: (data: typeof profile) => {
+      const payload = {
+        name: data.name,
+        bio: data.bio,
+        location: data.location,
+        website: data.website,
+        company: data.company,
+        twitterHandle: data.twitter,
+        linkedinUrl: data.linkedin,
+      }
       if (isRecruiter) {
         return put('/v1/recruiters/profile', data)
       }
-      return put('/v1/users/me', data)
+      return put('/v1/users/me', payload)
     },
     onSuccess: async () => {
       if (!isRecruiter) {
@@ -195,7 +207,7 @@ export default function Settings() {
 
   // Update settings mutation (privacy/visibility) - skip for recruiters
   const updateSettingsMutation = useMutation({
-    mutationFn: (data: { isPublic?: boolean; isOpenToWork?: boolean }) => 
+    mutationFn: (data: { isPublic?: boolean; isOpenToWork?: boolean }) =>
       put('/v1/users/settings', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] })
@@ -247,7 +259,7 @@ export default function Settings() {
 
   const handlePrivacyChange = (key: string, value: boolean) => {
     setPrivacy(prev => ({ ...prev, [key]: value }))
-    
+
     // Map to backend fields and save
     if (key === 'profilePublic') {
       updateSettingsMutation.mutate({ isPublic: value })
@@ -292,7 +304,7 @@ export default function Settings() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
@@ -314,7 +326,7 @@ export default function Settings() {
 
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Sidebar Navigation */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
@@ -345,7 +357,7 @@ export default function Settings() {
                       {section.label}
                     </motion.button>
                   ))}
-                  
+
                   {/* Job Preferences Link */}
                   {!isRecruiter && (
                     <Link href="/settings/job-preferences" className="flex-shrink-0 lg:w-full">
@@ -364,7 +376,7 @@ export default function Settings() {
                 </nav>
               </CardContent>
             </Card>
-            
+
             {/* Profile Completion - Desktop Only */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -380,14 +392,14 @@ export default function Settings() {
                     </div>
                     <span className="text-sm font-semibold">Profile Strength</span>
                   </div>
-                  <Progress 
-                    value={calculateProfileCompletion()} 
-                    className="h-2.5 mb-2 bg-muted/30" 
+                  <Progress
+                    value={calculateProfileCompletion()}
+                    className="h-2.5 mb-2 bg-muted/30"
                   />
                   <p className="text-xs text-muted-foreground leading-relaxed">
                     {calculateProfileCompletion()}% complete
-                    {calculateProfileCompletion() < 100 
-                      ? ' • Add more details to stand out' 
+                    {calculateProfileCompletion() < 100
+                      ? ' • Add more details to stand out'
                       : ' • Perfect! 🎉'}
                   </p>
                 </CardContent>
@@ -397,7 +409,7 @@ export default function Settings() {
         </motion.div>
 
         {/* Main Content */}
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -420,7 +432,7 @@ export default function Settings() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6 relative"
->
+                >
                   {/* Avatar */}
                   <div className="flex items-center gap-4">
                     <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
@@ -436,14 +448,14 @@ export default function Settings() {
                       <p className="text-xs text-muted-foreground mt-1">Avatar synced from GitHub</p>
                     </div>
                   </div>
-                  
+
                   <Separator />
-                  
+
                   {/* Basic Info */}
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
                       <label className="text-sm font-medium mb-2 block">Display Name</label>
-                      <Input 
+                      <Input
                         value={profile.name}
                         onChange={(e) => setProfile(p => ({ ...p, name: e.target.value }))}
                         placeholder="Your name"
@@ -453,19 +465,19 @@ export default function Settings() {
                       <label className="text-sm font-medium mb-2 block">Email</label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input 
-                          value={user?.email || ''} 
-                          disabled 
+                        <Input
+                          value={user?.email || ''}
+                          disabled
                           className="pl-10 bg-muted"
                         />
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">Email is managed through GitHub</p>
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="text-sm font-medium mb-2 block">Bio</label>
-                    <Textarea 
+                    <Textarea
                       value={profile.bio}
                       onChange={(e) => setProfile(p => ({ ...p, bio: e.target.value }))}
                       placeholder="Tell us about yourself, your skills, and what you're passionate about"
@@ -473,13 +485,13 @@ export default function Settings() {
                     />
                     <p className="text-xs text-muted-foreground mt-1">{profile.bio.length}/500 characters</p>
                   </div>
-                  
+
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
                       <label className="text-sm font-medium mb-2 block">Location</label>
                       <div className="relative">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input 
+                        <Input
                           value={profile.location}
                           onChange={(e) => setProfile(p => ({ ...p, location: e.target.value }))}
                           placeholder="City, Country"
@@ -491,7 +503,7 @@ export default function Settings() {
                       <label className="text-sm font-medium mb-2 block">Company</label>
                       <div className="relative">
                         <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input 
+                        <Input
                           value={profile.company}
                           onChange={(e) => setProfile(p => ({ ...p, company: e.target.value }))}
                           placeholder="Where do you work?"
@@ -500,12 +512,12 @@ export default function Settings() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="text-sm font-medium mb-2 block">Website</label>
                     <div className="relative">
                       <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input 
+                      <Input
                         value={profile.website}
                         onChange={(e) => setProfile(p => ({ ...p, website: e.target.value }))}
                         placeholder="https://yourwebsite.com"
@@ -513,9 +525,9 @@ export default function Settings() {
                       />
                     </div>
                   </div>
-                  
+
                   <Separator />
-                  
+
                   {/* Social Links */}
                   <div>
                     <h3 className="font-medium mb-4">Social Links</h3>
@@ -524,7 +536,7 @@ export default function Settings() {
                         <label className="text-sm font-medium mb-2 block">Twitter</label>
                         <div className="relative">
                           <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input 
+                          <Input
                             value={profile.twitter}
                             onChange={(e) => setProfile(p => ({ ...p, twitter: e.target.value }))}
                             placeholder="@username"
@@ -536,7 +548,7 @@ export default function Settings() {
                         <label className="text-sm font-medium mb-2 block">LinkedIn</label>
                         <div className="relative">
                           <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input 
+                          <Input
                             value={profile.linkedin}
                             onChange={(e) => setProfile(p => ({ ...p, linkedin: e.target.value }))}
                             placeholder="linkedin.com/in/username"
@@ -546,13 +558,13 @@ export default function Settings() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-end pt-4">
                     <motion.div
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <Button 
+                      <Button
                         onClick={handleSaveProfile}
                         disabled={updateProfileMutation.isPending}
                         className="shadow-lg shadow-primary/30 bg-gradient-to-r from-primary to-primary/80 hover:shadow-xl hover:shadow-primary/40 transition-all duration-300"
@@ -598,8 +610,8 @@ export default function Settings() {
                         onClick={() => setTheme('light')}
                         className={cn(
                           "p-5 rounded-xl border-2 transition-all duration-300 relative overflow-hidden group",
-                          theme === 'light' 
-                            ? "border-primary bg-primary/5 shadow-lg shadow-primary/20" 
+                          theme === 'light'
+                            ? "border-primary bg-primary/5 shadow-lg shadow-primary/20"
                             : "border-border/50 hover:border-primary/40 hover:shadow-md"
                         )}
                       >
@@ -626,8 +638,8 @@ export default function Settings() {
                         onClick={() => setTheme('dark')}
                         className={cn(
                           "p-5 rounded-xl border-2 transition-all duration-300 relative overflow-hidden group",
-                          theme === 'dark' 
-                            ? "border-primary bg-primary/5 shadow-lg shadow-primary/20" 
+                          theme === 'dark'
+                            ? "border-primary bg-primary/5 shadow-lg shadow-primary/20"
                             : "border-border/50 hover:border-primary/40 hover:shadow-md"
                         )}
                       >
@@ -654,8 +666,8 @@ export default function Settings() {
                         onClick={() => setTheme('neutral')}
                         className={cn(
                           "p-5 rounded-xl border-2 transition-all duration-300 relative overflow-hidden group",
-                          theme === 'neutral' 
-                            ? "border-primary bg-primary/5 shadow-lg shadow-primary/20" 
+                          theme === 'neutral'
+                            ? "border-primary bg-primary/5 shadow-lg shadow-primary/20"
                             : "border-border/50 hover:border-primary/40 hover:shadow-md"
                         )}
                       >
@@ -682,8 +694,8 @@ export default function Settings() {
                         onClick={() => setTheme('system')}
                         className={cn(
                           "p-5 rounded-xl border-2 transition-all duration-300 relative overflow-hidden group",
-                          theme === 'system' 
-                            ? "border-primary bg-primary/5 shadow-lg shadow-primary/20" 
+                          theme === 'system'
+                            ? "border-primary bg-primary/5 shadow-lg shadow-primary/20"
                             : "border-border/50 hover:border-primary/40 hover:shadow-md"
                         )}
                       >
@@ -705,9 +717,9 @@ export default function Settings() {
                       </motion.button>
                     </div>
                   </div>
-                  
+
                   <Separator className="bg-border/50" />
-                  
+
                   <div>
                     <h3 className="font-semibold mb-2 text-base">Accent Color</h3>
                     <p className="text-sm text-muted-foreground/80 mb-6">Personalize the application&apos;s highlight color</p>
@@ -740,8 +752,8 @@ export default function Settings() {
                           whileTap={{ scale: 0.95 }}
                           className={cn(
                             "h-12 w-12 rounded-xl border-2 transition-all duration-200 shadow-md hover:shadow-xl relative group",
-                            accentColor === c.value 
-                              ? "border-foreground ring-4 ring-primary/30 ring-offset-2 ring-offset-background scale-110" 
+                            accentColor === c.value
+                              ? "border-foreground ring-4 ring-primary/30 ring-offset-2 ring-offset-background scale-110"
                               : "border-transparent hover:border-foreground/20"
                           )}
                           style={{ backgroundColor: `hsl(${c.value})` }}
@@ -787,7 +799,7 @@ export default function Settings() {
                       <p className="font-medium">Analysis Complete</p>
                       <p className="text-sm text-muted-foreground">Get notified when your project analysis is done</p>
                     </div>
-                    <Switch 
+                    <Switch
                       checked={notifications.emailAnalysis}
                       onCheckedChange={(c: boolean) => setNotifications(n => ({ ...n, emailAnalysis: c }))}
                     />
@@ -798,7 +810,7 @@ export default function Settings() {
                       <p className="font-medium">Job Matches</p>
                       <p className="text-sm text-muted-foreground">Receive emails for new job matches</p>
                     </div>
-                    <Switch 
+                    <Switch
                       checked={notifications.emailJobMatch}
                       onCheckedChange={(c: boolean) => setNotifications(n => ({ ...n, emailJobMatch: c }))}
                     />
@@ -809,14 +821,14 @@ export default function Settings() {
                       <p className="font-medium">Weekly Digest</p>
                       <p className="text-sm text-muted-foreground">Summary of your activity and stats</p>
                     </div>
-                    <Switch 
+                    <Switch
                       checked={notifications.emailWeeklyDigest}
                       onCheckedChange={(c: boolean) => setNotifications(n => ({ ...n, emailWeeklyDigest: c }))}
                     />
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -834,7 +846,7 @@ export default function Settings() {
                       <p className="font-medium">Analysis Updates</p>
                       <p className="text-sm text-muted-foreground">Real-time analysis progress and completion</p>
                     </div>
-                    <Switch 
+                    <Switch
                       checked={notifications.pushAnalysis}
                       onCheckedChange={(c: boolean) => setNotifications(n => ({ ...n, pushAnalysis: c }))}
                       disabled
@@ -846,7 +858,7 @@ export default function Settings() {
                       <p className="font-medium">New Job Matches</p>
                       <p className="text-sm text-muted-foreground">Instant alerts for matching jobs</p>
                     </div>
-                    <Switch 
+                    <Switch
                       checked={notifications.pushJobMatch}
                       onCheckedChange={(c: boolean) => setNotifications(n => ({ ...n, pushJobMatch: c }))}
                       disabled
@@ -858,7 +870,7 @@ export default function Settings() {
                       <p className="font-medium">Recruiter Views</p>
                       <p className="text-sm text-muted-foreground">Know when recruiters view your profile</p>
                     </div>
-                    <Switch 
+                    <Switch
                       checked={notifications.pushRecruiterView}
                       onCheckedChange={(c: boolean) => setNotifications(n => ({ ...n, pushRecruiterView: c }))}
                       disabled
@@ -888,7 +900,7 @@ export default function Settings() {
                       <p className="font-medium">Public Profile</p>
                       <p className="text-sm text-muted-foreground">Allow anyone to view your profile</p>
                     </div>
-                    <Switch 
+                    <Switch
                       checked={privacy.profilePublic}
                       onCheckedChange={(c: boolean) => handlePrivacyChange('profilePublic', c)}
                       disabled={updateSettingsMutation.isPending}
@@ -900,7 +912,7 @@ export default function Settings() {
                       <p className="font-medium">Show Email</p>
                       <p className="text-sm text-muted-foreground">Display email on your public profile</p>
                     </div>
-                    <Switch 
+                    <Switch
                       checked={privacy.showEmail}
                       onCheckedChange={(c: boolean) => setPrivacy(p => ({ ...p, showEmail: c }))}
                     />
@@ -911,7 +923,7 @@ export default function Settings() {
                       <p className="font-medium">Show Location</p>
                       <p className="text-sm text-muted-foreground">Display your location publicly</p>
                     </div>
-                    <Switch 
+                    <Switch
                       checked={privacy.showLocation}
                       onCheckedChange={(c: boolean) => setPrivacy(p => ({ ...p, showLocation: c }))}
                     />
@@ -922,14 +934,14 @@ export default function Settings() {
                       <p className="font-medium">Show Company</p>
                       <p className="text-sm text-muted-foreground">Display where you work</p>
                     </div>
-                    <Switch 
+                    <Switch
                       checked={privacy.showCompany}
                       onCheckedChange={(c: boolean) => setPrivacy(p => ({ ...p, showCompany: c }))}
                     />
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -946,7 +958,7 @@ export default function Settings() {
                       <p className="font-medium">Open to Work</p>
                       <p className="text-sm text-muted-foreground">Let recruiters know you&apos;re looking for opportunities</p>
                     </div>
-                    <Switch 
+                    <Switch
                       checked={privacy.showInSearch}
                       onCheckedChange={(c: boolean) => handlePrivacyChange('showInSearch', c)}
                       disabled={updateSettingsMutation.isPending}
@@ -958,14 +970,14 @@ export default function Settings() {
                       <p className="font-medium">Allow Contact</p>
                       <p className="text-sm text-muted-foreground">Let recruiters send you messages</p>
                     </div>
-                    <Switch 
+                    <Switch
                       checked={privacy.allowRecruiterContact}
                       onCheckedChange={(c: boolean) => setPrivacy(p => ({ ...p, allowRecruiterContact: c }))}
                     />
                   </div>
                 </CardContent>
               </Card>
-              
+
               {updateSettingsMutation.isPending && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -1013,25 +1025,25 @@ export default function Settings() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* GitHub - Connected */}
-                  <div className="flex items-center justify-between p-4 rounded-lg border bg-green-500/5 border-green-500/20">
+                  <div className="flex items-center justify-between p-4 rounded-lg border bg-zinc-900/50 border-white/10">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-lg bg-zinc-900 flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-lg bg-zinc-900 flex items-center justify-center border border-white/10">
                         <Github className="h-5 w-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-medium">GitHub</p>
-                        <p className="text-sm text-muted-foreground">@{user?.githubUsername || user?.username}</p>
+                        <p className="font-medium text-white">GitHub</p>
+                        <p className="text-sm text-zinc-400">@{user?.githubUsername || user?.username}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant="default" className="gap-1 bg-green-500">
+                      <Badge variant="default" className="gap-1 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-emerald-500/20">
                         <Check className="h-3 w-3" />
                         Connected
                       </Badge>
-                      <Button variant="ghost" size="sm" asChild>
-                        <a 
-                          href={`https://github.com/${user?.githubUsername || user?.username}`} 
-                          target="_blank" 
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-white" asChild>
+                        <a
+                          href={`https://github.com/${user?.githubUsername || user?.username}`}
+                          target="_blank"
                           rel="noopener noreferrer"
                         >
                           <ExternalLink className="h-4 w-4" />
@@ -1039,7 +1051,36 @@ export default function Settings() {
                       </Button>
                     </div>
                   </div>
-                  
+
+                  {/* LeetCode Integration */}
+                  <LeetCodeConnection
+                    username={user?.leetcodeUsername}
+                    onConnect={async (username) => {
+                      try {
+                        const res = await connectLeetcode(username)
+                        if (user) {
+                          useAuthStore.getState().setUser({ ...user, leetcodeUsername: res.leetcodeUsername })
+                        }
+                        toast.success("LeetCode connected successfully")
+                      } catch (error) {
+                        toast.error("Failed to connect LeetCode. Please check username.")
+                        throw error
+                      }
+                    }}
+                    onDisconnect={async () => {
+                      try {
+                        await disconnectLeetcode()
+                        if (user) {
+                          useAuthStore.getState().setUser({ ...user, leetcodeUsername: undefined })
+                        }
+                        toast.success("LeetCode disconnected")
+                      } catch (error) {
+                        toast.error("Failed to disconnect LeetCode")
+                        throw error
+                      }
+                    }}
+                  />
+
                   {/* GitLab - Not Connected */}
                   <div className="flex items-center justify-between p-4 rounded-lg border">
                     <div className="flex items-center gap-3">
@@ -1055,7 +1096,7 @@ export default function Settings() {
                       Coming Soon
                     </Button>
                   </div>
-                  
+
                   {/* Bitbucket - Not Connected */}
                   <div className="flex items-center justify-between p-4 rounded-lg border">
                     <div className="flex items-center gap-3">
@@ -1095,8 +1136,8 @@ export default function Settings() {
                       <p className="font-medium">Export Data</p>
                       <p className="text-sm text-muted-foreground">Download all your data in JSON format</p>
                     </div>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       onClick={handleExportData}
                       disabled={exportDataMutation.isPending}
                     >
@@ -1108,14 +1149,14 @@ export default function Settings() {
                       Export
                     </Button>
                   </div>
-                  
+
                   <div className="flex items-center justify-between p-4 rounded-lg border border-destructive/30 bg-destructive/5">
                     <div>
                       <p className="font-medium text-destructive">Delete Account</p>
                       <p className="text-sm text-muted-foreground">Permanently delete your account and all data</p>
                     </div>
-                    <Button 
-                      variant="destructive" 
+                    <Button
+                      variant="destructive"
                       onClick={handleDeleteAccount}
                       disabled={deleteAccountMutation.isPending}
                     >
@@ -1133,6 +1174,136 @@ export default function Settings() {
           )}
         </motion.div>
       </div>
+    </div>
+  )
+}
+
+function LeetCodeConnection({
+  username,
+  onConnect,
+  onDisconnect
+}: {
+  username?: string
+  onConnect: (username: string) => Promise<void>
+  onDisconnect: () => Promise<void>
+}) {
+  const [isEditing, setIsEditing] = useState(false)
+  const [inputValue, setInputValue] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleConnect = async () => {
+    if (!inputValue.trim()) return
+    setIsLoading(true)
+    try {
+      await onConnect(inputValue)
+      setIsEditing(false)
+      setInputValue("")
+    } catch (error) {
+      // Error handled by parent
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleDisconnect = async () => {
+    setIsLoading(true)
+    try {
+      await onDisconnect()
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (username) {
+    return (
+      <div className="flex items-center justify-between p-4 rounded-lg border bg-zinc-900/50 border-white/10">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-lg bg-[#FFA116]/10 flex items-center justify-center border border-[#FFA116]/20">
+            <Code className="h-5 w-5 text-[#FFA116]" />
+          </div>
+          <div>
+            <p className="font-medium text-white">LeetCode</p>
+            <p className="text-sm text-zinc-400">@{username}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="default" className="gap-1 bg-[#FFA116]/10 text-[#FFA116] hover:bg-[#FFA116]/20 border border-[#FFA116]/20">
+            <Check className="h-3 w-3" />
+            Connected
+          </Badge>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-zinc-400 hover:text-red-400"
+            onClick={handleDisconnect}
+            disabled={isLoading}
+          >
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  if (isEditing) {
+    return (
+      <div className="p-4 rounded-lg border bg-zinc-900/50 border-white/10 space-y-3">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="h-10 w-10 rounded-lg bg-zinc-900/50 flex items-center justify-center border border-white/10">
+            <Code className="h-5 w-5 text-zinc-400" />
+          </div>
+          <div>
+            <p className="font-medium text-white">Connect LeetCode</p>
+            <p className="text-sm text-zinc-400">Enter your username to sync stats</p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Input
+            placeholder="LeetCode username"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            disabled={isLoading}
+            className="bg-zinc-950/50"
+          />
+          <Button
+            onClick={handleConnect}
+            disabled={isLoading || !inputValue.trim()}
+            className="bg-[#FFA116] hover:bg-[#FFA116]/90 text-black"
+          >
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Connect"}
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => setIsEditing(false)}
+            disabled={isLoading}
+          >
+            Cancel
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex items-center justify-between p-4 rounded-lg border bg-zinc-900/50 border-white/10">
+      <div className="flex items-center gap-3">
+        <div className="h-10 w-10 rounded-lg bg-zinc-900/50 flex items-center justify-center border border-white/10">
+          <Code className="h-5 w-5 text-zinc-400" />
+        </div>
+        <div>
+          <p className="font-medium text-white">LeetCode</p>
+          <p className="text-sm text-zinc-400">Not connected</p>
+        </div>
+      </div>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setIsEditing(true)}
+        className="gap-2 border-white/10 hover:bg-white/5"
+      >
+        <LinkIcon className="h-3 w-3" />
+        Connect
+      </Button>
     </div>
   )
 }
