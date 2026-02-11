@@ -4,7 +4,7 @@
  * Backend: user-service (port 3002)
  */
 
-import { get, post, put } from '../client'
+import { get, post, put, del } from '../client'
 
 // ============================================
 // TYPES
@@ -128,6 +128,33 @@ export interface AnalyzeProjectData {
 }
 
 // ============================================
+// LEETCODE ENDPOINTS
+// ============================================
+
+/**
+ * Connect LeetCode account
+ */
+export const connectLeetcode = (username: string) => {
+  return put<{ leetcodeUsername: string }>('/v1/users/me/leetcode', { username })
+}
+
+/**
+ * Disconnect LeetCode account
+ */
+export const disconnectLeetcode = () => {
+  return del<{ success: boolean }>('/v1/users/me/leetcode')
+}
+
+/**
+ * Get LeetCode stats
+ */
+import type { LeetcodeStats } from '@/types'
+
+export const getLeetcodeStats = () => {
+  return get<LeetcodeStats>('/v1/users/me/leetcode')
+}
+
+// ============================================
 // PROFILE ENDPOINTS
 // ============================================
 
@@ -155,8 +182,18 @@ export const getPublicProfile = (username: string) => {
 /**
  * Sync GitHub profile data
  */
+/**
+ * Sync GitHub profile data
+ */
 export const syncGitHub = () => {
   return post<{ message: string }>('/v1/users/me/sync-github')
+}
+
+/**
+ * Get GitHub stats
+ */
+export const getGithubStats = () => {
+  return get<{ username: string, submissionCalendar: Record<string, number> }>('/v1/users/me/github')
 }
 
 // ============================================

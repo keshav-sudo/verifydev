@@ -28,13 +28,28 @@ export interface User {
   createdAt: string
   updatedAt: string
   tags?: string[]
-  
+
+  leetcodeUsername?: string
+
   // Niche System - System-inferred role and tags (non-editable)
   primaryRole?: string // e.g., "Backend Developer", "Full Stack Engineer"
   primaryNiche?: string // e.g., "WEB_BACKEND", "DISTRIBUTED"
   secondaryNiche?: string
   nicheConfidence?: number // 0-100 system confidence
   autoTags?: string[] // System-generated tags like "Infrastructure Aware"
+}
+
+export interface LeetcodeStats {
+  username: string
+  ranking: number
+  reputation: number
+  totalSolved: number
+  easySolved: number
+  mediumSolved: number
+  hardSolved: number
+  acceptanceRate: number
+  contributionPoints: number
+  submissionCalendar: Record<string, number>
 }
 
 export type AuraLevel = 'novice' | 'rising' | 'skilled' | 'expert' | 'legend'
@@ -285,30 +300,30 @@ export interface IntelligenceVerdict {
   // Summary
   projectIntentSummary: string
   techStackSnapshot: string[]
-  
+
   // Scores
   architectureMaturity: number // 0-10
   overallScore: number         // 0-100
-  
+
   // Developer Assessment
   developerLevel: string // JUNIOR/INTERMEDIATE/SENIOR/EXPERT
   projectIntent: string  // LEARNING/HOBBY/PRODUCTION/ENTERPRISE
-  
+
   // Signals
   keySignals: string[]
   strengthSignals: string[]
   riskSignals: string[]
-  
+
   // Suggestions (sorted by priority)
   suggestions: IntelligenceSuggestion[]
-  
+
   // Skills (extracted with confidence)
   extractedSkills: IntelligenceSkill[]
-  
+
   // Recruiter Output
   seniorEngineerVerdict: string
   hireSignal: HireSignal
-  
+
   // Metadata
   analysisTimeMs: number
   modulesExecuted: string[]

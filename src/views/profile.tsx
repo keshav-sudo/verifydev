@@ -17,7 +17,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AuraScoreCard } from '@/components/aura/AuraScoreCard'
 import { get, post, put, del } from '@/api/client'
-import { addManualSkill } from '@/api/services/user.service'
+import { addManualSkill, getLeetcodeStats, getGithubStats } from '@/api/services/user.service'
+import { ContributionHeatmap } from '@/components/profile/contribution-heatmap'
 import {
   Dialog,
   DialogContent,
@@ -30,7 +31,7 @@ import {
 
 import { getInitials, cn, formatNumber } from '@/lib/utils'
 import { toast } from '@/hooks/use-toast'
-import type { VerifiedSkill } from '@/types'
+import type { VerifiedSkill, LeetcodeStats } from '@/types'
 import {
   MapPin,
   Building,
@@ -39,6 +40,7 @@ import {
   Download,
   FolderGit2,
   CheckCircle,
+  ExternalLink,
   Edit3,
   Sparkles,
   Code,
@@ -200,6 +202,10 @@ export default function Profile() {
   const [, setIsLoadingSkills] = useState(false)
   const [experiences, setExperiences] = useState<{ work: Experience[], education: Experience[], certifications: Experience[] }>({ work: [], education: [], certifications: [] })
   const [, setIsLoadingExp] = useState(false)
+  const [leetcodeStats, setLeetcodeStats] = useState<LeetcodeStats | null>(null)
+  const [githubStats, setGithubStats] = useState<{ username: string, submissionCalendar: Record<string, number> } | null>(null)
+  const [showAllSkills, setShowAllSkills] = useState(false)
+  const [activeTab, setActiveTab] = useState("overview")
 
   // Edit profile state
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -227,6 +233,8 @@ export default function Profile() {
     fetchProjects()
     fetchSkills()
     fetchExperience()
+    fetchLeetCode()
+    fetchGitHubStats()
   }, [fetchAura, fetchGitHubRepos, fetchProjects])
 
   useEffect(() => {
@@ -263,6 +271,24 @@ export default function Profile() {
       console.error('Failed to fetch experience', e)
     } finally {
       setIsLoadingExp(false)
+    }
+  }
+
+  const fetchLeetCode = async () => {
+    try {
+      const stats = await getLeetcodeStats()
+      setLeetcodeStats(stats)
+    } catch (e) {
+      console.log('No LeetCode stats or not connected')
+    }
+  }
+
+  const fetchGitHubStats = async () => {
+    try {
+      const stats = await getGithubStats()
+      setGithubStats(stats)
+    } catch (e) {
+      console.log('No GitHub stats or not connected')
     }
   }
 
@@ -485,7 +511,7 @@ export default function Profile() {
       </div>
 
       {/* ========== TABS ========== */}
-      <Tabs defaultValue="overview" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="bg-muted p-1 rounded-xl">
           <TabsTrigger value="overview" className="rounded-lg">Overview</TabsTrigger>
           <TabsTrigger value="experience" className="rounded-lg">Experience</TabsTrigger>
@@ -495,37 +521,106 @@ export default function Profile() {
 
         <TabsContent value="overview" className="space-y-6">
           <div className="grid lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <GlassCard className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <Code className="w-5 h-5 text-primary" /> Skills
-                  </h3>
-                  <Button variant="ghost" size="sm" onClick={() => document.getElementById('tab-skills')?.click()}>View All</Button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {skills.slice(0, 10).map(s => <SkillBadge key={s.name} skill={s} />)}
-                  {skills.length === 0 && <span className="text-muted-foreground text-sm">No skills yet.</span>}
-                </div>
-              </GlassCard>
+            <div className="lg:col-span-2 grid md:grid-cols-2 gap-6 items-start">
+              {/* Left Column: Skills */}
+              <div className="space-y-6">
+                <GlassCard className="p-6 h-full">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <Code className="w-5 h-5 text-primary" /> Skills
+                    </h3>
+                    <Button variant="ghost" size="sm" onClick={() => setActiveTab('skills')}>
+                      View All
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {(showAllSkills ? skills : skills.slice(0, 10)).map(s => <SkillBadge key={s.name} skill={s} />)}
+                    {skills.length === 0 && <span className="text-muted-foreground text-sm">No skills yet.</span>}
+                  </div>
+                  {skills.length > 10 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full mt-2 text-muted-foreground hover:text-foreground"
+                      onClick={() => setShowAllSkills(!showAllSkills)}
+                    >
+                      {showAllSkills ? "Show Less" : `Show ${skills.length - 10} More`}
+                    </Button>
+                  )}
+                </GlassCard>
+              </div>
 
-              <GlassCard className="p-6">
-                <h3 className="font-semibold mb-4 flex items-center gap-2"><Briefcase className="w-5 h-5 text-primary" /> Recent Experience</h3>
-                <div className="space-y-4">
-                  {experiences.work.slice(0, 2).map(exp => (
-                    <div key={exp.id} className="flex gap-4">
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Briefcase className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{exp.title}</p>
-                        <p className="text-sm text-muted-foreground">{exp.organization}</p>
+              {/* Right Column: Heatmaps & Experience */}
+              <div className="space-y-6">
+                {/* GitHub Heatmap */}
+                <GlassCard className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <FolderGit2 className="w-5 h-5 text-emerald-500" /> GitHub Activity
+                    </h3>
+                    <a
+                      href={`https://github.com/${githubStats?.username || user?.username}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-muted-foreground hover:text-emerald-500 flex items-center gap-1"
+                    >
+                      View Profile <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                  <ContributionHeatmap
+                    username={githubStats?.username || user?.username}
+                    type="github"
+                    totalContributions={githubStats ? Object.values(githubStats.submissionCalendar).reduce((a, b) => a + b, 0) : (user?.githubContributions || 0)}
+                    data={githubStats?.submissionCalendar || {}}
+                  />
+                </GlassCard>
+
+                {/* LeetCode Heatmap - Only if connected */}
+                {user?.leetcodeUsername && leetcodeStats && (
+                  <GlassCard className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="font-semibold flex items-center gap-2">
+                        <Code className="w-5 h-5 text-[#FFA116]" /> LeetCode Activity
+                      </h3>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <p className="text-xs text-muted-foreground">Ranking</p>
+                          <p className="text-sm font-medium text-[#FFA116]">{formatNumber(leetcodeStats.ranking)}</p>
+                        </div>
+                        <div className="w-px h-8 bg-border" />
+                        <div className="text-right">
+                          <p className="text-xs text-muted-foreground">Solved</p>
+                          <p className="text-sm font-medium text-white">{leetcodeStats.totalSolved}</p>
+                        </div>
                       </div>
                     </div>
-                  ))}
-                  {experiences.work.length === 0 && <p className="text-muted-foreground text-sm">No work experience added.</p>}
-                </div>
-              </GlassCard>
+                    <ContributionHeatmap
+                      username={user.leetcodeUsername}
+                      type="leetcode"
+                      totalContributions={leetcodeStats.totalSolved} // LeetCode total solved as proxy for now
+                      data={leetcodeStats.submissionCalendar}
+                    />
+                  </GlassCard>
+                )}
+
+                <GlassCard className="p-6">
+                  <h3 className="font-semibold mb-4 flex items-center gap-2"><Briefcase className="w-5 h-5 text-primary" /> Recent Experience</h3>
+                  <div className="space-y-4">
+                    {experiences.work.slice(0, 2).map(exp => (
+                      <div key={exp.id} className="flex gap-4">
+                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <Briefcase className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{exp.title}</p>
+                          <p className="text-sm text-muted-foreground">{exp.organization}</p>
+                        </div>
+                      </div>
+                    ))}
+                    {experiences.work.length === 0 && <p className="text-muted-foreground text-sm">No work experience added.</p>}
+                  </div>
+                </GlassCard>
+              </div>
             </div>
 
             <div>
@@ -677,7 +772,7 @@ export default function Profile() {
                         <FolderGit2 className="h-6 w-6 text-primary" />
                       </div>
                       <div>
-                        <p className="font-semibold text-foreground group-hover:text-primary transition-colors">{project.name}</p>
+                        <p className="font-semibold text-foreground group-hover:text-primary transition-colors">{project.repoName || project.name}</p>
                         <p className="text-sm text-muted-foreground mt-0.5">{project.description || 'No description'}</p>
                       </div>
                     </div>
@@ -711,10 +806,10 @@ export default function Profile() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              {skills.filter(s => s.isVerified).map((skill) => (
+              {skills.filter(s => s.isVerified || (s.source === 'GITHUB' || s.source === 'ANALYSIS')).map((skill) => (
                 <SkillBadge key={skill.name} skill={skill} />
               ))}
-              {skills.filter(s => s.isVerified).length === 0 && <p className="text-muted-foreground text-sm">No verified skills yet. Connect projects to get verified skills.</p>}
+              {skills.filter(s => s.isVerified || (s.source === 'GITHUB' || s.source === 'ANALYSIS')).length === 0 && <p className="text-muted-foreground text-sm">No verification/detected skills yet. Connect projects to get verified skills.</p>}
             </div>
           </GlassCard>
 
@@ -738,10 +833,10 @@ export default function Profile() {
             />
 
             <div className="flex flex-wrap gap-3">
-              {skills.filter(s => !s.isVerified).map((skill) => (
+              {skills.filter(s => !s.isVerified && (s.source === 'MANUAL' || !s.source)).map((skill) => (
                 <SkillBadge key={skill.name} skill={skill} />
               ))}
-              {skills.filter(s => !s.isVerified).length === 0 && <p className="text-muted-foreground text-sm">No claimed skills yet.</p>}
+              {skills.filter(s => !s.isVerified && (s.source === 'MANUAL' || !s.source)).length === 0 && <p className="text-muted-foreground text-sm">No claimed skills yet.</p>}
             </div>
           </GlassCard>
         </TabsContent>
