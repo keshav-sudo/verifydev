@@ -60,6 +60,20 @@ export interface SkillRelation {
   weight: number
 }
 
+// Rich Evidence Types (Phase 6: Deep Evidence Enrichment)
+export interface SkillDepth {
+  level: string           // "surface", "moderate", "deep", "expert"
+  diversityCount: number  // Number of distinct patterns/APIs used
+  patternsUsed: number    // Number of distinct code patterns
+  fileSpread: number      // How many files the tech spans
+}
+
+export interface RichEvidence {
+  summary: string[]                          // Human-readable summaries
+  patterns?: Record<string, any>             // Detailed pattern data (hooks, routes, queries)
+  depth?: SkillDepth                         // Depth assessment
+}
+
 export interface SkillNode {
   id: string
   name: string
@@ -70,10 +84,11 @@ export interface SkillNode {
   inferredFrom?: string
   rawConfidence: number
   netConfidence: number
-  usageVerified?: boolean // NEW
-  usageStrength?: number  // NEW
+  usageVerified?: boolean
+  usageStrength?: number
   relations?: SkillRelation[]
   evidence?: EvidenceChain
+  richEvidence?: RichEvidence | null  // Phase 6: Granular pattern-based evidence
 }
 
 export interface SkillTaxonomy {

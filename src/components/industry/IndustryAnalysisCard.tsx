@@ -47,6 +47,8 @@ const categoryConfig: Record<SkillCategory | 'tool', { icon: typeof Building2; c
   framework: { icon: Box, color: 'text-emerald-400', label: 'Framework' },
   cloud: { icon: Cloud, color: 'text-sky-400', label: 'Cloud' },
   performance: { icon: Zap, color: 'text-amber-400', label: 'Performance' },
+  ml: { icon: Sparkles, color: 'text-violet-400', label: 'Machine Learning' },
+  data_science: { icon: Activity, color: 'text-teal-400', label: 'Data Science' },
   tool: { icon: Code, color: 'text-gray-400', label: 'Tool' },
 }
 
@@ -109,10 +111,10 @@ export function IndustryAnalysisCard({ analysis, showDetails = true }: IndustryA
           </div>
 
           {/* Communication Types */}
-          {analysis.architecture.communication.length > 0 && (
+          {(analysis.architecture.communication?.length || 0) > 0 && (
             <div className="flex flex-wrap gap-2">
               <span className="text-xs text-muted-foreground">Communication:</span>
-              {analysis.architecture.communication.map((comm) => (
+              {(analysis.architecture.communication || []).map((comm) => (
                 <Badge key={comm} variant="outline" className="text-xs">
                   {comm.toUpperCase().replace('_', ' ')}
                 </Badge>
@@ -121,10 +123,10 @@ export function IndustryAnalysisCard({ analysis, showDetails = true }: IndustryA
           )}
 
           {/* Architecture Patterns */}
-          {analysis.architecture.patterns.length > 0 && (
+          {(analysis.architecture.patterns?.length || 0) > 0 && (
             <div className="flex flex-wrap gap-2">
               <span className="text-xs text-muted-foreground">Patterns:</span>
-              {analysis.architecture.patterns.map((pattern) => (
+              {(analysis.architecture.patterns || []).map((pattern) => (
                 <Badge key={pattern} variant="secondary" className="text-xs">
                   {pattern}
                 </Badge>
@@ -158,22 +160,49 @@ export function IndustryAnalysisCard({ analysis, showDetails = true }: IndustryA
           </div>
         </div>
 
-        {/* Verified Skills */}
-        {showDetails && analysis.verifiedSkills.length > 0 && (
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+        {/* Verified Skills - Categorized View */}
+        {showDetails && (
+          <div className="space-y-5">
+            <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2 mb-4">
               <Sparkles className="h-4 w-4 text-yellow-400" />
               Verified Skills ({analysis.verifiedSkills.length})
             </h4>
-            <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
-              <TooltipProvider>
-                {analysis.verifiedSkills
-                  .sort((a, b) => (b.confidence || 0) - (a.confidence || 0))
-                  .map((skill, index) => (
-                    <SkillRow key={`${skill.name}-${index}`} skill={skill} />
-                  ))}
-              </TooltipProvider>
-            </div>
+            
+            <TooltipProvider>
+              <div className="space-y-5 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                {Object.entries(analysis.skillsByCategory || {})
+                  .sort((a, b) => b[1].length - a[1].length) // Sort categories by number of skills
+                  .map(([category, skills]) => {
+                    if (!skills || skills.length === 0) return null
+                    const config = categoryConfig[category as SkillCategory] || categoryConfig.tool
+                    const Icon = config.icon
+                    
+                    return (
+                      <div key={category} className="space-y-2">
+                        <div className="flex items-center gap-2 sticky top-0 bg-background/95 backdrop-blur py-1 z-10">
+                          <div className={`p-1 rounded-md bg-opacity-10 bg-current`}>
+                            <Icon className={`h-3.5 w-3.5 ${config.color}`} />
+                          </div>
+                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            {config.label}
+                          </span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                            {skills.length}
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {skills
+                            .sort((a, b) => (b.confidence || 0) - (a.confidence || 0))
+                            .map((skill, index) => (
+                              <SkillRow key={`${skill.name}-${index}`} skill={skill} />
+                            ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+              </div>
+            </TooltipProvider>
           </div>
         )}
 

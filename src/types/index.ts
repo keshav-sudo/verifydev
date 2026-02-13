@@ -151,6 +151,10 @@ export interface ProjectFullAnalysis {
   optimizations?: OptimizationSuggestion[]
   frameworkAnalysis?: {
     framework: string
+    componentCount?: number
+    customHooksCount?: number
+    stateManagement?: string
+    styleApproach?: string
     patternsDetected: string[]
     suggestions: string[]
     advancedUsage?: string[]
@@ -160,6 +164,7 @@ export interface ProjectFullAnalysis {
     frameworks: string[]
     databases: string[]
     tools: string[]
+    infrastructure?: string[]
   }
   techDependencyGraph?: TechDependencyGraph
   confidenceReport?: ConfidenceReport
@@ -354,6 +359,8 @@ export type SkillCategory =
   | 'framework'
   | 'cloud'
   | 'performance'
+  | 'ml'
+  | 'data_science'
 
 export type SkillLevel = 'basic' | 'intermediate' | 'advanced' | 'expert'
 

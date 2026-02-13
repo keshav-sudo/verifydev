@@ -798,6 +798,231 @@
     100% { background-position: 40px 0; }
   }
 
+  /* ===========================
+     PROJECT DETAIL PAGE PREMIUM EFFECTS
+     =========================== */
+
+  /* Stat Card Hover Effect */
+  .stat-card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .stat-card-hover:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 
+      0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Skill Card Premium Hover */
+  .skill-card-premium {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+
+  .skill-card-premium:hover {
+    transform: translateY(-6px);
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.25),
+      0 0 30px rgba(var(--primary), 0.15);
+  }
+
+  /* Verdict Card Entrance Animation */
+  @keyframes verdict-entrance {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .verdict-animate-in {
+    animation: verdict-entrance 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  /* Circular Score Animation */
+  @keyframes score-fill {
+    from {
+      stroke-dashoffset: 100%;
+    }
+    to {
+      stroke-dashoffset: var(--score-offset);
+    }
+  }
+
+  .score-circle {
+    animation: score-fill 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  /* Badge Pulse Effect */
+  @keyframes badge-pulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.05);
+      opacity: 0.9;
+    }
+  }
+
+  .badge-pulse {
+    animation: badge-pulse 2s ease-in-out infinite;
+  }
+
+  /* Gradient Orb Animation */
+  @keyframes orb-float {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+      opacity: 0.3;
+    }
+    33% {
+      transform: translate(30px, -30px) scale(1.1);
+      opacity: 0.4;
+    }
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+      opacity: 0.35;
+    }
+  }
+
+  .orb-animate {
+    animation: orb-float 8s ease-in-out infinite;
+  }
+
+  /* Staggered Fade In for Lists */
+  @keyframes stagger-fade-in {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .stagger-item {
+    animation: stagger-fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .stagger-item:nth-child(1) { animation-delay: 0.1s; }
+  .stagger-item:nth-child(2) { animation-delay: 0.2s; }
+  .stagger-item:nth-child(3) { animation-delay: 0.3s; }
+  .stagger-item:nth-child(4) { animation-delay: 0.4s; }
+  .stagger-item:nth-child(5) { animation-delay: 0.5s; }
+
+  /* Premium Progress Bar Animation */
+  @keyframes progress-fill {
+    from {
+      transform: scaleX(0);
+      transform-origin: left;
+    }
+    to {
+      transform: scaleX(1);
+      transform-origin: left;
+    }
+  }
+
+  .progress-animate {
+    animation: progress-fill 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  /* Hero Gradient Orbs */
+  .hero-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.4;
+    animation: orb-pulse 4s ease-in-out infinite;
+  }
+
+  @keyframes orb-pulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.3;
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 0.5;
+    }
+  }
+
+  /* Glassmorphism Card */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .dark .glass-card {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* Shimmer Loading Effect */
+  @keyframes shimmer-loading {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  .shimmer-loading {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer-loading 2s infinite;
+  }
+
+  /* Metric Counter Animation */
+  @keyframes counter-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .counter-animate {
+    animation: counter-up 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  /* Rich Evidence Badge Glow */
+  .evidence-badge-glow {
+    box-shadow: 
+      0 0 10px rgba(var(--primary), 0.3),
+      0 0 20px rgba(var(--primary), 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  /* Depth Indicator Animation */
+  @keyframes depth-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(var(--primary), 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgba(var(--primary), 0);
+    }
+  }
+
+  .depth-pulse {
+    animation: depth-pulse 2s ease-in-out infinite;
+  }
+
   /* Premium Focus Styles */
   .focus-glow:focus-visible {
     outline: none;

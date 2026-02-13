@@ -2,11 +2,12 @@
 
 /**
  * Skill Card v2 Component
- * Displays skills with VERIFIED/INFERRED/CLAIMED states and evidence chain support
+ * Displays skills with VERIFIED/INFERRED/CLAIMED states, evidence chain support,
+ * and Phase 6 Deep Evidence (RichEvidence) display
  */
 
 import { useState } from 'react'
-import { Check, AlertCircle, PenLine, ChevronRight, FileCode, Layers, Server, Sparkles } from 'lucide-react'
+import { Check, AlertCircle, PenLine, ChevronRight, ChevronDown, FileCode, Layers, Server, Sparkles, Eye, Zap, GitBranch, Code2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -23,7 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import type { SkillNode, EvidenceChain, EvidenceItem, SkillVerificationStatus, SkillTier } from '@/types/intelligence-v2'
+import type { SkillNode, EvidenceChain, EvidenceItem, SkillVerificationStatus, SkillTier, RichEvidence, SkillDepth } from '@/types/intelligence-v2'
 
 // Props interface
 export interface SkillCardV2Props {
@@ -35,7 +36,6 @@ export interface SkillCardV2Props {
 
 // Verification status helpers
 
-// Verification status helpers
 function getVerificationStatus(skill: SkillNode): SkillVerificationStatus {
   // Relaxed Verification Logic matching user expectation:
   // 1. Explicit Usage Verification (Code usage found)
@@ -66,6 +66,21 @@ function getTierIcon(tier: SkillTier) {
     case 3: return Server
     case 4: return Layers
     default: return FileCode
+  }
+}
+
+// Depth level styling
+function getDepthConfig(level?: string) {
+  switch (level) {
+    case 'expert':
+      return { label: 'Expert', color: 'text-purple-500', bg: 'bg-purple-500/10 border-purple-500/20', icon: '🏆' }
+    case 'deep':
+      return { label: 'Deep', color: 'text-emerald-500', bg: 'bg-emerald-500/10 border-emerald-500/20', icon: '🔬' }
+    case 'moderate':
+      return { label: 'Moderate', color: 'text-blue-500', bg: 'bg-blue-500/10 border-blue-500/20', icon: '📊' }
+    case 'surface':
+    default:
+      return { label: 'Surface', color: 'text-slate-500', bg: 'bg-slate-500/10 border-slate-500/20', icon: '📋' }
   }
 }
 
@@ -108,6 +123,97 @@ function StatusBadge({ status }: { status: SkillVerificationStatus }) {
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
+  )
+}
+
+// Depth badge component
+function DepthBadge({ depth }: { depth: SkillDepth }) {
+  const config = getDepthConfig(depth.level)
+  
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Badge variant="outline" className={cn('gap-1 text-[10px] font-medium border', config.bg, config.color)}>
+            <span>{config.icon}</span>
+            {config.label}
+          </Badge>
+        </TooltipTrigger>
+        <TooltipContent>
+          <div className="text-xs space-y-1">
+            <p className="font-medium">Depth Assessment: {config.label}</p>
+            <p>{depth.diversityCount} distinct patterns • {depth.fileSpread} files</p>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  )
+}
+
+// Rich Evidence Summary — the "Developer Magnet" section
+function RichEvidenceSummary({ richEvidence }: { richEvidence: RichEvidence }) {
+  const [expanded, setExpanded] = useState(false)
+  
+  if (!richEvidence?.summary?.length) return null
+  
+  const visibleSummaries = expanded ? richEvidence.summary : richEvidence.summary.slice(0, 2)
+  const hasMore = richEvidence.summary.length > 2
+  
+  return (
+    <div className="space-y-2 mt-3 pt-3 border-t border-border/30">
+      {/* Section header */}
+      <div className="flex items-center gap-1.5">
+        <Eye className="h-3 w-3 text-primary/70" />
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-primary/70">
+          Deep Analysis
+        </span>
+      </div>
+      
+      {/* Evidence summaries */}
+      <div className="space-y-1.5">
+        {visibleSummaries.map((summary, i) => (
+          <div 
+            key={i} 
+            className="flex items-start gap-2 text-xs text-muted-foreground leading-relaxed"
+          >
+            <Code2 className="h-3 w-3 shrink-0 mt-0.5 text-primary/50" />
+            <span>{summary}</span>
+          </div>
+        ))}
+      </div>
+      
+      {/* Show more / less toggle */}
+      {hasMore && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="flex items-center gap-1 text-[10px] font-medium text-primary/70 hover:text-primary transition-colors pl-5"
+        >
+          {expanded ? (
+            <>Show less <ChevronDown className="h-3 w-3 rotate-180" /></>
+          ) : (
+            <>+{richEvidence.summary.length - 2} more insights <ChevronDown className="h-3 w-3" /></>
+          )}
+        </button>
+      )}
+      
+      {/* Depth metrics strip */}
+      {richEvidence.depth && (
+        <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <Zap className="h-3 w-3" />
+            {richEvidence.depth.patternsUsed} patterns
+          </span>
+          <span className="flex items-center gap-1">
+            <GitBranch className="h-3 w-3" />
+            {richEvidence.depth.fileSpread} files
+          </span>
+          <span className="flex items-center gap-1">
+            <Layers className="h-3 w-3" />
+            {richEvidence.depth.diversityCount} APIs
+          </span>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -156,17 +262,19 @@ function EvidenceItemRow({ item }: { item: EvidenceItem }) {
   )
 }
 
-// Evidence modal component
+// Evidence modal component (enhanced with Rich Evidence)
 function EvidenceModal({ 
   isOpen, 
   onClose, 
   skillName, 
-  evidence 
+  evidence,
+  richEvidence,
 }: { 
   isOpen: boolean
   onClose: () => void
   skillName: string
   evidence: EvidenceChain 
+  richEvidence?: RichEvidence | null
 }) {
   const strongEvidence = evidence.items.filter(e => e.strength === 'STRONG')
   const mediumEvidence = evidence.items.filter(e => e.strength === 'MEDIUM')
@@ -187,6 +295,52 @@ function EvidenceModal({
             <span className="text-sm font-medium">Net Confidence</span>
             <span className="text-lg font-bold text-primary">{Math.round(evidence.netConfidence)}%</span>
           </div>
+
+          {/* Rich Evidence Section */}
+          {richEvidence?.summary && richEvidence.summary.length > 0 && (
+            <div className="space-y-3 p-4 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20">
+              <h4 className="text-sm font-semibold flex items-center gap-2 text-primary">
+                <Eye className="h-4 w-4" />
+                Deep Code Analysis
+              </h4>
+              
+              {/* Depth badge */}
+              {richEvidence.depth && (
+                <div className="flex items-center gap-2">
+                  <DepthBadge depth={richEvidence.depth} />
+                  <span className="text-xs text-muted-foreground">
+                    {richEvidence.depth.patternsUsed} patterns across {richEvidence.depth.fileSpread} files
+                  </span>
+                </div>
+              )}
+              
+              {/* Summaries */}
+              <div className="space-y-2">
+                {richEvidence.summary.map((s, i) => (
+                  <div key={i} className="flex items-start gap-2 text-sm">
+                    <Code2 className="h-3.5 w-3.5 shrink-0 mt-0.5 text-primary/60" />
+                    <span className="text-foreground/90">{s}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Pattern details */}
+              {richEvidence.patterns && Object.keys(richEvidence.patterns).length > 0 && (
+                <div className="mt-3 pt-3 border-t border-primary/10">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">
+                    Detected Patterns
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {Object.keys(richEvidence.patterns).map((pattern, i) => (
+                      <Badge key={i} variant="secondary" className="text-[10px] bg-primary/10 text-primary border-primary/20">
+                        {pattern}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Strong evidence */}
           {strongEvidence.length > 0 && (
@@ -276,6 +430,9 @@ export function SkillCardV2({ skill, showEvidence = true, compact = false, class
           <TierIcon className="h-4 w-4 text-muted-foreground shrink-0" />
           <span className="font-medium truncate">{skill.name}</span>
           <StatusBadge status={status} />
+          {skill.richEvidence?.depth && (
+            <DepthBadge depth={skill.richEvidence.depth} />
+          )}
         </div>
         <div className="flex items-center gap-3">
           <span className={cn(
@@ -306,6 +463,7 @@ export function SkillCardV2({ skill, showEvidence = true, compact = false, class
             onClose={() => setEvidenceOpen(false)}
             skillName={skill.name}
             evidence={skill.evidence}
+            richEvidence={skill.richEvidence}
           />
         )}
       </div>
@@ -358,7 +516,7 @@ export function SkillCardV2({ skill, showEvidence = true, compact = false, class
             <h3 className="font-semibold truncate">{skill.name}</h3>
             <StatusBadge status={status} />
           </div>
-          <div className="text-xs text-muted-foreground flex items-center gap-2">
+          <div className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
             <span>{getTierLabel(skill.tier)}</span>
             {skill.category && (
               <>
@@ -373,6 +531,9 @@ export function SkillCardV2({ skill, showEvidence = true, compact = false, class
                   Resume Ready
                 </Badge>
               </>
+            )}
+            {skill.richEvidence?.depth && (
+              <DepthBadge depth={skill.richEvidence.depth} />
             )}
           </div>
         </div>
@@ -421,16 +582,21 @@ export function SkillCardV2({ skill, showEvidence = true, compact = false, class
         </p>
       )}
 
+      {/* Rich Evidence Summary (inline on card) */}
+      {skill.richEvidence && (
+        <RichEvidenceSummary richEvidence={skill.richEvidence} />
+      )}
+
       {/* View Evidence button */}
       {showEvidence && skill.evidence && status === 'VERIFIED' && (
-        <div className="pt-3 border-t">
+        <div className="pt-3 border-t border-border/30 mt-3">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setEvidenceOpen(true)}
             className="w-full justify-between text-xs h-8"
           >
-            <span>View Evidence</span>
+            <span>{skill.richEvidence ? 'View Full Evidence' : 'View Evidence'}</span>
             <ChevronRight className="h-3.5 w-3.5" />
           </Button>
         </div>
@@ -442,6 +608,7 @@ export function SkillCardV2({ skill, showEvidence = true, compact = false, class
           onClose={() => setEvidenceOpen(false)}
           skillName={skill.name}
           evidence={skill.evidence}
+          richEvidence={skill.richEvidence}
         />
       )}
     </div>
