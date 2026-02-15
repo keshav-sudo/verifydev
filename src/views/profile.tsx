@@ -1,24 +1,14 @@
 ﻿"use client"
 
-/**
- * Career Profile - Manage your professional identity
- * Add experience, certifications, and claim skills.
- */
-
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { useAuthStore } from '@/store/auth-store'
 import { useUserStore } from '@/store/user-store'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { AuraScoreCard } from '@/components/aura/AuraScoreCard'
 import { get, post, put, del } from '@/api/client'
 import { addManualSkill, getLeetcodeStats, getGithubStats } from '@/api/services/user.service'
-import { ContributionHeatmap } from '@/components/profile/contribution-heatmap'
 import {
   Dialog,
   DialogContent,
@@ -28,34 +18,44 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-
-import { getInitials, cn, formatNumber } from '@/lib/utils'
+import { Label } from '@/components/ui/label'
+import {
+  getInitials,
+  formatNumber,
+  cn
+} from '@/lib/utils'
 import { toast } from '@/hooks/use-toast'
 import type { VerifiedSkill, LeetcodeStats } from '@/types'
 import {
   MapPin,
   Building,
   Link as LinkIcon,
-  Star,
-  Download,
-  FolderGit2,
-  CheckCircle,
-  ExternalLink,
-  Edit3,
-  Sparkles,
+  Github,
   Code,
+  CheckCircle2,
+  Sparkles,
+  ExternalLink,
+  Zap,
+  TrendingUp,
+  Award,
+  Calendar,
+  Star,
+  GitFork,
+  Edit3,
   Plus,
   Briefcase,
-  Award,
   Trash2,
-  GraduationCap,
-  Users,
-  Github,
+  Play,
+  Terminal,
+  Activity,
+  CheckSquare,
+  Square,
+  FolderGit2,
+  ShieldCheck,
+  Target,
+  Code2
 } from 'lucide-react'
-import { motion } from 'framer-motion'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import { HireSignalBadge } from '@/components/skills/hire-signal-badge'
+import { motion, AnimatePresence } from 'framer-motion'
 
 // --- Types ---
 interface Experience {
@@ -69,166 +69,117 @@ interface Experience {
   isCurrent: boolean
 }
 
-// --- Reusable Components ---
+// --- Components ---
 
-function GlassCard({ children, className }: { children: React.ReactNode, className?: string }) {
+// Sharp Circular Progress
+function CircularProgress({ value, size = 56, strokeWidth = 4 }: { value: number; size?: number, strokeWidth?: number }) {
+  const radius = (size - strokeWidth) / 2
+  const circumference = 2 * Math.PI * radius
+  const offset = circumference - (value / 100) * circumference
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className={cn(
-        "relative overflow-hidden rounded-xl border border-border/80 bg-card shadow-sm",
-        className
-      )}
-    >
-      {children}
-    </motion.div>
+    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg className="transform -rotate-90 w-full h-full">
+        <circle cx={size / 2} cy={size / 2} r={radius} stroke="#F1F5F9" strokeWidth={strokeWidth} fill="none" />
+        <circle
+          cx={size / 2} cy={size / 2} r={radius}
+          stroke="#84CC16" strokeWidth={strokeWidth} fill="none" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
+          className="transition-all duration-1000 ease-out"
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-[11px] font-black text-slate-900">{Math.round(value)}</span>
+      </div>
+    </div>
   )
 }
 
-function SkillBadge({ skill }: { skill: VerifiedSkill }) {
-  const percentage = skill.verifiedScore || skill.score || 0
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ scale: 1.05 }}
-      className="group"
-    >
-      <Badge
-        variant="outline"
-        className={cn(
-          "px-3 py-1.5 text-sm backdrop-blur-sm transition-all cursor-default",
-          "bg-primary/5 border-primary/20 hover:bg-primary/10 hover:border-primary/40"
-        )}
-      >
-        <span className="font-medium text-foreground">{skill.name}</span>
-        {percentage > 0 && (
-          <>
-            <div className="mx-2 h-3 w-px bg-border" />
-            <span className={cn(
-              "text-xs font-bold",
-              percentage >= 80 ? "text-emerald-500" :
-                percentage >= 60 ? "text-primary" :
-                  percentage >= 40 ? "text-amber-500" : "text-muted-foreground"
-            )}>
-              {percentage}%
-            </span>
-          </>
-        )}
-        {skill.isVerified && (
-          <CheckCircle className="w-3 h-3 ml-1.5 text-emerald-500" />
-        )}
-        {!skill.isVerified && (
-          <span className="ml-1.5 text-xs text-muted-foreground">(Claimed)</span>
-        )}
-      </Badge>
-    </motion.div>
-  )
-}
-
-// Claim Skill Dialog Component
-function ClaimSkillDialog({ isOpen, onOpenChange, onClaim }: { isOpen: boolean, onOpenChange: (open: boolean) => void, onClaim: (skill: any) => Promise<void> }) {
-  const [form, setForm] = useState({ name: '', evidence: '', description: '' })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const handleSubmit = async () => {
-    setIsSubmitting(true)
-    try {
-      await onClaim(form)
-      onOpenChange(false)
-      setForm({ name: '', evidence: '', description: '' })
-    } finally {
-      setIsSubmitting(false)
+// Engineered Heatmap
+function ContributionHeatmap({ data, type }: { data: Record<string, number>; type: 'github' | 'leetcode' }) {
+  const entries = Object.entries(data || {}).slice(-365)
+  const maxValue = Math.max(...Object.values(data || {}), 1)
+  
+  const getColor = (value: number) => {
+    if (value === 0) return 'bg-slate-100' 
+    const intensity = value / maxValue
+    
+    if (type === 'github') {
+      if (intensity > 0.75) return 'bg-purple-600'
+      if (intensity > 0.5) return 'bg-purple-500'
+      if (intensity > 0.25) return 'bg-purple-400'
+      return 'bg-purple-200'
+    } else {
+      if (intensity > 0.75) return 'bg-[#4D7C0F]' 
+      if (intensity > 0.5) return 'bg-[#65A30D]'  
+      if (intensity > 0.25) return 'bg-[#84CC16]' 
+      return 'bg-[#D9F99D]' 
     }
   }
 
+  if (entries.length === 0) {
+    return (
+      <div className="flex gap-1 overflow-hidden opacity-40">
+        {Array.from({ length: 52 }).map((_, i) => (
+          <div key={i} className="flex flex-col gap-1">
+            {Array.from({ length: 7 }).map((_, j) => (
+              <div key={j} className="w-2.5 h-2.5 rounded-[2px] bg-slate-200" />
+            ))}
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  const weeks: Array<Array<[string, number]>> = []
+  let currentWeek: Array<[string, number]> = []
+  
+  entries.forEach((entry, index) => {
+    currentWeek.push(entry)
+    if ((index + 1) % 7 === 0 || index === entries.length - 1) {
+      weeks.push([...currentWeek])
+      currentWeek = []
+    }
+  })
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Claim a Skill</DialogTitle>
-          <DialogDescription>
-            Add a skill you possess. It will be marked as "Claimed" until verified by code analysis.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label>Skill Name</Label>
-            <Input
-              placeholder="e.g. React, Go, Docker"
-              value={form.name}
-              onChange={e => setForm({ ...form, name: e.target.value })}
-            />
+    <div className="overflow-x-auto scrollbar-none">
+      <div className="inline-flex gap-1 p-1">
+        {weeks.map((week, weekIndex) => (
+          <div key={weekIndex} className="flex flex-col gap-1">
+            {week.map(([date, value]) => (
+              <div
+                key={date}
+                className={`w-2.5 h-2.5 rounded-[2px] ${getColor(value)} transition-colors hover:ring-2 hover:ring-slate-400 hover:ring-offset-1`}
+                title={`${date}: ${value} contributions`}
+              />
+            ))}
           </div>
-          <div className="grid gap-2">
-            <Label>Evidence Link (Optional)</Label>
-            <Input
-              placeholder="https://github.com/..."
-              value={form.evidence}
-              onChange={e => setForm({ ...form, evidence: e.target.value })}
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label>Description</Label>
-            <Textarea
-              placeholder="Briefly describe your experience..."
-              value={form.description}
-              onChange={e => setForm({ ...form, description: e.target.value })}
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button onClick={handleSubmit} disabled={isSubmitting || !form.name}>
-            {isSubmitting ? 'Claiming...' : 'Claim Skill'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        ))}
+      </div>
+    </div>
   )
 }
 
 export default function Profile() {
   const { user } = useAuthStore()
-  const {
-    aura,
-    projects,
-    fetchAura,
-    fetchGitHubRepos,
-    fetchProjects,
-  } = useUserStore()
+  const { aura, projects, fetchAura, fetchGitHubRepos, fetchProjects } = useUserStore()
 
   const [skills, setSkills] = useState<VerifiedSkill[]>([])
-  const [, setIsLoadingSkills] = useState(false)
   const [experiences, setExperiences] = useState<{ work: Experience[], education: Experience[], certifications: Experience[] }>({ work: [], education: [], certifications: [] })
-  const [, setIsLoadingExp] = useState(false)
-  const [leetcodeStats, setLeetcodeStats] = useState<LeetcodeStats | null>(null)
+  const [, setLeetcodeStats] = useState<LeetcodeStats | null>(null)
   const [githubStats, setGithubStats] = useState<{ username: string, submissionCalendar: Record<string, number> } | null>(null)
-  const [showAllSkills, setShowAllSkills] = useState(false)
-  const [activeTab, setActiveTab] = useState("overview")
-  const [skillsRef, setSkillsRef] = useState<HTMLDivElement | null>(null)
+  const [activeTab, setActiveTab] = useState('overview')
 
-  // Edit profile state
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [editForm, setEditForm] = useState({
-    name: '',
-    bio: '',
-    location: '',
-    company: '',
-    website: '',
-    twitterHandle: '',
-  })
+  const [, setIsEditDialogOpen] = useState(false)
+  const [editForm, setEditForm] = useState({ name: '', bio: '', location: '', company: '', website: '' })
   const [isSaving, setIsSaving] = useState(false)
 
-  // Experience Dialog
   const [isExpDialogOpen, setIsExpDialogOpen] = useState(false)
   const [expForm, setExpForm] = useState<Partial<Experience>>({ type: 'WORK', isCurrent: false })
 
-  // Claim Skill Dialog
   const [isClaimDialogOpen, setIsClaimDialogOpen] = useState(false)
-
+  const [claimForm, setClaimForm] = useState({ name: '', evidence: '', description: '' })
+  const [isClaiming, setIsClaiming] = useState(false)
 
   useEffect(() => {
     fetchAura()
@@ -248,52 +199,14 @@ export default function Profile() {
         location: user.location || '',
         company: user.company || '',
         website: user.website || user.blog || '',
-        twitterHandle: user.twitterUsername || user.twitter || '',
       })
     }
   }, [user])
 
-  const fetchSkills = async () => {
-    setIsLoadingSkills(true)
-    try {
-      const skillsData = await get<VerifiedSkill[]>('/v1/users/me/skills')
-      setSkills(skillsData || [])
-    } catch (e) {
-      console.error('Failed to fetch skills:', e)
-    } finally {
-      setIsLoadingSkills(false)
-    }
-  }
-
-  const fetchExperience = async () => {
-    setIsLoadingExp(true)
-    try {
-      const res = await get<{ work: Experience[], education: Experience[], certifications: Experience[] }>('/v1/experiences')
-      setExperiences(res)
-    } catch (e) {
-      console.error('Failed to fetch experience', e)
-    } finally {
-      setIsLoadingExp(false)
-    }
-  }
-
-  const fetchLeetCode = async () => {
-    try {
-      const stats = await getLeetcodeStats()
-      setLeetcodeStats(stats)
-    } catch (e) {
-      console.log('No LeetCode stats or not connected')
-    }
-  }
-
-  const fetchGitHubStats = async () => {
-    try {
-      const stats = await getGithubStats()
-      setGithubStats(stats)
-    } catch (e) {
-      console.log('No GitHub stats or not connected')
-    }
-  }
+  const fetchSkills = async () => { try { setSkills((await get<VerifiedSkill[]>('/v1/users/me/skills')) || []) } catch (e) { console.error(e) } }
+  const fetchExperience = async () => { try { setExperiences(await get('/v1/experiences')) } catch (e) { console.error(e) } }
+  const fetchLeetCode = async () => { try { setLeetcodeStats(await getLeetcodeStats()) } catch (e) {} }
+  const fetchGitHubStats = async () => { try { setGithubStats(await getGithubStats()) } catch (e) {} }
 
   if (!user) return null
 
@@ -305,10 +218,9 @@ export default function Profile() {
       const { checkAuth } = useAuthStore.getState()
       await checkAuth()
       await fetchAura()
-      toast({ title: 'Profile saved! ✅', description: 'Your profile has been updated.' })
+      toast({ title: 'Profile Updated', description: 'Changes saved successfully.' })
     } catch (e: any) {
-      const errorMsg = e?.response?.data?.message || 'Failed to update profile'
-      toast({ variant: 'destructive', title: 'Save failed', description: errorMsg })
+      toast({ variant: 'destructive', title: 'Error', description: e?.response?.data?.message || 'Failed to update' })
     } finally {
       setIsSaving(false)
     }
@@ -317,11 +229,10 @@ export default function Profile() {
   const handleSaveExperience = async () => {
     setIsSaving(true)
     try {
-      // Assuming single endpoint for add/update based on ID presence, or POST for new
       await post('/v1/experiences', expForm)
-      toast({ title: 'Experience added!', description: 'Your timeline has been updated.' })
+      toast({ title: 'Experience added!' })
       setIsExpDialogOpen(false)
-      setExpForm({ type: 'WORK', isCurrent: false }) // Reset
+      setExpForm({ type: 'WORK', isCurrent: false })
       fetchExperience()
     } catch (e) {
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to save experience.' })
@@ -330,892 +241,385 @@ export default function Profile() {
     }
   }
 
-  const deleteExperience = async (id: string) => {
-    if (!confirm('Are you sure?')) return
+  const handleClaimSkill = async () => {
+    setIsClaiming(true)
     try {
-      await del(`/v1/experiences/${id}`)
-      toast({ title: 'Removed', description: 'Item deleted.' })
-      fetchExperience()
-    } catch (e) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete.' })
-    }
-  }
-
-  const handleClaimSkill = async (skillData: any) => {
-    try {
-      await addManualSkill({
-        name: skillData.name,
-        evidence: skillData.evidence,
-        description: skillData.description
-      })
-      toast({ title: 'Skill Claimed! 📝', description: 'Your skill has been added for verification.' })
-      fetchSkills() // Refresh list from DB
+      await addManualSkill(claimForm)
+      toast({ title: 'Skill Claimed! 📝', description: 'Added for verification.' })
+      setIsClaimDialogOpen(false)
+      setClaimForm({ name: '', evidence: '', description: '' })
+      fetchSkills()
     } catch (e: any) {
-      const errorMsg = e?.response?.data?.message || 'Failed to claim skill.'
-      toast({ variant: 'destructive', title: 'Error', description: errorMsg })
+      toast({ variant: 'destructive', title: 'Error', description: e?.response?.data?.message || 'Failed to claim.' })
+    } finally {
+      setIsClaiming(false)
     }
   }
 
-  // Calculate GitHub stats from user data
-  const totalStars = projects.reduce((sum: number, p: any) => sum + (p.stars || 0), 0)
+  const breakdown = aura?.breakdown || { profile: 15, projects: 35, skills: 30, activity: 10, github: 10 }
+  const TABS = ['overview', 'skills', 'projects', 'github', 'experience']
 
   return (
-    <div className="min-h-full space-y-6 animate-in fade-in duration-500">
+    <div className="min-h-screen bg-[#F0F2F5] font-['Plus_Jakarta_Sans'] pb-20 relative">
+      {/* Subtle Data Grid Background */}
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] opacity-30 pointer-events-none"></div>
 
-      {/* ========== HERO PROFILE CARD ========== */}
-      <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-gradient-to-br from-card via-card to-card/80">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-1/2 -right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-          <div className="absolute -bottom-1/4 -left-1/4 w-72 h-72 bg-primary/3 rounded-full blur-3xl" />
+      <div className="w-full max-w-[1536px] mx-auto px-4 md:px-6 lg:px-8 py-8 relative z-10">
+        
+        {/* ========================================= */}
+        {/* COMMAND CENTER HERO (Sharp & Dark)        */}
+        {/* ========================================= */}
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full bg-[#0A0A0A] rounded-xl p-8 lg:p-10 shadow-xl border border-slate-800 relative overflow-hidden mb-8 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8"
+        >
+             {/* Architectural Accent Glows */}
+             <div className="absolute top-0 right-0 w-96 h-96 bg-[#ADFF2F]/10 rounded-full blur-[80px] pointer-events-none" />
+             <div className="absolute bottom-0 left-1/4 w-64 h-64 bg-purple-500/10 rounded-full blur-[60px] pointer-events-none" />
+             
+             {/* Left: Identity */}
+             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 relative z-10">
+                <div className="relative">
+                   <Avatar className="w-24 h-24 lg:w-28 lg:h-28 rounded-xl border border-slate-700 shadow-xl bg-slate-900">
+                      <AvatarImage src={user.avatarUrl} alt={user.name} className="object-cover rounded-xl" />
+                      <AvatarFallback className="text-3xl bg-slate-800 text-white rounded-xl font-black">
+                         {getInitials(user.name)}
+                      </AvatarFallback>
+                   </Avatar>
+                   {user.isVerified && (
+                      <div className="absolute -bottom-2 -right-2 p-1.5 rounded-md bg-slate-900 border border-slate-700 shadow-md">
+                         <ShieldCheck className="w-5 h-5 text-[#84CC16]" />
+                      </div>
+                   )}
+                </div>
+
+                <div className="space-y-3">
+                   <div>
+                      <div className="flex items-center gap-3 mb-1">
+                         <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight leading-none">{user.name}</h1>
+                         <Button onClick={() => setIsEditDialogOpen(true)} variant="ghost" size="icon" className="h-7 w-7 rounded-sm text-slate-400 hover:text-white hover:bg-white/10 transition-colors">
+                           <Edit3 className="w-3.5 h-3.5" />
+                         </Button>
+                      </div>
+                      <p className="text-sm font-bold text-slate-400 font-mono tracking-wide">@{user.username}</p>
+                   </div>
+
+                   <div className="flex flex-wrap gap-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                      {user.location && <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-slate-500" /> {user.location}</span>}
+                      {user.company && <span className="flex items-center gap-1.5"><Building className="w-3.5 h-3.5 text-slate-500" /> {user.company}</span>}
+                      {(user.website || user.blog) && (
+                         <a href={user.website || user.blog} target="_blank" className="flex items-center gap-1.5 hover:text-[#ADFF2F] transition-colors">
+                            <LinkIcon className="w-3.5 h-3.5 text-slate-500" /> Link
+                         </a>
+                      )}
+                   </div>
+                </div>
+             </div>
+
+             {/* Right: Sharp Aura Console */}
+             <div className="flex gap-4 w-full lg:w-auto overflow-x-auto hide-scrollbar pb-2 lg:pb-0 relative z-10">
+                <div className="bg-white/5 border border-white/10 rounded-lg p-5 flex flex-col justify-center min-w-[140px] backdrop-blur-sm">
+                   <div className="text-[9px] font-extrabold text-[#ADFF2F] uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                     <Zap className="w-3 h-3" /> Aura Score
+                   </div>
+                   <div className="text-4xl font-black text-white leading-none">{user.auraScore || 0}</div>
+                </div>
+                
+                <div className="bg-white/5 border border-white/10 rounded-lg p-5 flex flex-col justify-center min-w-[120px] backdrop-blur-sm">
+                   <div className="text-[9px] font-extrabold text-blue-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                     <Code2 className="w-3 h-3" /> Projects
+                   </div>
+                   <div className="text-3xl font-black text-white leading-none">{projects.length}</div>
+                </div>
+
+                <div className="bg-white/5 border border-white/10 rounded-lg p-5 flex flex-col justify-center min-w-[120px] backdrop-blur-sm">
+                   <div className="text-[9px] font-extrabold text-purple-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                     <Target className="w-3 h-3" /> Skills
+                   </div>
+                   <div className="text-3xl font-black text-white leading-none">{skills.length}</div>
+                </div>
+             </div>
+        </motion.div>
+
+        {/* ========================================= */}
+        {/* SLEEK NAVIGATION TABS                     */}
+        {/* ========================================= */}
+        <div className="flex items-center border-b border-slate-200 mb-8 overflow-x-auto hide-scrollbar">
+          {TABS.map((tab) => (
+             <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={cn(
+                  "px-6 py-3 text-xs font-extrabold uppercase tracking-widest transition-all whitespace-nowrap border-b-2",
+                  activeTab === tab 
+                  ? "border-slate-900 text-slate-900" 
+                  : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                )}
+             >
+                {tab}
+             </button>
+          ))}
         </div>
 
-        <div className="relative p-6 lg:p-8">
-          <div className="flex flex-col lg:flex-row gap-6">
-
-            {/* Left: Avatar & Basic Info */}
-            <div className="flex flex-col items-center lg:items-start gap-4 lg:w-64">
-              <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-primary via-primary/50 to-primary rounded-full blur opacity-30 group-hover:opacity-50 transition-opacity" />
-                <Avatar className="relative h-32 w-32 lg:h-36 lg:w-36 border-4 border-card shadow-2xl">
-                  <AvatarImage src={user.avatarUrl} alt={user.name} />
-                  <AvatarFallback className="text-3xl bg-gradient-to-br from-primary to-primary/70 text-white font-bold">
-                    {getInitials(user.name)}
-                  </AvatarFallback>
-                </Avatar>
-              </div>
-
-              {/* Quick Stats */}
-              <div className="flex gap-4 text-center">
-                <div>
-                  <p className="text-xl font-bold text-foreground">{projects.length}</p>
-                  <p className="text-xs text-muted-foreground">Projects</p>
-                </div>
-                <div className="w-px h-10 bg-border" />
-                <div>
-                  <p className="text-xl font-bold text-foreground">{formatNumber(totalStars)}</p>
-                  <p className="text-xs text-muted-foreground">Stars</p>
-                </div>
-                <div className="w-px h-10 bg-border" />
-                <div>
-                  <p className="text-xl font-bold text-primary">{user.auraScore || 0}</p>
-                  <p className="text-xs text-muted-foreground">Aura</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Center: Info */}
-            <div className="flex-1 space-y-4 text-center lg:text-left">
-              <div>
-                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-2">
-                  <h1 className="text-3xl lg:text-4xl font-bold text-foreground">
-                    {user.name || user.username}
-                  </h1>
-                  {user.auraScore > 100 && (
-                    <Badge className="bg-gradient-to-r from-primary to-primary/80 text-white border-0 shadow-lg shadow-primary/30">
-                      <Sparkles className="h-3 w-3 mr-1" />
-                      Verified
-                    </Badge>
-                  )}
-                  {/* Hire Signal Badge */}
-                  {(user as any).hireSignal && (
-                    <HireSignalBadge signal={(user as any).hireSignal} className="shadow-md" />
-                  )}
-                </div>
-                <p className="text-lg text-muted-foreground">@{user.username}</p>
-
-                {/* Primary Role Badge - System Inferred */}
-                {user.primaryRole && (
-                  <div className="mt-3 flex flex-wrap gap-2 justify-center lg:justify-start">
-                    <Badge className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-0 px-3 py-1 text-sm shadow-md">
-                      <Code className="h-3.5 w-3.5 mr-1.5" />
-                      {user.primaryRole}
-                    </Badge>
-                    {user.nicheConfidence && user.nicheConfidence > 70 && (
-                      <Badge variant="outline" className="border-green-500/30 text-green-600 dark:text-green-400 bg-green-500/5">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        {user.nicheConfidence}% Match
-                      </Badge>
+        {/* ========================================= */}
+        {/* DYNAMIC CONTENT AREA                      */}
+        {/* ========================================= */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* MAIN CONTENT (Col 8) */}
+          <div className="lg:col-span-8 space-y-6">
+             <AnimatePresence mode="wait">
+               
+               {activeTab === 'overview' && (
+                 <motion.div key="overview" initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="space-y-6">
+                    {/* Bio Section */}
+                    {user.bio && (
+                      <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
+                         <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">About</h3>
+                         <p className="text-sm text-slate-600 leading-relaxed font-medium">{user.bio}</p>
+                      </div>
                     )}
-                  </div>
-                )}
 
-                {/* Auto-generated Tags - Non-editable */}
-                {user.autoTags && user.autoTags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3 justify-center lg:justify-start">
-                    {user.autoTags.map((tag: string) => (
-                      <Badge key={tag} variant="secondary" className="bg-primary/10 text-primary border-primary/20">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-
-                {/* Legacy tags display fallback */}
-                {(!user.autoTags || user.autoTags.length === 0) && user.tags && user.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2 justify-center lg:justify-start">
-                    {user.tags.map((tag: string) => (
-                      <Badge key={tag} variant="secondary" className="bg-primary/10 text-primary border-primary/20">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {user.bio && (
-                <p className="text-foreground/80 max-w-2xl text-lg leading-relaxed">{user.bio}</p>
-              )}
-
-              <div className="flex flex-wrap justify-center lg:justify-start gap-x-6 gap-y-2 text-sm text-muted-foreground">
-                {user.location && (
-                  <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4" /> {user.location}</span>
-                )}
-                {user.company && (
-                  <span className="flex items-center gap-1.5"><Building className="h-4 w-4" /> {user.company}</span>
-                )}
-                {user.website && (
-                  <a href={user.website} target="_blank" className="flex items-center gap-1.5 hover:text-primary"><LinkIcon className="h-4 w-4" /> Website</a>
-                )}
-              </div>
-            </div>
-
-            {/* Right: Actions */}
-            <div className="flex flex-row lg:flex-col gap-2 justify-center lg:min-w-[140px]">
-              <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="gap-2 shadow-lg"><Edit3 className="w-4 h-4" /> Edit Profile</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Edit Profile</DialogTitle>
-                    <DialogDescription>Update your public details.</DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid gap-2"><Label>Name</Label><Input value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} /></div>
-                    <div className="grid gap-2"><Label>Bio</Label><Textarea value={editForm.bio} onChange={e => setEditForm({ ...editForm, bio: e.target.value })} /></div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="grid gap-2"><Label>Location</Label><Input value={editForm.location} onChange={e => setEditForm({ ...editForm, location: e.target.value })} /></div>
-                      <div className="grid gap-2"><Label>Company</Label><Input value={editForm.company} onChange={e => setEditForm({ ...editForm, company: e.target.value })} /></div>
+                    {/* Verified Stack */}
+                    <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
+                       <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
+                         <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                            <Terminal className="w-4 h-4 text-slate-400" /> Verified Stack
+                         </h3>
+                       </div>
+                       <div className="flex flex-wrap gap-2.5">
+                          {skills.slice(0, 15).map((skill, i) => (
+                             <div key={i} className="flex items-center gap-2 pl-3 pr-1.5 py-1.5 bg-slate-50 border border-slate-200 rounded-md hover:border-slate-300 transition-colors">
+                                <span className="text-[11px] font-extrabold text-slate-700">{skill.name}</span>
+                                {skill.isVerified && (
+                                   <span className="bg-white border border-slate-200 px-1 py-0.5 rounded-sm shadow-sm flex items-center">
+                                      <CheckCircle2 className="w-3 h-3 text-[#65A30D]" />
+                                   </span>
+                                )}
+                             </div>
+                          ))}
+                       </div>
                     </div>
-                    <div className="grid gap-2"><Label>Website</Label><Input value={editForm.website} onChange={e => setEditForm({ ...editForm, website: e.target.value })} /></div>
-                  </div>
-                  <DialogFooter>
-                    <Button onClick={handleSaveProfile} disabled={isSaving}>Save</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
 
-              <Link href="/resume">
-                <Button variant="ghost" className="w-full gap-2"><Download className="w-4 h-4" /> Resume</Button>
-              </Link>
-            </div>
+                    {/* Activity Heatmap */}
+                    <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
+                       <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest mb-4 border-b border-slate-100 pb-3 flex items-center gap-2">
+                          <Activity className="w-4 h-4 text-slate-400" /> Contribution Velocity
+                       </h3>
+                       <div className="p-4 bg-slate-50 border border-slate-100 rounded-md">
+                         <ContributionHeatmap data={githubStats?.submissionCalendar || (user as any).githubStats?.submissionCalendar || {}} type="github" />
+                       </div>
+                    </div>
+                 </motion.div>
+               )}
+
+               {activeTab === 'projects' && (
+                 <motion.div key="projects" initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {projects.map((project, i) => (
+                       <div key={project.id} className="bg-white rounded-lg p-5 shadow-sm border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all group flex flex-col">
+                          <div className="flex justify-between items-start mb-4 pb-3 border-b border-slate-100">
+                             <div className="pr-4">
+                                <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-blue-600 transition-colors truncate">{project.name}</h3>
+                                {project.language && (
+                                   <div className="flex items-center gap-1.5 mt-1">
+                                      <span className="w-1.5 h-1.5 rounded-sm bg-blue-500" />
+                                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{project.language}</span>
+                                   </div>
+                                )}
+                             </div>
+                             <div className="shrink-0 bg-slate-50 border border-slate-100 rounded-md p-1">
+                                <CircularProgress value={project.auraContribution || 75} size={36} strokeWidth={3} />
+                             </div>
+                          </div>
+                          <p className="text-xs font-medium text-slate-500 line-clamp-2 mb-4 flex-1">
+                            {project.description || 'No description provided.'}
+                          </p>
+                          <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest pt-3 border-t border-slate-50">
+                             <span className="flex items-center gap-1.5"><Star className="w-3 h-3 fill-slate-300" /> {formatNumber(project.stars)}</span>
+                             <span className="flex items-center gap-1.5"><GitFork className="w-3 h-3" /> {formatNumber(project.forks)}</span>
+                          </div>
+                       </div>
+                    ))}
+                 </motion.div>
+               )}
+
+               {activeTab === 'skills' && (
+                 <motion.div key="skills" initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
+                    <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
+                       <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest">Skill Directory</h3>
+                       <Button onClick={() => setIsClaimDialogOpen(true)} size="sm" className="h-8 text-xs font-bold rounded-md bg-slate-900 text-white hover:bg-slate-800">
+                          <Plus className="w-3 h-3 mr-1.5" /> Claim Skill
+                       </Button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       {skills.map((skill, i) => (
+                          <div key={i} className="flex items-center justify-between p-3 rounded-md bg-slate-50 border border-slate-200 hover:border-slate-300 transition-all">
+                             <div className="flex items-center gap-3">
+                                <div className={cn("w-8 h-8 rounded-sm flex items-center justify-center border", skill.isVerified ? "bg-[#84CC16]/10 border-[#84CC16]/30 text-[#65A30D]" : "bg-white border-slate-200 text-slate-400")}>
+                                   {skill.isVerified ? <CheckCircle2 className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+                                </div>
+                                <div>
+                                   <div className="text-xs font-extrabold text-slate-900">{skill.name}</div>
+                                   <div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">{skill.category}</div>
+                                </div>
+                             </div>
+                             <div className="text-sm font-black text-slate-900 bg-white border border-slate-200 px-2 py-1 rounded-sm shadow-sm">{skill.verifiedScore || skill.score}%</div>
+                          </div>
+                       ))}
+                    </div>
+                 </motion.div>
+               )}
+
+               {activeTab === 'experience' && (
+                 <motion.div key="experience" initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
+                    <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
+                       <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest">Career Timeline</h3>
+                       <Button onClick={() => setIsExpDialogOpen(true)} size="sm" variant="outline" className="h-8 text-xs font-bold rounded-md">
+                          Add Role
+                       </Button>
+                    </div>
+                    <div className="space-y-6">
+                       {experiences.work.length === 0 ? (
+                         <div className="text-center py-8 text-slate-500 text-xs font-bold">No timeline events added.</div>
+                       ) : (
+                         experiences.work.map(exp => (
+                            <div key={exp.id} className="relative pl-6 border-l-2 border-slate-200 pb-2">
+                               <div className="absolute -left-[5px] top-1 w-2 h-2 rounded-sm bg-slate-900 ring-4 ring-white" />
+                               <div className="flex justify-between items-start">
+                                 <div>
+                                    <h4 className="text-sm font-extrabold text-slate-900">{exp.title}</h4>
+                                    <p className="text-xs font-bold text-blue-600 mt-0.5">{exp.organization}</p>
+                                 </div>
+                                 <button onClick={() => setExperiences(exp.id)} className="text-slate-400 hover:text-red-500 transition-colors">
+                                   <Trash2 className="w-3.5 h-3.5" />
+                                 </button>
+                               </div>
+                               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">{new Date(exp.startDate).getFullYear()} - {exp.isCurrent ? 'Present' : (exp.endDate ? new Date(exp.endDate).getFullYear() : '')}</p>
+                               {exp.description && <p className="text-xs text-slate-600 font-medium mt-2 leading-relaxed">{exp.description}</p>}
+                            </div>
+                         ))
+                       )}
+                    </div>
+                 </motion.div>
+               )}
+               
+             </AnimatePresence>
+          </div>
+
+          {/* RIGHT SIDEBAR (Col 4) - Analytics Panel */}
+          <div className="lg:col-span-4 space-y-6">
+             
+             {/* AURA BREAKDOWN MODULE */}
+             <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
+                <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
+                   <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-amber-500" /> Pulse Diagnostics
+                   </h3>
+                   <div className="px-2 py-0.5 bg-slate-100 rounded-sm text-[9px] font-extrabold text-slate-600 uppercase tracking-widest border border-slate-200">
+                      Top {aura?.percentile || 5}%
+                   </div>
+                </div>
+
+                <div className="space-y-4">
+                   {Object.entries(breakdown).map(([key, value]) => {
+                      const total = Object.values(breakdown).reduce((a, b) => a + b, 0) || 1
+                      const percentage = Math.min(100, Math.round((value / total) * 100))
+                      return (
+                         <div key={key}>
+                            <div className="flex justify-between items-end mb-1.5">
+                               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{key}</span>
+                               <span className="text-[10px] font-black text-slate-900">{value} PTS</span>
+                            </div>
+                            <div className="h-1.5 bg-slate-100 rounded-sm overflow-hidden">
+                               <motion.div 
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${percentage}%` }}
+                                  transition={{ duration: 1 }}
+                                  className="h-full bg-slate-800 rounded-sm"
+                               />
+                            </div>
+                         </div>
+                      )
+                   })}
+                </div>
+
+                <div className="mt-5 pt-4 border-t border-slate-100 flex justify-between items-center bg-slate-50 p-3 rounded-md border border-slate-200/50">
+                   <div className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Velocity</div>
+                   <div className="flex items-center gap-1.5 text-[#65A30D] font-black text-xs">
+                      <TrendingUp className="w-3.5 h-3.5" /> +12%
+                   </div>
+                </div>
+             </div>
+
+             {/* QUICK ACTIONS MODULE */}
+             <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
+                <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest mb-4 pb-3 border-b border-slate-100">
+                   Actions
+                </h3>
+                <div className="space-y-2">
+                   <Button variant="outline" className="w-full justify-start text-xs font-bold h-9 bg-slate-50 border-slate-200" onClick={() => setIsEditDialogOpen(true)}>
+                     <Edit3 className="w-3.5 h-3.5 mr-2" /> Edit Public Profile
+                   </Button>
+                   <Button variant="outline" className="w-full justify-start text-xs font-bold h-9 bg-slate-50 border-slate-200">
+                     <ExternalLink className="w-3.5 h-3.5 mr-2" /> Share Profile Link
+                   </Button>
+                </div>
+             </div>
+
           </div>
         </div>
       </div>
-
-      {/* ========== TABS ========== */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="bg-muted p-1 rounded-xl">
-          <TabsTrigger value="overview" className="rounded-lg">Overview</TabsTrigger>
-          <TabsTrigger value="experience" className="rounded-lg">Experience</TabsTrigger>
-          <TabsTrigger value="projects" className="rounded-lg">Projects</TabsTrigger>
-          <TabsTrigger value="skills" className="rounded-lg">Skills</TabsTrigger>
-          <TabsTrigger value="github" className="rounded-lg">GitHub</TabsTrigger>
-          <TabsTrigger value="leetcode" className="rounded-lg">LeetCode</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 grid md:grid-cols-2 gap-6 items-start">
-              {/* Left Column: Skills */}
-              <div className="space-y-6">
-                <GlassCard className="p-6 h-full">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <Code className="w-5 h-5 text-primary" /> Skills
-                    </h3>
-                    <Button variant="ghost" size="sm" onClick={() => setActiveTab('skills')}>
-                      View All
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {(showAllSkills ? skills : skills.slice(0, 10)).map(s => <SkillBadge key={s.name} skill={s} />)}
-                    {skills.length === 0 && <span className="text-muted-foreground text-sm">No skills yet.</span>}
-                  </div>
-                  {skills.length > 10 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full mt-2 text-muted-foreground hover:text-foreground"
-                      onClick={() => {
-                        if (!showAllSkills) {
-                          setActiveTab('skills')
-                          setTimeout(() => {
-                            skillsRef?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                          }, 100)
-                        } else {
-                          setShowAllSkills(false)
-                        }
-                      }}
-                    >
-                      {showAllSkills ? "Show Less" : `Show ${skills.length - 10} More`}
-                    </Button>
-                  )}
-                </GlassCard>
-              </div>
-
-              {/* Right Column: Heatmaps & Experience */}
-              <div className="space-y-6">
-                {/* GitHub Heatmap */}
-                <GlassCard className="p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <FolderGit2 className="w-5 h-5 text-emerald-500" /> GitHub Activity
-                    </h3>
-                    <a
-                      href={`https://github.com/${githubStats?.username || user?.username}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs text-muted-foreground hover:text-emerald-500 flex items-center gap-1"
-                    >
-                      View Profile <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </div>
-                  <ContributionHeatmap
-                    username={githubStats?.username || user?.username}
-                    type="github"
-                    totalContributions={githubStats ? Object.values(githubStats.submissionCalendar).reduce((a, b) => a + b, 0) : (user?.githubContributions || 0)}
-                    data={githubStats?.submissionCalendar || {}}
-                  />
-                </GlassCard>
-
-                {/* LeetCode Heatmap - Only if connected */}
-                {user?.leetcodeUsername && leetcodeStats && (
-                  <GlassCard className="p-6">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="font-semibold flex items-center gap-2">
-                        <Code className="w-5 h-5 text-[#FFA116]" /> LeetCode Activity
-                      </h3>
-                      <div className="flex items-center gap-3">
-                        <div className="text-right">
-                          <p className="text-xs text-muted-foreground">Ranking</p>
-                          <p className="text-sm font-medium text-[#FFA116]">{formatNumber(leetcodeStats.ranking)}</p>
-                        </div>
-                        <div className="w-px h-8 bg-border" />
-                        <div className="text-right">
-                          <p className="text-xs text-muted-foreground">Solved</p>
-                          <p className="text-sm font-medium text-white">{leetcodeStats.totalSolved}</p>
-                        </div>
-                      </div>
-                    </div>
-                    <ContributionHeatmap
-                      username={user.leetcodeUsername}
-                      type="leetcode"
-                      totalContributions={leetcodeStats.totalSolved} // LeetCode total solved as proxy for now
-                      data={leetcodeStats.submissionCalendar}
-                    />
-                  </GlassCard>
-                )}
-
-                <GlassCard className="p-6">
-                  <h3 className="font-semibold mb-4 flex items-center gap-2"><Briefcase className="w-5 h-5 text-primary" /> Recent Experience</h3>
-                  <div className="space-y-4">
-                    {experiences.work.slice(0, 2).map(exp => (
-                      <div key={exp.id} className="flex gap-4">
-                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <Briefcase className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{exp.title}</p>
-                          <p className="text-sm text-muted-foreground">{exp.organization}</p>
-                        </div>
-                      </div>
-                    ))}
-                    {experiences.work.length === 0 && <p className="text-muted-foreground text-sm">No work experience added.</p>}
-                  </div>
-                </GlassCard>
-              </div>
+      
+      {/* MODALS - Sleek Command Menu Style */}
+      <Dialog open={isClaimDialogOpen} onOpenChange={setIsClaimDialogOpen}>
+        <DialogContent className="sm:max-w-[425px] rounded-xl border-slate-200 p-0 overflow-hidden bg-white">
+          <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+            <DialogTitle className="text-sm font-extrabold text-slate-900 uppercase tracking-widest">Claim Verify Skill</DialogTitle>
+            <DialogDescription className="text-xs text-slate-500 mt-1">Add manual skills pending code verification.</DialogDescription>
+          </div>
+          <div className="p-6 space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Skill Name</Label>
+              <Input placeholder="e.g. React, Go, Docker" value={claimForm.name} onChange={e => setClaimForm({ ...claimForm, name: e.target.value })} className="h-9 text-sm rounded-md" />
             </div>
-
-            <div>
-              <AuraScoreCard
-                total={aura?.total ?? 0}
-                level={aura?.level ?? 'Beginner'}
-                trend={aura?.trend ?? 'stable'}
-                percentile={aura?.percentile ?? 0}
-                breakdown={aura?.breakdown ?? { profile: 0, projects: 0, skills: 0, activity: 0, github: 0 }}
-                recentGains={aura?.recentGains}
-              />
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Evidence Link</Label>
+              <Input placeholder="https://github.com/..." value={claimForm.evidence} onChange={e => setClaimForm({ ...claimForm, evidence: e.target.value })} className="h-9 text-sm rounded-md" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Description</Label>
+              <Textarea placeholder="Context..." value={claimForm.description} onChange={e => setClaimForm({ ...claimForm, description: e.target.value })} className="text-sm rounded-md resize-none" rows={3} />
             </div>
           </div>
-        </TabsContent>
-
-        <TabsContent value="experience" className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Work Experience & Certifications</h2>
-            <Dialog open={isExpDialogOpen} onOpenChange={setIsExpDialogOpen}>
-              <DialogTrigger asChild>
-                <Button><Plus className="h-4 w-4 mr-2" /> Add Experience</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add Experience</DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label>Type</Label>
-                    <select
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                      value={expForm.type}
-                      onChange={(e) => setExpForm({ ...expForm, type: e.target.value as any })}
-                    >
-                      <option value="WORK">Work Experience</option>
-                      <option value="EDUCATION">Education</option>
-                      <option value="CERTIFICATION">Certification</option>
-                    </select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Title / Degree</Label>
-                    <Input value={expForm.title} onChange={e => setExpForm({ ...expForm, title: e.target.value })} placeholder="e.g. Senior Developer" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Company / Institution</Label>
-                    <Input value={expForm.organization} onChange={e => setExpForm({ ...expForm, organization: e.target.value })} placeholder="e.g. Google" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label>Start Date</Label>
-                      <Input type="date" value={expForm.startDate} onChange={e => setExpForm({ ...expForm, startDate: e.target.value })} />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>End Date</Label>
-                      <Input type="date" value={expForm.endDate} onChange={e => setExpForm({ ...expForm, endDate: e.target.value })} disabled={expForm.isCurrent} />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Checkbox id="current" checked={expForm.isCurrent} onCheckedChange={(c) => setExpForm({ ...expForm, isCurrent: !!c })} />
-                    <Label htmlFor="current">I currently work here</Label>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button onClick={handleSaveExperience} disabled={isSaving}>Save</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+          <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end">
+            <Button onClick={handleClaimSkill} disabled={isClaiming || !claimForm.name} className="h-8 px-6 text-xs font-bold rounded-md bg-slate-900 hover:bg-slate-800 text-white">
+              {isClaiming ? 'Claiming...' : 'Claim Skill'}
+            </Button>
           </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <GlassCard className="p-6">
-              <h3 className="font-semibold mb-4 flex items-center gap-2"><Briefcase className="w-5 h-5 text-primary" /> Work History</h3>
-              <div className="space-y-6">
-                {experiences.work.map(exp => (
-                  <div key={exp.id} className="relative pl-6 border-l border-border pb-6 last:pb-0">
-                    <div className="absolute -left-1.5 top-1.5 h-3 w-3 rounded-full bg-primary" />
-                    <div className="flex justify-between items-start group">
-                      <div>
-                        <h4 className="font-medium">{exp.title}</h4>
-                        <p className="text-sm text-foreground/80">{exp.organization}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(exp.startDate).getFullYear()} - {exp.isCurrent ? 'Present' : exp.endDate ? new Date(exp.endDate).getFullYear() : ''}
-                        </p>
-                      </div>
-                      <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 h-8 w-8 text-destructive" onClick={() => deleteExperience(exp.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-                {experiences.work.length === 0 && <p className="text-muted-foreground text-sm">No work experience added.</p>}
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={isExpDialogOpen} onOpenChange={setIsExpDialogOpen}>
+         <DialogContent className="sm:max-w-[500px] rounded-xl border-slate-200 p-0 overflow-hidden bg-white">
+            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+              <DialogTitle className="text-sm font-extrabold text-slate-900 uppercase tracking-widest">Add Timeline Event</DialogTitle>
+            </div>
+            <div className="p-6 grid gap-4">
+              <div className="space-y-2"><Label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Role / Title</Label><Input value={expForm.title || ''} onChange={e => setExpForm({...expForm, title: e.target.value})} className="h-9 rounded-md" /></div>
+              <div className="space-y-2"><Label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Organization</Label><Input value={expForm.organization || ''} onChange={e => setExpForm({...expForm, organization: e.target.value})} className="h-9 rounded-md" /></div>
+              <div className="grid grid-cols-2 gap-4">
+                 <div className="space-y-2"><Label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Start Date</Label><Input type="date" value={expForm.startDate || ''} onChange={e => setExpForm({...expForm, startDate: e.target.value})} className="h-9 rounded-md" /></div>
+                 <div className="space-y-2"><Label className="text-xs font-bold text-slate-700 uppercase tracking-wider">End Date</Label><Input type="date" value={expForm.endDate || ''} onChange={e => setExpForm({...expForm, endDate: e.target.value})} className="h-9 rounded-md" /></div>
               </div>
-            </GlassCard>
-
-            <div className="space-y-6">
-              <GlassCard className="p-6">
-                <h3 className="font-semibold mb-4 flex items-center gap-2"><Award className="w-5 h-5 text-amber-500" /> Certifications</h3>
-                <div className="space-y-4">
-                  {experiences.certifications.map(cert => (
-                    <div key={cert.id} className="flex gap-4 items-start group">
-                      <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-                        <Award className="h-5 w-5 text-amber-500" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-medium">{cert.title}</h4>
-                        <p className="text-sm text-muted-foreground">{cert.organization}</p>
-                      </div>
-                      <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 h-8 w-8 text-destructive" onClick={() => deleteExperience(cert.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  {experiences.certifications.length === 0 && <p className="text-muted-foreground text-sm">No certifications added.</p>}
-                </div>
-              </GlassCard>
-
-              <GlassCard className="p-6">
-                <h3 className="font-semibold mb-4 flex items-center gap-2"><GraduationCap className="w-5 h-5 text-blue-500" /> Education</h3>
-                <div className="space-y-4">
-                  {experiences.education.map(edu => (
-                    <div key={edu.id} className="flex gap-4 items-start group">
-                      <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                        <GraduationCap className="h-5 w-5 text-blue-500" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-medium">{edu.title}</h4>
-                        <p className="text-sm text-muted-foreground">{edu.organization}</p>
-                      </div>
-                      <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 h-8 w-8 text-destructive" onClick={() => deleteExperience(edu.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  {experiences.education.length === 0 && <p className="text-muted-foreground text-sm">No education added.</p>}
-                </div>
-              </GlassCard>
+              <div className="space-y-2"><Label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Description</Label><Textarea value={expForm.description || ''} onChange={e => setExpForm({...expForm, description: e.target.value})} className="rounded-md resize-none" rows={3} /></div>
             </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="projects">
-          <GlassCard className="p-6">
-            <div className="grid gap-4">
-              {projects.map((project: any) => (
-                <Link key={project.id} href={`/projects/${project.id}`}>
-                  <div className="group flex items-center justify-between p-4 rounded-xl border border-border hover:border-primary/30 hover:bg-primary/5 transition-all">
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <FolderGit2 className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-foreground group-hover:text-primary transition-colors">{project.repoName || project.name}</p>
-                        <p className="text-sm text-muted-foreground mt-0.5">{project.description || 'No description'}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <span className="px-2 py-1 rounded bg-muted text-xs text-muted-foreground">{project.language}</span>
-                      <span className="flex items-center gap-1 text-sm text-muted-foreground"><Star className="h-4 w-4 text-amber-500" /> {project.stars}</span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-              {projects.length === 0 && (
-                <div className="text-center py-12 text-muted-foreground">
-                  <FolderGit2 className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p className="font-medium mb-1">No projects yet</p>
-                  <p className="text-sm">Connect your GitHub repositories to showcase your work.</p>
-                </div>
-              )}
+            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end">
+              <Button onClick={handleSaveExperience} disabled={isSaving} className="h-8 px-6 text-xs font-bold rounded-md bg-slate-900 hover:bg-slate-800 text-white">Save Event</Button>
             </div>
-          </GlassCard>
-        </TabsContent>
+         </DialogContent>
+      </Dialog>
 
-        <TabsContent value="skills">
-          <div ref={(el) => setSkillsRef(el)}>
-            <GlassCard className="p-6 mb-6">
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h3 className="font-semibold text-lg flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-emerald-500" /> Verified Skills
-                  </h3>
-                  <p className="text-sm text-muted-foreground">Detected automatically from your projects.</p>
-                </div>
-              </div>
-
-            <div className="flex flex-wrap gap-3">
-              {skills.filter(s => s.isVerified || (s.source === 'GITHUB' || s.source === 'ANALYSIS')).map((skill) => (
-                <SkillBadge key={skill.name} skill={skill} />
-              ))}
-              {skills.filter(s => s.isVerified || (s.source === 'GITHUB' || s.source === 'ANALYSIS')).length === 0 && <p className="text-muted-foreground text-sm">No verification/detected skills yet. Connect projects to get verified skills.</p>}
-            </div>
-          </GlassCard>
-
-          <GlassCard className="p-6">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h3 className="font-semibold text-lg flex items-center gap-2">
-                  <Briefcase className="w-5 h-5 text-blue-500" /> Claimed Skills
-                </h3>
-                <p className="text-sm text-muted-foreground">Manually added skills with evidence.</p>
-              </div>
-              <Button variant="outline" onClick={() => setIsClaimDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" /> Add Skill
-              </Button>
-            </div>
-
-            <ClaimSkillDialog
-              isOpen={isClaimDialogOpen}
-              onOpenChange={setIsClaimDialogOpen}
-              onClaim={handleClaimSkill}
-            />
-
-            <div className="flex flex-wrap gap-3">
-              {skills.filter(s => !s.isVerified && (s.source === 'MANUAL' || !s.source)).map((skill) => (
-                <SkillBadge key={skill.name} skill={skill} />
-              ))}
-              {skills.filter(s => !s.isVerified && (s.source === 'MANUAL' || !s.source)).length === 0 && <p className="text-muted-foreground text-sm">No claimed skills yet.</p>}
-            </div>
-          </GlassCard>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="github">
-          <div className="space-y-6">
-            {/* GitHub Stats Overview */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              <GlassCard className="p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
-                    <FolderGit2 className="w-4 h-4 text-primary" />
-                    Repositories
-                  </h3>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-3xl font-bold text-foreground">{user?.publicRepos || 0}</p>
-                  <p className="text-xs text-muted-foreground">Public projects</p>
-                </div>
-              </GlassCard>
-
-              <GlassCard className="p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
-                    <Star className="w-4 h-4 text-amber-500" />
-                    Total Stars
-                  </h3>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-3xl font-bold text-foreground">{projects.reduce((sum: number, p: any) => sum + (p.stars || 0), 0)}</p>
-                  <p className="text-xs text-muted-foreground">Earned across repos</p>
-                </div>
-              </GlassCard>
-
-              <GlassCard className="p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
-                    <Users className="w-4 h-4 text-emerald-500" />
-                    Followers
-                  </h3>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-3xl font-bold text-foreground">{user?.followers || 0}</p>
-                  <p className="text-xs text-muted-foreground">Community size</p>
-                </div>
-              </GlassCard>
-
-              <GlassCard className="p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-primary" />
-                    Contributions
-                  </h3>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-3xl font-bold text-foreground">
-                    {githubStats ? Object.values(githubStats.submissionCalendar).reduce((a: any, b: any) => a + b, 0) : (user?.githubContributions || 0)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">in the last year</p>
-                </div>
-              </GlassCard>
-            </div>
-
-            {/* Contribution Heatmap */}
-            <GlassCard className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <Github className="w-5 h-5 text-emerald-500" />
-                  Contribution Activity
-                </h3>
-                <Button variant="ghost" size="sm" asChild>
-                  <a href={`https://github.com/${user?.username}`} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    View on GitHub
-                  </a>
-                </Button>
-              </div>
-              <ContributionHeatmap
-                type="github"
-                username={githubStats?.username || user?.username || ''}
-                totalContributions={githubStats ? Object.values(githubStats.submissionCalendar).reduce((a: any, b: any) => a + b, 0) : (user?.githubContributions || 0)}
-                data={githubStats?.submissionCalendar || {}}
-              />
-            </GlassCard>
-
-            <div className="grid lg:grid-cols-3 gap-6">
-               {/* Top Repositories */}
-              <GlassCard className="p-6 lg:col-span-2">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <FolderGit2 className="w-5 h-5 text-primary" />
-                    Top Repositories
-                  </h3>
-                  <Button variant="ghost" size="sm" onClick={() => setActiveTab('projects')}>
-                    View All
-                  </Button>
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {projects
-                    .sort((a: any, b: any) => (b.stars || 0) - (a.stars || 0))
-                    .slice(0, 6)
-                    .map((project: any) => (
-                      <Link key={project.id} href={`/projects/${project.id}`} className="block h-full">
-                        <div className="group flex flex-col h-full justify-between p-4 rounded-xl border border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all bg-card/50">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex items-center gap-3 min-w-0">
-                                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                  <FolderGit2 className="h-5 w-5 text-primary" />
-                                </div>
-                                <div className="min-w-0">
-                                  <p className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
-                                    {project.repoName || project.name}
-                                  </p>
-                                  <p className="text-sm text-muted-foreground mt-0.5 line-clamp-1">
-                                    {project.description || 'No description'}
-                                  </p>
-                                </div>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center justify-between mt-4 border-t border-border/30 pt-3">
-                             <Badge variant="secondary" className="bg-muted text-muted-foreground font-normal text-xs pointer-events-none">
-                              {project.language || 'Unknown'}
-                            </Badge>
-                            <span className="flex items-center gap-1 text-sm font-medium text-amber-500">
-                              <Star className="h-4 w-4 fill-amber-500" /> {project.stars || 0}
-                            </span>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  {projects.length === 0 && (
-                    <div className="col-span-full text-center py-12 text-muted-foreground border-2 border-dashed border-muted rounded-xl">
-                      <FolderGit2 className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                      <p className="font-medium mb-1">No repositories found</p>
-                      <p className="text-sm">Connect your GitHub to import projects</p>
-                    </div>
-                  )}
-                </div>
-              </GlassCard>
-
-              {/* Language Distribution */}
-              <GlassCard className="p-6 h-fit">
-                <h3 className="font-semibold mb-6 flex items-center gap-2">
-                  <Code className="w-5 h-5 text-primary" />
-                  Languages
-                </h3>
-                {projects.length > 0 ? (
-                  <div className="space-y-4">
-                    {(() => {
-                      const languageCounts: Record<string, number> = {}
-                      projects.forEach((p: any) => {
-                        if (p.language) {
-                          languageCounts[p.language] = (languageCounts[p.language] || 0) + 1
-                        }
-                      })
-                      const sortedLanguages = Object.entries(languageCounts)
-                        .sort(([, a], [, b]) => b - a)
-                        .slice(0, 6)
-                      const total = sortedLanguages.reduce((sum, [, count]) => sum + count, 0)
-                      // Colors for languages
-                      const colors = [
-                        'bg-blue-500', 'bg-yellow-500', 'bg-emerald-500', 
-                        'bg-red-500', 'bg-purple-500', 'bg-pink-500'
-                      ]
-
-                      return sortedLanguages.map(([lang, count], index) => (
-                        <div key={lang} className="space-y-1.5">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="font-medium">{lang}</span>
-                            <span className="text-muted-foreground text-xs">
-                              {Math.round((count / total) * 100)}%
-                            </span>
-                          </div>
-                          <div className="w-full bg-muted/50 rounded-full h-2 overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all ${colors[index % colors.length]}`}
-                              style={{ width: `${(count / total) * 100}%` }}
-                            />
-                          </div>
-                        </div>
-                      ))
-                    })()}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                     <p className="text-sm">No language data available</p>
-                  </div>
-                )}
-              </GlassCard>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="leetcode">
-          {!user?.leetcodeUsername ? (
-            <GlassCard className="p-12 text-center">
-              <div className="max-w-md mx-auto space-y-4">
-                <div className="h-20 w-20 rounded-full bg-orange-500/10 flex items-center justify-center mx-auto">
-                  <Code className="h-10 w-10 text-orange-500" />
-                </div>
-                <h3 className="text-xl font-semibold">Connect Your LeetCode Account</h3>
-                <p className="text-muted-foreground">
-                  Showcase your competitive programming skills. Connect your LeetCode account to display your problem-solving achievements.
-                </p>
-                <Button asChild className="mt-4">
-                  <Link href="/settings">
-                    <LinkIcon className="h-4 w-4 mr-2" />
-                    Connect in Settings
-                  </Link>
-                </Button>
-              </div>
-            </GlassCard>
-          ) : !leetcodeStats ? (
-            <GlassCard className="p-12 text-center">
-              <div className="max-w-md mx-auto space-y-4">
-                <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center mx-auto">
-                  <Code className="h-10 w-10 text-muted-foreground animate-pulse" />
-                </div>
-                <h3 className="text-xl font-semibold">Loading LeetCode Stats...</h3>
-                <p className="text-muted-foreground">
-                  Fetching your problem-solving data from LeetCode
-                </p>
-              </div>
-            </GlassCard>
-          ) : (
-            <div className="space-y-6">
-              {/* Stats Overview */}
-              <div className="grid md:grid-cols-3 gap-6">
-                <GlassCard className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <Award className="w-5 h-5 text-orange-500" />
-                      Total Solved
-                    </h3>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-4xl font-bold text-foreground">{leetcodeStats.totalSolved}</p>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span>Ranking: #{formatNumber(leetcodeStats.ranking)}</span>
-                    </div>
-                  </div>
-                </GlassCard>
-
-                <GlassCard className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5 text-emerald-500" />
-                      Acceptance Rate
-                    </h3>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-4xl font-bold text-foreground">{leetcodeStats.acceptanceRate.toFixed(1)}%</p>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div
-                        className="bg-emerald-500 h-2 rounded-full transition-all"
-                        style={{ width: `${leetcodeStats.acceptanceRate}%` }}
-                      />
-                    </div>
-                  </div>
-                </GlassCard>
-
-                <GlassCard className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <Star className="w-5 h-5 text-amber-500" />
-                      Contribution Points
-                    </h3>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-4xl font-bold text-foreground">{formatNumber(leetcodeStats.contributionPoints)}</p>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span>Reputation: {formatNumber(leetcodeStats.reputation)}</span>
-                    </div>
-                  </div>
-                </GlassCard>
-              </div>
-
-              {/* Difficulty Breakdown */}
-              <GlassCard className="p-6">
-                <h3 className="font-semibold mb-4 flex items-center gap-2">
-                  <Code className="w-5 h-5 text-orange-500" />
-                  Problems by Difficulty
-                </h3>
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">Easy</span>
-                      <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
-                        {leetcodeStats.easySolved}
-                      </Badge>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div
-                        className="bg-emerald-500 h-2 rounded-full transition-all"
-                        style={{ width: `${(leetcodeStats.easySolved / leetcodeStats.totalSolved) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-amber-600 dark:text-amber-400">Medium</span>
-                      <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20">
-                        {leetcodeStats.mediumSolved}
-                      </Badge>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div
-                        className="bg-amber-500 h-2 rounded-full transition-all"
-                        style={{ width: `${(leetcodeStats.mediumSolved / leetcodeStats.totalSolved) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-red-600 dark:text-red-400">Hard</span>
-                      <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/20">
-                        {leetcodeStats.hardSolved}
-                      </Badge>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div
-                        className="bg-red-500 h-2 rounded-full transition-all"
-                        style={{ width: `${(leetcodeStats.hardSolved / leetcodeStats.totalSolved) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </GlassCard>
-
-              {/* Submission Heatmap */}
-              <GlassCard className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-orange-500" />
-                    Submission Activity
-                  </h3>
-                  <Button variant="ghost" size="sm" asChild>
-                    <a href={`https://leetcode.com/${leetcodeStats.username}`} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      View on LeetCode
-                    </a>
-                  </Button>
-                </div>
-                <ContributionHeatmap
-                  type="leetcode"
-                  username={leetcodeStats.username}
-                  totalContributions={leetcodeStats.totalSolved}
-                  data={leetcodeStats.submissionCalendar}
-                />
-              </GlassCard>
-            </div>
-          )}
-        </TabsContent>
-
-      </Tabs>
-      <ClaimSkillDialog
-        isOpen={isClaimDialogOpen}
-        onOpenChange={setIsClaimDialogOpen}
-        onClaim={handleClaimSkill}
-      />
     </div>
   )
 }

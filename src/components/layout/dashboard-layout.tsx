@@ -1,45 +1,42 @@
 ﻿"use client"
 
 /**
- * Dashboard Layout - PREMIUM MOBILE-FIRST RESPONSIVE
- * Sidebar collapses to hamburger menu on mobile.
+ * Dashboard Layout - MODERN TOP NAVBAR DESIGN
+ * Professional job platform / admin panel style
+ * Horizontal navigation with centered content
  */
 
 import { useRef, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/auth-store'
-import { useUIStore } from '@/store/ui-store'
 import { cn, getInitials } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { NotificationCenter } from '@/components/ui/notification-center'
 import {
-  LayoutDashboard,
+  LayoutGrid,
   FolderGit2,
   Briefcase,
   FileText,
   Settings,
-  ChevronLeft,
   User,
   Menu,
   ScrollText,
-  Search,
-  Sparkles,
-  LogOut,
   MessageSquare,
-  X,
+  Zap,
+  Bell,
+  ChevronDown,
+  X
 } from 'lucide-react'
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutGrid, badge: 3 },
   { name: 'Projects', href: '/projects', icon: FolderGit2 },
   { name: 'Resume', href: '/resume', icon: ScrollText },
   { name: 'Jobs', href: '/jobs', icon: Briefcase },
   { name: 'Applications', href: '/applications', icon: FileText },
   { name: 'Messages', href: '/messages', icon: MessageSquare },
-  { name: 'Career Profile', href: '/profile', icon: User },
-  { name: 'Quick Apply', href: '/settings/job-preferences', icon: Sparkles },
+  { name: 'Profile', href: '/profile', icon: User },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
@@ -48,8 +45,7 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { user, logout } = useAuthStore()
-  const { sidebarOpen, toggleSidebar } = useUIStore()
+  const { user } = useAuthStore()
   const pathname = usePathname()
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -61,7 +57,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = 0
     }
-    // Close mobile menu on navigation
     setMobileMenuOpen(false)
   }, [pathname])
 
@@ -78,13 +73,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   }, [])
 
-  const handleLogout = async () => {
-    await logout()
-    router.push('/auth')
-  }
-
   return (
-    <div className="h-screen w-full bg-background text-foreground overflow-hidden flex">
+    <div className="min-h-screen w-full bg-[#F8F9FA] flex flex-col font-sans">
       {/* Mobile Overlay */}
       {mobileMenuOpen && (
         <div 
@@ -93,209 +83,166 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         />
       )}
 
-      {/* Sidebar - Hidden on mobile, shown on lg+ */}
-      <aside
-        className={cn(
-          'fixed inset-y-0 left-0 z-50 h-full transition-all duration-300 flex flex-col',
-          'border-r-[1.5px] border-border/60 shadow-[1px_0_10px_rgba(0,0,0,0.02)]',
-          'bg-white dark:bg-black',
-          // Mobile: Slide in/out
-          'lg:translate-x-0',
-          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-          // Desktop: Expandable width
-          sidebarOpen ? 'w-72 lg:w-64' : 'w-72 lg:w-20'
-        )}
-      >
-        {/* Logo Section */}
-        <div className="flex h-16 items-center px-4 border-b border-border/50 bg-muted/5 shrink-0">
-          <Link href="/dashboard" className="flex items-center gap-3">
-            <img 
-              src="/logo.png" 
-              alt="VerifyDev" 
-              className="w-10 h-10 lg:w-9 lg:h-9 rounded-xl shadow-lg"
-            />
-            {(sidebarOpen || mobileMenuOpen) && (
-              <span className="font-bold text-lg tracking-tight text-foreground">VerifyDev</span>
-            )}
-          </Link>
-          
-          {/* Close button on mobile */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setMobileMenuOpen(false)}
-            className="ml-auto h-10 w-10 hover:bg-muted/80 rounded-lg text-muted-foreground lg:hidden"
-          >
-            <X className="h-5 w-5" />
-          </Button>
-          
-          {/* Collapse button on desktop */}
-          {sidebarOpen && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleSidebar}
-              className="ml-auto h-8 w-8 hover:bg-muted/80 rounded-lg text-muted-foreground hidden lg:flex"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-          )}
-          {!sidebarOpen && (
-            <button
-              onClick={toggleSidebar}
-              className="absolute -right-3 top-20 h-6 w-6 items-center justify-center rounded-full border border-border bg-background shadow-sm hover:bg-muted transition-all hidden lg:flex"
-            >
-              <Menu className="h-3 w-3 text-muted-foreground" />
-            </button>
-          )}
-        </div>
-
-        {/* Navigation - Scrollable inside sidebar */}
-        <nav className="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto scrollbar-none">
-          {navigation.map((item) => {
-            const isActive = pathname === item.href
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  'flex items-center gap-3 rounded-xl px-4 py-3.5 lg:py-3 text-base lg:text-sm font-medium transition-all duration-200 group relative',
-                  'border border-transparent min-h-[48px] lg:min-h-0', // Touch-friendly on mobile
-                  isActive
-                    ? 'bg-primary/5 text-primary border-primary/20 shadow-[0_2px_10px_-3px_rgba(var(--primary),0.2)]'
-                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:border-border/30 active:scale-[0.98]'
-                )}
-              >
-                <item.icon className={cn("h-5 w-5 flex-shrink-0 transition-all duration-300 relative z-10", isActive ? "text-primary scale-110" : "group-hover:text-foreground border-border")} />
-                {(sidebarOpen || mobileMenuOpen) && <span className="relative z-10 transition-transform duration-200 group-hover:translate-x-1">{item.name}</span>}
-                {!sidebarOpen && !mobileMenuOpen && isActive && (
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-l-full" />
-                )}
-              </Link>
-            )
-          })}
-        </nav>
-
-        {/* Aura Badge */}
-        {(sidebarOpen || mobileMenuOpen) && (
-          <div className="mx-3 mb-3 p-4 lg:p-3 rounded-xl bg-gradient-to-r from-primary/10 to-transparent border border-primary/20 shrink-0">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 lg:w-4 lg:h-4 text-primary" />
-              <span className="text-sm lg:text-xs font-medium text-muted-foreground">Aura Score</span>
-            </div>
-            <div className="text-2xl lg:text-xl font-bold text-foreground mt-1">{user?.auraScore || 0}</div>
-          </div>
-        )}
-
-        {/* User Profile */}
-        <div className="p-4 mt-auto border-t border-border/50 bg-muted/5 shrink-0">
-          {user && (
-            <div className={cn('flex flex-col gap-3', (sidebarOpen || mobileMenuOpen) ? '' : 'items-center')}>
-              <div
-                className={cn(
-                  'flex items-center gap-3 rounded-2xl p-3 lg:p-2.5 transition-all border border-border/30 bg-card/50 shadow-sm hover:border-primary/30 hover:bg-muted/50 cursor-pointer group',
-                  (sidebarOpen || mobileMenuOpen) ? 'justify-between' : 'justify-center border-none bg-transparent shadow-none'
-                )}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <Avatar className="h-12 w-12 lg:h-10 lg:w-10 rounded-xl border-2 border-border/50 group-hover:border-primary/30 transition-colors">
-                    <AvatarImage src={user.avatarUrl} alt={user.name} />
-                    <AvatarFallback className="rounded-xl bg-primary/10 text-primary text-sm lg:text-xs font-bold">{getInitials(user.name)}</AvatarFallback>
-                  </Avatar>
-                  {(sidebarOpen || mobileMenuOpen) && (
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-base lg:text-sm font-bold text-foreground truncate">
-                        {user.name}
-                      </span>
-                      <span className="text-sm lg:text-xs text-muted-foreground truncate opacity-70">
-                        @{user.username}
-                      </span>
-                    </div>
-                  )}
-                </div>
+      {/* TOP NAVBAR - Professional Design (SCALED DOWN) */}
+      <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#0A0A0A] shadow-sm">
+        <div className="max-w-[2000px] mx-auto px-6 relative">
+          <div className="flex items-center justify-between h-16">
+            
+            {/* Left: Brand Logo */}
+            <div className="flex items-center gap-2 cursor-pointer shrink-0 min-w-[200px]" onClick={() => router.push('/')}>
+              <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center shadow-md border border-white/5 ring-1 ring-white/5">
+                <Zap className="w-5 h-5 text-[#ffffff] fill-[#ffffff]" />
               </div>
-              <Button
-                variant="ghost"
-                onClick={handleLogout}
-                className={cn(
-                  'flex items-center gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all rounded-xl min-h-[48px] lg:min-h-0',
-                  (sidebarOpen || mobileMenuOpen) ? 'w-full justify-start px-4 lg:px-3 py-3 lg:py-2' : 'w-10 h-10 p-0 justify-center'
-                )}
-              >
-                <LogOut className="h-5 w-5 lg:h-4 lg:w-4" />
-                {(sidebarOpen || mobileMenuOpen) && <span className="text-base lg:text-sm font-medium">Logout</span>}
-              </Button>
+              <span className="text-xl font-bold tracking-tight text-white hidden sm:block">VerifyDev</span>
             </div>
-          )}
-        </div>
-      </aside>
 
-      {/* Main content - Fixed App Shell Layout */}
-      <main
-        className={cn(
-          'h-full flex-1 flex flex-col transition-all duration-300 overflow-hidden min-w-0',
-          // Mobile: Full width, Desktop: Account for sidebar
-          'ml-0 lg:ml-64',
-          !sidebarOpen && 'lg:ml-20'
-        )}
-      >
-        {/* Header - Fixed Height */}
-        <div className="h-14 shrink-0 border-b border-border bg-background/80 backdrop-blur-md flex items-center justify-between px-4 lg:px-6 z-30">
-          {/* Mobile Menu Button */}
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setMobileMenuOpen(true)}
-              className="h-10 w-10 lg:hidden rounded-xl"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-            <span className="text-sm font-medium text-muted-foreground hidden sm:block">
-              {navigation.find(n => n.href === pathname)?.name || 'Page'}
-            </span>
-          </div>
+            {/* Center: Navigation Links */}
+            <nav className="hidden lg:flex flex-1 items-center justify-center gap-8">
+              {navigation.slice(0, 6).map((item) => {
+                const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={cn(
+                      "group relative flex items-center gap-2 px-1 py-1 text-sm font-medium transition-colors duration-200",
+                      isActive 
+                        ? "text-[#ADFF2F]" 
+                        : "text-gray-400 hover:text-white"
+                    )}
+                  >
+                    <item.icon className={cn("w-4 h-4", isActive && "stroke-[2.5px] drop-shadow-[0_0_8px_rgba(173,255,47,0.5)]")} />
+                    <span className={cn(isActive && "drop-shadow-[0_0_8px_rgba(173,255,47,0.3)]")}>{item.name}</span>
+                    
+                    {/* Active Indicator Dot */}
+                    {isActive && (
+                      <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#ADFF2F] shadow-[0_0_8px_#ADFF2F]" />
+                    )}
+                  </Link>
+                )
+              })}
+            </nav>
 
-          <div className="flex items-center gap-2 lg:gap-4">
-            {/* Search - Hidden on small screens */}
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-muted border border-border text-sm text-muted-foreground w-56">
-              <Search className="w-4 h-4" />
-              <span>Search...</span>
-              <kbd className="ml-auto text-[10px] bg-background px-1.5 py-0.5 rounded border border-border font-mono">⌘K</kbd>
-            </div>
-            <NotificationCenter />
-            {user && (
-              <Link href="/profile">
-                <Avatar className="h-9 w-9 lg:h-8 lg:w-8 rounded-xl cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all border border-border">
-                  <AvatarImage src={user.avatarUrl} alt={user.name} />
-                  <AvatarFallback className="rounded-xl bg-primary/10 text-primary text-xs">{getInitials(user.name)}</AvatarFallback>
+            {/* Right: User Actions */}
+            <div className="flex items-center justify-end gap-3 min-w-[200px]">
+              {/* Aura Score Badge (Desktop) */}
+              <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#ADFF2F] text-black">
+                <Zap className="w-3.5 h-3.5 fill-black" />
+                <span className="text-xs font-bold">{user?.auraScore || '---'}</span>
+                <span className="text-[10px] font-medium opacity-70">Aura</span>
+              </div>
+
+              {/* Notifications */}
+              <button className="relative w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+                <Bell className="w-4 h-4 text-gray-400" />
+                <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-red-500 rounded-full border border-black" />
+              </button>
+
+              {/* User Profile Dropdown */}
+              <div className="hidden lg:flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-full bg-white/10 cursor-pointer hover:bg-white/20 transition-colors" onClick={() => router.push('/profile')}>
+                <Avatar className="w-7 h-7 rounded-full border-2 border-white/10">
+                  <AvatarImage src={user?.avatarUrl} />
+                  <AvatarFallback className="bg-black text-white text-[10px] font-bold">
+                    {getInitials(user?.name || '')}
+                  </AvatarFallback>
                 </Avatar>
-              </Link>
-            )}
+                <div className="text-left">
+                  <div className="text-xs font-semibold text-white leading-none">{user?.name?.split(' ')[0] || 'User'}</div>
+                  <div className="text-[10px] text-gray-400 mt-0.5">{user?.auraLevel || 'Developer'}</div>
+                </div>
+                <ChevronDown className="w-3 h-3 text-gray-400" />
+              </div>
+
+              {/* Mobile Menu Button */}
+              <button 
+                className="lg:hidden w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+                onClick={() => setMobileMenuOpen(true)}
+              >
+                <Menu className="w-4 h-4 text-gray-400" />
+              </button>
+            </div>
           </div>
         </div>
+      </header>
 
-        {/* Content Area - Where scrolling actually happens */}
+      {/* Mobile Menu Drawer (SCALED DOWN) */}
+      <div className={cn(
+        "fixed inset-y-0 right-0 z-50 w-60 bg-white shadow-2xl transform transition-transform duration-300 lg:hidden",
+        mobileMenuOpen ? "translate-x-0" : "translate-x-full"
+      )}>
+        <div className="flex flex-col h-full">
+          {/* Mobile Menu Header */}
+          <div className="flex items-center justify-between p-3 border-b border-gray-200">
+            <div className="flex items-center gap-2">
+              <Avatar className="w-8 h-8 rounded-full">
+                <AvatarImage src={user?.avatarUrl} />
+                <AvatarFallback className="bg-black text-white text-xs font-bold">
+                  {getInitials(user?.name || '')}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <div className="text-xs font-bold text-gray-900">{user?.name || 'User'}</div>
+                <div className="text-[10px] text-gray-500">{user?.email}</div>
+              </div>
+            </div>
+            <button 
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
+            >
+              <X className="w-4 h-4 text-gray-600" />
+            </button>
+          </div>
+
+          {/* Aura Score (Mobile) */}
+          <div className="p-3 bg-[#ADFF2F] text-black">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-[10px] font-bold opacity-70 mb-0.5">Global Aura Score</div>
+                <div className="text-xl font-extrabold">{user?.auraScore || '---'}</div>
+              </div>
+              <Zap className="w-10 h-10 opacity-20 fill-black" />
+            </div>
+          </div>
+
+          {/* Mobile Navigation */}
+          <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
+            {navigation.map((item) => {
+              const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all",
+                    isActive 
+                      ? "bg-black text-white" 
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  )}
+                >
+                  <item.icon className={cn("w-4 h-4", isActive && "stroke-[2.5px]")} />
+                  <span>{item.name}</span>
+                  {item.badge && (
+                    <span className={cn(
+                      "ml-auto w-4 h-4 flex items-center justify-center rounded-full text-[9px] font-bold",
+                      isActive ? "bg-[#ADFF2F] text-black" : "bg-gray-200 text-gray-600"
+                    )}>
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              )
+            })}
+          </nav>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <main className="flex-1 w-full">
         <div 
           ref={scrollRef}
-          className={cn(
-            "flex-1 relative bg-muted/60 dark:bg-black w-full overflow-x-hidden",
-            pathname?.startsWith('/messages') 
-              ? "overflow-hidden flex flex-col" 
-              : "overflow-y-auto p-4 sm:p-6 lg:p-8"
-          )}
+          className="w-full overflow-y-auto"
         >
-          {/* Background - Fixed to Main Container */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-            <div className="absolute inset-0 bg-grid-premium opacity-40 mix-blend-overlay" />
-            <div className="absolute top-0 left-0 w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full -translate-x-1/2 -translate-y-1/2" />
-            <div className="absolute bottom-0 right-0 w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full translate-x-1/2 translate-y-1/2" />
-          </div>
-
-          <div className={cn(
-            "max-w-7xl mx-auto w-full relative z-10",
-            pathname?.startsWith('/messages') ? "h-full flex flex-col" : "min-h-full"
-          )}>
+          <div className="max-w-[1800px] mx-auto px-4 sm:px-5 lg:px-6 py-4 lg:py-5">
             {children}
           </div>
         </div>

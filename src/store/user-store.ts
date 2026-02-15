@@ -1,5 +1,5 @@
 ﻿import { create } from 'zustand'
-import type { User, GitHubRepo, Project, VerifiedSkill } from '@/types'
+import type { User, GitHubRepo, Project, VerifiedSkill, DashboardData } from '@/types'
 import { apiClient } from '@/api/client'
 
 interface AuraState {
@@ -24,12 +24,14 @@ interface UserState {
   githubRepos: GitHubRepo[]
   projects: Project[]
   skills: VerifiedSkill[]
+  dashboardData: DashboardData | null
 
   isLoadingProfile: boolean
   isLoadingAura: boolean
   isLoadingRepos: boolean
   isLoadingProjects: boolean
   isLoadingSkills: boolean
+  isLoadingDashboard: boolean
 
   error: string | null
   lastAuraUpdate: number | null
@@ -39,6 +41,7 @@ interface UserState {
   fetchGitHubRepos: () => Promise<void>
   fetchProjects: () => Promise<void>
   fetchSkills: () => Promise<void>
+  fetchDashboard: () => Promise<void>
   analyzeProject: (repoUrl: string) => Promise<void>
   syncGitHubProfile: () => Promise<void>
   refreshAllData: () => Promise<void>
@@ -51,12 +54,14 @@ export const useUserStore = create<UserState>((set, get) => ({
   githubRepos: [],
   projects: [],
   skills: [],
+  dashboardData: null,
 
   isLoadingProfile: false,
   isLoadingAura: false,
   isLoadingRepos: false,
   isLoadingProjects: false,
   isLoadingSkills: false,
+  isLoadingDashboard: false,
 
   error: null,
   lastAuraUpdate: null,
@@ -86,6 +91,25 @@ export const useUserStore = create<UserState>((set, get) => ({
       set({
         error: err?.response?.data?.message || err?.message || 'Failed to fetch profile',
         isLoadingProfile: false,
+      })
+    }
+  },
+
+  // ================= DASHBOARD =================
+  fetchDashboard: async () => {
+    set({ isLoadingDashboard: true, error: null })
+    try {
+      const res = await apiClient.get<any>('/v1/dashboard')
+      const responseData = res.data
+      
+      const dashboardData = responseData?.data || responseData
+
+      set({ dashboardData, isLoadingDashboard: false })
+    } catch (err: any) {
+      console.warn('fetchDashboard error:', err?.message)
+      set({
+        error: err?.response?.data?.message || err?.message || 'Failed to fetch dashboard data',
+        isLoadingDashboard: false,
       })
     }
   },
@@ -265,6 +289,7 @@ export const useUserStore = create<UserState>((set, get) => ({
   // ================= REFRESH ALL =================
   refreshAllData: async () => {
     await Promise.all([
+      get().fetchDashboard(),
       get().fetchProfile(),
       get().fetchAura(),
       get().fetchProjects(),

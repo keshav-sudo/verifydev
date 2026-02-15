@@ -9,6 +9,10 @@ export default {
   theme: {
   	extend: {
   		colors: {
+  			aura: '#ADFF2F',
+  			tech: '#A78BFA',
+  			dark: '#0A0A0A',
+  			surface: '#F8F9FA',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
@@ -67,18 +71,29 @@ export default {
   				'5': 'hsl(var(--chart-5))'
   			}
   		},
+  		boxShadow: {
+  			bento: '0 2px 8px rgba(0, 0, 0, 0.04)',
+  			'bento-hover': '0 4px 16px rgba(0, 0, 0, 0.08)',
+  			'aura-glow': '0 0 24px rgba(173, 255, 47, 0.3)',
+  		},
   		fontFamily: {
   			sans: [
+  				'Inter',
+  				'"Plus Jakarta Sans"',
   				'Outfit',
   				'Poppins',
-  				'Inter',
   				'system-ui',
   				'sans-serif'
   			],
   			mono: [
   				'JetBrains Mono',
   				'monospace'
-  			]
+  			],
+        josefin: [
+          '"Josefin Sans"',
+          'sans-serif'
+        ],
+
   		},
   		borderRadius: {
   			lg: 'var(--radius)',

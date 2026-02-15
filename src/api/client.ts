@@ -1,10 +1,13 @@
 ﻿import axios, { AxiosError, type AxiosRequestConfig } from 'axios'
-import { useAuthStore } from '@/store/auth-store'
+// Remove top-level store imports to avoid circular dependencies
+// import { useAuthStore } from '@/store/auth-store'
+// import { useRecruiterStore } from '@/store/recruiter-store'
 
 const apiBase = process.env.NEXT_PUBLIC_API_URL || '';
-const API_BASE_URL = apiBase 
+// Use relative path on client to leverage Next.js proxy and avoid CORS
+const API_BASE_URL = typeof window !== 'undefined' ? '/api' : (apiBase 
   ? (apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`)
-  : '/api';
+  : '/api');
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -13,8 +16,6 @@ export const apiClient = axios.create({
   },
   withCredentials: true,
 })
-
-import { useRecruiterStore } from '@/store/recruiter-store'
 
 // Paths that require recruiter authentication
 const RECRUITER_PATHS = [
@@ -62,7 +63,7 @@ function shouldUseRecruiterToken(url: string, method: string = 'GET'): boolean {
 
 // Request interceptor - add auth token
 apiClient.interceptors.request.use(
-  (config) => {
+  async (config) => {
     const url = config.url || ''
     const method = config.method || 'GET'
     
@@ -70,6 +71,10 @@ apiClient.interceptors.request.use(
     const isRecruiterPath = shouldUseRecruiterToken(url, method)
     // Check if this is a shared path (like /chat) that works for both user types
     const isSharedPath = SHARED_PATHS.some(path => url.includes(path))
+    
+    // Dynamically import stores to avoid circular dependency
+    const { useRecruiterStore } = await import('@/store/recruiter-store')
+    const { useAuthStore } = await import('@/store/auth-store')
     
     const recruiterToken = useRecruiterStore.getState().accessToken
     const userToken = useAuthStore.getState().accessToken
@@ -122,6 +127,10 @@ apiClient.interceptors.response.use(
       const isRecruiterPath = shouldUseRecruiterToken(url, method)
       const isSharedPath = SHARED_PATHS.some(path => url.includes(path))
       
+      // Dynamically import stores
+      const { useRecruiterStore } = await import('@/store/recruiter-store')
+      const { useAuthStore } = await import('@/store/auth-store')
+
       // For shared paths, determine which auth system to use based on available tokens
       const recruiterToken = useRecruiterStore.getState().accessToken
       const userToken = useAuthStore.getState().accessToken

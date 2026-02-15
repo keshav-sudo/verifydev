@@ -3,12 +3,9 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import { 
   Select, 
   SelectContent, 
@@ -16,16 +13,13 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select'
-import { Progress } from '@/components/ui/progress'
 import { get, post, del } from '@/api/client'
 import { toast } from '@/hooks/use-toast'
 import {
   formatNumber,
   formatRelativeTime,
-  getLanguageColor,
   cn
 } from '@/lib/utils'
-import { ProjectAnalysisProgress } from '@/components/project-analysis-progress'
 import type { Project } from '@/types'
 import {
   Plus,
@@ -33,32 +27,32 @@ import {
   Star,
   GitFork,
   Clock,
-  Pin,
-  Trash2,
   RefreshCw,
   FolderGit2,
   Loader2,
   LayoutGrid,
   List,
-  SortAsc,
-  SortDesc,
-  Filter,
   Zap,
-  Code2,
   CheckCircle2,
-  AlertCircle,
   X,
-  ChevronRight,
-  Sparkles,
-  BarChart3,
-  Github,
   Check,
+  Trash2,
+  MoreVertical,
+  Code2,
+  Activity,
+  SortAsc,
   Server,
-  Cpu,
+  MonitorSmartphone,
   Layers,
-  Beaker,
-  Package,
+  BrainCircuit,
+  Settings2
 } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 // GitHub repo type from available endpoint
 interface GitHubRepo {
@@ -71,7 +65,7 @@ interface GitHubRepo {
   stars: number
   forks: number
   defaultBranch: string
-  sizeMB: number // Size in MB from API
+  sizeMB: number
   isAdded: boolean
 }
 
@@ -80,12 +74,12 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.1 }
+    transition: { staggerChildren: 0.05 }
   }
 }
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 15 },
   visible: { opacity: 1, y: 0 }
 }
 
@@ -96,22 +90,21 @@ type SortOrder = 'asc' | 'desc'
 type ProjectType = 'backend' | 'frontend' | 'fullstack' | 'ml' | 'library'
 
 // ============================================
-// CIRCULAR PROGRESS - Dashboard Component
+// SHARP PROGRESS RING
 // ============================================
-function CircularProgress({ value, size = 56 }: { value: number, size?: number }) {
-  const strokeWidth = 4
+function CircularProgress({ value, size = 48, strokeWidth = 4 }: { value: number, size?: number, strokeWidth?: number }) {
   const radius = (size - strokeWidth) / 2
   const circumference = radius * 2 * Math.PI
   const offset = circumference - (value / 100) * circumference
 
   return (
-    <div className="relative" style={{ width: size, height: size }}>
-      <svg className="transform -rotate-90" width={size} height={size}>
+    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg className="transform -rotate-90 w-full h-full">
         <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="hsl(var(--muted))"
+          stroke="#F1F5F9" // slate-100
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -119,200 +112,77 @@ function CircularProgress({ value, size = 56 }: { value: number, size?: number }
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="hsl(var(--primary))"
+          stroke="#84CC16" // Lime 500
           strokeWidth={strokeWidth}
           fill="none"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
-          className="transition-all duration-500"
+          className="transition-all duration-1000 ease-out"
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-sm font-bold text-foreground">{value}</span>
+        <span className="text-[11px] font-black text-slate-900">{value}</span>
       </div>
     </div>
   )
 }
 
 
-// Skeleton components
+// Skeleton components (Sharpened)
 function ProjectCardSkeleton() {
   return (
-    <Card className="overflow-hidden rounded-xl border border-border/80 bg-card/50">
-      <CardContent className="p-5">
-        <div className="flex items-start gap-4 mb-4">
-          <div className="h-14 w-14 rounded-full bg-muted animate-pulse" />
-          <div className="flex-1 space-y-2">
-            <div className="h-5 w-32 bg-muted rounded animate-pulse" />
-            <div className="h-4 w-48 bg-muted rounded animate-pulse" />
+    <div className="bg-white border border-slate-200 rounded-lg p-5 h-[240px] flex flex-col">
+       <div className="flex justify-between items-start mb-5 pb-4 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+             <div className="h-10 w-10 rounded-md bg-slate-100 animate-pulse" />
+             <div>
+               <div className="h-4 w-32 bg-slate-100 rounded-sm animate-pulse mb-2" />
+               <div className="h-3 w-20 bg-slate-100 rounded-sm animate-pulse" />
+             </div>
           </div>
-        </div>
-        <div className="flex gap-4 mb-2">
-          <div className="h-6 w-16 bg-muted rounded-full animate-pulse" />
-          <div className="h-6 w-16 bg-muted rounded-full animate-pulse" />
-        </div>
-      </CardContent>
-    </Card>
+          <div className="h-8 w-8 bg-slate-100 rounded-full animate-pulse" />
+       </div>
+       <div className="flex-1 space-y-2.5">
+          <div className="h-3 w-full bg-slate-100 rounded-sm animate-pulse" />
+          <div className="h-3 w-4/5 bg-slate-100 rounded-sm animate-pulse" />
+       </div>
+       <div className="flex justify-between mt-4 pt-4 border-t border-slate-100">
+          <div className="flex gap-3">
+            <div className="h-4 w-12 bg-slate-100 rounded-sm animate-pulse" />
+            <div className="h-4 w-12 bg-slate-100 rounded-sm animate-pulse" />
+          </div>
+          <div className="h-4 w-16 bg-slate-100 rounded-sm animate-pulse" />
+       </div>
+    </div>
   )
 }
 
 function StatsSkeleton() {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="bg-[#0A0A0A] border border-slate-800 rounded-lg shadow-lg flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-slate-800 mb-8 overflow-hidden h-[120px]">
       {[...Array(4)].map((_, i) => (
-        <Card key={i} className="rounded-xl border border-border/80 bg-card/50">
-          <CardContent className="p-4">
-            <div className="h-4 w-20 bg-muted rounded animate-pulse mb-2" />
-            <div className="h-8 w-16 bg-muted rounded animate-pulse" />
-          </CardContent>
-        </Card>
+        <div key={i} className="flex-1 p-6">
+          <div className="h-3 w-24 bg-slate-800 rounded-sm animate-pulse mb-4" />
+          <div className="h-8 w-16 bg-slate-800 rounded-sm animate-pulse" />
+        </div>
       ))}
     </div>
   )
 }
 
-// ============================================
-// FOLDER SELECTOR - Modal Component
-// ============================================
-interface FolderSelectorProps {
-  repoUrl: string
-  currentPath: string
-  onSelect: (path: string) => void
-  isOpen: boolean
-  onClose: () => void
-}
-
-const FolderSelector = ({ repoUrl, currentPath, onSelect, isOpen, onClose }: FolderSelectorProps) => {
-  const [currentDir, setCurrentDir] = useState('')
-  const [history, setHistory] = useState<string[]>([])
-  
-  const { data: contents, isLoading } = useQuery({
-    queryKey: ['repo-contents', repoUrl, currentDir],
-    queryFn: async () => {
-      const res = await get<{ contents: any[] }>(`/v1/projects/repo/contents?repo=${encodeURIComponent(repoUrl)}&path=${currentDir}`)
-      return res.contents?.filter((item: any) => item.type === 'dir') || [] // Only show directories
-    },
-    enabled: isOpen
-  })
-
-  // Reset when opened
-  useEffect(() => {
-    if (isOpen) {
-      setCurrentDir(currentPath || '')
-      setHistory([])
-    }
-  }, [isOpen, repoUrl]) // Don't depend on currentPath to avoid reset on selection
-
-  const handleNavigate = (path: string) => {
-    setHistory(prev => [...prev, currentDir])
-    setCurrentDir(path)
-  }
-
-  const handleBack = () => {
-    const newHistory = [...history]
-    const prev = newHistory.pop()
-    setHistory(newHistory)
-    setCurrentDir(prev || '')
-  }
-
-  if (!isOpen) return null
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={onClose}>
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        onClick={e => e.stopPropagation()}
-        className="w-full max-w-md overflow-hidden rounded-xl border bg-card shadow-2xl"
-      >
-        <div className="border-b p-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Select Analysis Path</h3>
-            <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="mt-2 flex items-center gap-2 rounded-md bg-muted/50 p-2 text-sm text-muted-foreground">
-             <Button 
-               variant="ghost" 
-               size="icon" 
-               className="h-6 w-6 shrink-0" 
-               onClick={handleBack}
-               disabled={history.length === 0 && !currentDir}
-             >
-               <ChevronRight className="h-4 w-4 rotate-180" />
-             </Button>
-             <span className="truncate font-mono" title={currentDir}>{currentDir || '/ (root)'}</span>
-          </div>
-        </div>
-
-        <div className="max-h-[300px] overflow-y-auto p-2">
-          {isLoading ? (
-            <div className="flex h-[100px] items-center justify-center">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : contents?.length === 0 ? (
-            <div className="flex h-[100px] flex-col items-center justify-center text-muted-foreground">
-              <FolderGit2 className="mb-2 h-8 w-8 opacity-20" />
-              <p className="text-sm">No folders found</p>
-            </div>
-          ) : (
-            <div className="grid gap-1">
-              {/* Option to select current directory */}
-               <Button
-                variant="ghost"
-                className="justify-start gap-2 text-blue-500 hover:bg-blue-500/10 hover:text-blue-600 dark:hover:bg-blue-500/20"
-                onClick={() => {
-                  onSelect(currentDir)
-                  onClose()
-                }}
-              >
-                <CheckCircle2 className="h-4 w-4" />
-                Analyze "{currentDir || '/'}"
-              </Button>
-
-              {contents?.map((item: any) => (
-                <Button
-                  key={item.path}
-                  variant="ghost"
-                  className="justify-start gap-2 font-normal"
-                  onClick={() => handleNavigate(item.path)}
-                >
-                  <FolderGit2 className="h-4 w-4 text-muted-foreground" />
-                  {item.name}
-                  <ChevronRight className="ml-auto h-3 w-3 opacity-50" />
-                </Button>
-              ))}
-            </div>
-          )}
-        </div>
-      </motion.div>
-    </div>
-  )
-}
-
-
-
 export default function Projects() {
-  const router = useRouter()
+  // State
   const [search, setSearch] = useState('')
   const [repoSearch, setRepoSearch] = useState('')
   const [selectedRepos, setSelectedRepos] = useState<Set<string>>(new Set())
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [sortField, setSortField] = useState<SortField>('updatedAt')
-  const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
+  const [sortOrder] = useState<SortOrder>('desc')
   const [languageFilter, setLanguageFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [showAddModal, setShowAddModal] = useState(false)
-  const [selectedProjects, setSelectedProjects] = useState<Set<string>>(new Set())
   const [projectType, setProjectType] = useState<ProjectType>('fullstack')
-  const [selectedBranches, setSelectedBranches] = useState<Record<string, string>>({})
-  const [analysisPaths, setAnalysisPaths] = useState<Record<string, string>>({})
-  const [repoBranches, setRepoBranches] = useState<Record<string, {name: string, protected: boolean}[]>>({})
-  const [loadingBranches, setLoadingBranches] = useState<Set<string>>(new Set())
-  const [openFolderSelector, setOpenFolderSelector] = useState<string | null>(null)
   
   const queryClient = useQueryClient()
 
@@ -322,7 +192,7 @@ export default function Projects() {
   })
 
   // Fetch available GitHub repos
-  const { data: availableReposData, isLoading: isLoadingRepos, error: reposError } = useQuery({
+  const { data: availableReposData, isLoading: isLoadingRepos } = useQuery({
     queryKey: ['available-repos'],
     queryFn: () => get<{ repos: GitHubRepo[] }>('/v1/projects/available'),
     enabled: showAddModal,
@@ -358,7 +228,6 @@ export default function Projects() {
   const filteredProjects = useMemo(() => {
     let projects = data?.projects || []
     
-    // Search filter
     if (search) {
       const searchLower = search.toLowerCase()
       projects = projects.filter(p => 
@@ -367,38 +236,25 @@ export default function Projects() {
         p.description?.toLowerCase().includes(searchLower)
       )
     }
-    
-    // Language filter
     if (languageFilter !== 'all') {
       projects = projects.filter(p => p.language === languageFilter)
     }
-    
-    // Status filter
     if (statusFilter !== 'all') {
       projects = projects.filter(p => p.analysisStatus?.toLowerCase() === statusFilter)
     }
     
-    // Sort
     projects = [...projects].sort((a, b) => {
       let comparison = 0
       switch (sortField) {
-        case 'stars':
-          comparison = (a.stars || 0) - (b.stars || 0)
-          break
-        case 'auraContribution':
-          comparison = (a.auraContribution || 0) - (b.auraContribution || 0)
-          break
-        case 'name':
-          comparison = (a.name || '').localeCompare(b.name || '')
-          break
+        case 'stars': comparison = (a.stars || 0) - (b.stars || 0); break;
+        case 'auraContribution': comparison = (a.auraContribution || 0) - (b.auraContribution || 0); break;
+        case 'name': comparison = (a.name || '').localeCompare(b.name || ''); break;
         case 'updatedAt':
-        default:
-          comparison = new Date(a.updatedAt || 0).getTime() - new Date(b.updatedAt || 0).getTime()
+        default: comparison = new Date(a.updatedAt || 0).getTime() - new Date(b.updatedAt || 0).getTime()
       }
       return sortOrder === 'desc' ? -comparison : comparison
     })
     
-    // Pinned projects first
     return projects.sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0))
   }, [data?.projects, search, languageFilter, statusFilter, sortField, sortOrder])
 
@@ -411,9 +267,8 @@ export default function Projects() {
             githubRepoUrl: repo.url, 
             repoName: repo.name,
             description: repo.description || undefined,
-            defaultBranch: selectedBranches[repo.url] || repo.defaultBranch,
+            defaultBranch: repo.defaultBranch,
             projectType: type,
-            basePath: analysisPaths[repo.url] || undefined,
           })
         )
       )
@@ -427,7 +282,6 @@ export default function Projects() {
       queryClient.invalidateQueries({ queryKey: ['aura'] })
       queryClient.invalidateQueries({ queryKey: ['profile'] })
       setSelectedRepos(new Set())
-      setSelectedBranches({})
       setRepoSearch('')
       setShowAddModal(false)
       toast({ title: 'Projects added', description: `${selectedRepos.size} project(s) are being analyzed.` })
@@ -445,41 +299,6 @@ export default function Projects() {
     },
   })
 
-  const batchAnalyzeMutation = useMutation({
-    mutationFn: async (ids: string[]) => {
-      await Promise.all(ids.map(id => post(`/v1/projects/${id}/analyze`)))
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] })
-      setSelectedProjects(new Set())
-      toast({ title: 'Batch analysis started', description: `${selectedProjects.size} projects are being analyzed.` })
-    },
-  })
-
-  // Robust Polling for Active Projects
-  useEffect(() => {
-    const projects = data?.projects || []
-    const hasAnalyzing = projects.some(p => {
-      const s = p.analysisStatus?.toLowerCase()
-      return s === 'analyzing' || s === 'pending' || s === 'processing'
-    })
-
-    if (hasAnalyzing) {
-      console.log('[Projects] 🔄 Polling for analysis updates...')
-      const interval = setInterval(() => {
-        refetch()
-        queryClient.invalidateQueries({ queryKey: ['aura'] })
-      }, 4000)
-      return () => clearInterval(interval)
-    }
-  }, [data?.projects, refetch, queryClient])
-
-  const togglePinMutation = useMutation({
-    mutationFn: ({ id, isPinned }: { id: string; isPinned: boolean }) =>
-      post(`/v1/projects/${id}/pin`, { isPinned: !isPinned }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
-  })
-
   const deleteProjectMutation = useMutation({
     mutationFn: (id: string) => del(`/v1/projects/${id}`),
     onSuccess: () => {
@@ -491,935 +310,466 @@ export default function Projects() {
     },
   })
 
-  const batchDeleteMutation = useMutation({
-    mutationFn: async (ids: string[]) => {
-      await Promise.all(ids.map(id => del(`/v1/projects/${id}`)))
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] })
-      queryClient.invalidateQueries({ queryKey: ['aura'] })
-      queryClient.invalidateQueries({ queryKey: ['profile'] })
-      queryClient.invalidateQueries({ queryKey: ['available-repos'] })
-      setSelectedProjects(new Set())
-      toast({ title: 'Projects deleted', description: `${selectedProjects.size} projects have been removed.` })
-    },
-  })
+  // Real-time polling
+  useEffect(() => {
+    const projects = data?.projects || []
+    const hasAnalyzing = projects.some(p => {
+      const s = p.analysisStatus?.toLowerCase()
+      return s === 'analyzing' || s === 'pending' || s === 'processing'
+    })
 
-  const toggleProjectSelection = (id: string) => {
-    const newSelection = new Set(selectedProjects)
-    if (newSelection.has(id)) {
-      newSelection.delete(id)
-    } else {
-      newSelection.add(id)
+    if (hasAnalyzing) {
+      const interval = setInterval(() => {
+        refetch()
+        queryClient.invalidateQueries({ queryKey: ['aura'] })
+      }, 4000)
+      return () => clearInterval(interval)
     }
-    setSelectedProjects(newSelection)
-  }
-
-  const selectAll = () => {
-    if (selectedProjects.size === filteredProjects.length) {
-      setSelectedProjects(new Set())
-    } else {
-      setSelectedProjects(new Set(filteredProjects.map(p => p.id)))
-    }
-  }
-
-  // Helper to fetch branches
-  const fetchBranches = async (repoUrl: string) => {
-    if (repoBranches[repoUrl] || loadingBranches.has(repoUrl)) return
-    
-    setLoadingBranches(prev => new Set(prev).add(repoUrl))
-    try {
-      const res = await get<{ branches: {name: string, protected: boolean}[] }>(`/v1/projects/repo/branches?repo=${encodeURIComponent(repoUrl)}`)
-      setRepoBranches(prev => ({ ...prev, [repoUrl]: res.branches }))
-    } catch (err) {
-      console.error('Failed to load branches', err)
-    } finally {
-      setLoadingBranches(prev => {
-        const next = new Set(prev)
-        next.delete(repoUrl)
-        return next
-      })
-    }
-  }
-
-  // Real-time polling for analyzing projects
-
+  }, [data?.projects, refetch, queryClient])
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-      >
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <FolderGit2 className="h-8 w-8 text-primary" />
-            Projects
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Manage, analyze and showcase your GitHub repositories
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => refetch()}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          <Button onClick={() => setShowAddModal(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Project
-          </Button>
-        </div>
-      </motion.div>
+    <div className="space-y-6 pb-12 w-full min-h-screen bg-[#F8F9FA] relative font-['Plus_Jakarta_Sans'] text-slate-800">
+      
+      {/* Subtle Blueprint Grid */}
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] opacity-30 pointer-events-none"></div>
 
-      {/* Stats Cards */}
-      {isLoading ? (
-        <StatsSkeleton />
-      ) : (
+    {/* NAYI LINE: pt-6 ko hatakar pt-0 kar diya taaki gap khatam ho jaye */}
+      <div className="max-w-[1536px] mx-auto relative z-10 px-4 md:px-6 lg:px-8 pt-0">
+        
+{/* ========================================= */}
+        {/* HEADER SECTION                            */}
+        {/* ========================================= */}
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4"
+          className="flex flex-col md:flex-row md:items-center justify-between mb-4 pb-3 border-b border-slate-200 gap-4"
         >
-          <Card className="rounded-xl border border-border/80 bg-card/50 backdrop-blur-sm relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent" />
-            <CardContent className="p-5 relative">
-              <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
-                <FolderGit2 className="h-4 w-4" />
-                Total Projects
-              </div>
-              <p className="text-3xl font-bold mt-2">{stats.total}</p>
-            </CardContent>
-          </Card>
-          <Card className="rounded-xl border border-border/80 bg-card/50 backdrop-blur-sm relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent" />
-            <CardContent className="p-5 relative">
-              <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
-                <CheckCircle2 className="h-4 w-4" />
-                Analyzed
-              </div>
-              <p className="text-3xl font-bold mt-2">{stats.analyzed}</p>
-              {stats.total > 0 && (
-                <Progress 
-                  value={(stats.analyzed / stats.total) * 100} 
-                  className="h-1 mt-3" 
-                />
-              )}
-            </CardContent>
-          </Card>
-          <Card className="rounded-xl border border-border/80 bg-card/50 backdrop-blur-sm relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent" />
-            <CardContent className="p-5 relative">
-              <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
-                <Star className="h-4 w-4" />
-                Total Stars
-              </div>
-              <p className="text-3xl font-bold mt-2">{formatNumber(stats.totalStars)}</p>
-            </CardContent>
-          </Card>
-          <Card className="rounded-xl border border-border/80 bg-card/50 backdrop-blur-sm relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent" />
-            <CardContent className="p-5 relative">
-              <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
-                <Zap className="h-4 w-4" />
-                Aura Earned
-              </div>
-              <p className="text-3xl font-bold mt-2 text-primary">+{formatNumber(stats.totalAura)}</p>
-            </CardContent>
-          </Card>
+          <div>
+            <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2 mb-1">
+               <FolderGit2 className="h-5 w-5 text-slate-400" /> Project Hub
+            </h1>
+            <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+               Manage & Verify Repositories
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              onClick={() => refetch()}
+              className="bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-sm transition-all h-8 px-4 text-xs font-bold rounded-md"
+            >
+              <RefreshCw className="h-3 w-3 mr-2" /> Refresh
+            </Button>
+            <Button 
+              onClick={() => setShowAddModal(true)} 
+              className="bg-[#1A1A1A] text-white hover:bg-black shadow-md transition-all h-8 px-5 text-xs font-bold gap-1.5 rounded-md"
+            >
+              <Plus className="h-3 w-3" /> Import Project
+            </Button>
+          </div>
         </motion.div>
-      )}
 
-      {/* Add Project Modal */}
+        {/* ========================================= */}
+        {/* DARK STRIP STATS                          */}
+        {/* ========================================= */}
+        {isLoading ? (
+          <StatsSkeleton />
+        ) : (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-[#0A0A0A] border border-slate-800 rounded-lg shadow-lg flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-slate-800 mb-6 overflow-hidden"
+          >
+              <div className="flex-1 p-5 relative group">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-all pointer-events-none" />
+                <div className="flex items-center gap-2 text-blue-400 mb-2">
+                  <FolderGit2 className="w-4 h-4" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">Repositories</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <div className="text-3xl font-black text-white leading-none tracking-tight">{stats.total}</div>
+                  <div className="text-[9px] font-bold text-slate-500 uppercase">Tracked</div>
+                </div>
+              </div>
+
+              <div className="flex-1 p-5 relative group">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-[#ADFF2F]/5 rounded-full blur-2xl group-hover:bg-[#ADFF2F]/10 transition-all pointer-events-none" />
+                <div className="flex items-center gap-2 text-[#ADFF2F] mb-2">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">Analysis Status</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <div className="text-3xl font-black text-white leading-none tracking-tight">{stats.analyzed}</div>
+                  <div className="text-[9px] font-bold text-slate-500 uppercase">Verified</div>
+                </div>
+                {stats.total > 0 && (
+                  <div className="w-full bg-slate-800 h-1 rounded-sm mt-3 overflow-hidden">
+                    <div className="bg-[#ADFF2F] h-full rounded-sm shadow-[0_0_8px_rgba(173,255,47,0.5)]" style={{ width: `${(stats.analyzed / stats.total) * 100}%` }}></div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex-1 p-5">
+                <div className="flex items-center gap-2 text-amber-400 mb-2">
+                  <Star className="w-4 h-4" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">Total Stars</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <div className="text-3xl font-black text-white leading-none tracking-tight">{formatNumber(stats.totalStars)}</div>
+                  <div className="text-[9px] font-bold text-slate-500 uppercase">Across all repos</div>
+                </div>
+              </div>
+
+              <div className="flex-1 p-5">
+                <div className="flex items-center gap-2 text-purple-400 mb-2">
+                  <Zap className="w-4 h-4" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">Aura Yield</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <div className="text-3xl font-black text-white leading-none tracking-tight">+{formatNumber(stats.totalAura)}</div>
+                  <div className="text-[9px] font-bold text-slate-500 uppercase">Points Gained</div>
+                </div>
+              </div>
+          </motion.div>
+        )}
+
+        {/* ========================================= */}
+        {/* FILTERS & SEARCH (High Contrast Bar)      */}
+        {/* ========================================= */}
+        <div className="flex flex-col md:flex-row gap-3 items-center bg-white p-3 rounded-lg border border-slate-200 shadow-sm mb-6">
+            <div className="relative flex-1 w-full md:w-auto">
+               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-4 w-4" />
+               <Input 
+                  placeholder="Filter by name, language..." 
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9 h-9 rounded-md border-slate-200 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-slate-300 text-sm font-medium"
+               />
+            </div>
+            
+            <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto scrollbar-none pb-1 md:pb-0">
+               {/* Language */}
+               <Select value={languageFilter} onValueChange={setLanguageFilter}>
+                  <SelectTrigger className="w-[130px] h-9 rounded-md bg-white border-slate-200 font-bold text-[11px] text-slate-600 uppercase tracking-wide">
+                     <Code2 className="w-3.5 h-3.5 mr-1.5 text-slate-400" />
+                     <SelectValue placeholder="Lang" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-md">
+                     <SelectItem value="all" className="text-xs font-bold">All Languages</SelectItem>
+                     {stats.languages.map(lang => (
+                        <SelectItem key={lang} value={lang} className="text-xs font-bold">{lang}</SelectItem>
+                     ))}
+                  </SelectContent>
+               </Select>
+
+               {/* Status */}
+               <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[130px] h-9 rounded-md bg-white border-slate-200 font-bold text-[11px] text-slate-600 uppercase tracking-wide">
+                     <Activity className="w-3.5 h-3.5 mr-1.5 text-slate-400" />
+                     <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-md">
+                     <SelectItem value="all" className="text-xs font-bold">All Status</SelectItem>
+                     <SelectItem value="completed" className="text-xs font-bold">Verified</SelectItem>
+                     <SelectItem value="analyzing" className="text-xs font-bold">Analyzing</SelectItem>
+                     <SelectItem value="failed" className="text-xs font-bold">Failed</SelectItem>
+                  </SelectContent>
+               </Select>
+
+               {/* Sort */}
+               <Select value={sortField} onValueChange={(val) => setSortField(val as SortField)}>
+                  <SelectTrigger className="w-[130px] h-9 rounded-md bg-white border-slate-200 font-bold text-[11px] text-slate-600 uppercase tracking-wide">
+                     <SortAsc className="w-3.5 h-3.5 mr-1.5 text-slate-400" />
+                     <SelectValue placeholder="Sort" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-md">
+                     <SelectItem value="updatedAt" className="text-xs font-bold">Updated</SelectItem>
+                     <SelectItem value="stars" className="text-xs font-bold">Stars</SelectItem>
+                     <SelectItem value="auraContribution" className="text-xs font-bold">Aura Score</SelectItem>
+                  </SelectContent>
+               </Select>
+
+               {/* View Toggles */}
+               <div className="flex bg-slate-50 rounded-md border border-slate-200 p-0.5 ml-1">
+                  <Button 
+                     variant="ghost" 
+                     size="icon" 
+                     className={cn("rounded-sm h-7 w-8 text-slate-400 hover:text-slate-900 hover:bg-slate-200", viewMode === 'grid' && "bg-white text-slate-900 shadow-sm border border-slate-200/50")}
+                     onClick={() => setViewMode('grid')}
+                  >
+                     <LayoutGrid className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button 
+                     variant="ghost" 
+                     size="icon" 
+                     className={cn("rounded-sm h-7 w-8 text-slate-400 hover:text-slate-900 hover:bg-slate-200", viewMode === 'list' && "bg-white text-slate-900 shadow-sm border border-slate-200/50")}
+                     onClick={() => setViewMode('list')}
+                  >
+                      <List className="h-3.5 w-3.5" />
+                  </Button>
+               </div>
+            </div>
+        </div>
+
+        {/* ========================================= */}
+        {/* PROJECTS GRID (Sharpened Cards)           */}
+        {/* ========================================= */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+             {[1, 2, 3, 4, 5, 6].map(i => <ProjectCardSkeleton key={i} />)}
+          </div>
+        ) : filteredProjects.length === 0 ? (
+          <div className="text-center py-20 bg-white rounded-lg border border-dashed border-slate-300 shadow-sm group">
+             <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-md flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                <FolderGit2 className="h-5 w-5 text-slate-400 group-hover:text-slate-900 transition-colors" />
+             </div>
+             <h3 className="text-sm font-extrabold text-slate-900">No Projects Tracked</h3>
+             <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+               {search || languageFilter !== 'all' ? 'Adjust your filters to find what you are looking for.' : 'Import your repositories to start earning Aura points.'}
+             </p>
+             {!search && languageFilter === 'all' && (
+                <Button onClick={() => setShowAddModal(true)} className="mt-5 rounded-md bg-slate-900 hover:bg-slate-800 text-xs font-bold gap-2 px-5 h-8">
+                   <Plus className="h-3.5 w-3.5" /> Import Repository
+                </Button>
+             )}
+          </div>
+        ) : (
+          <motion.div 
+            className={cn(
+               "grid gap-5",
+               viewMode === 'grid' ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
+            )}
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+             {filteredProjects.map((project) => (
+                <motion.div key={project.id} variants={itemVariants}>
+                   <Link href={`/projects/${project.id}`}>
+                      <div className="group h-full bg-white rounded-lg p-5 shadow-sm border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all duration-300 relative flex flex-col">
+                         
+                         {/* Header & Score */}
+                         <div className="flex justify-between items-start mb-4 pb-3 border-b border-slate-100">
+                             <div className="flex items-start gap-3">
+                                {/* Sharp Score Visual */}
+                                <div className="shrink-0 bg-slate-50 border border-slate-100 p-1.5 rounded-md shadow-sm">
+                                  <CircularProgress value={project.score || 0} size={36} strokeWidth={3.5} />
+                                </div>
+                                <div className="pt-0.5">
+                                   <h3 className="text-sm font-extrabold text-slate-900 leading-tight line-clamp-1 mb-1 group-hover:text-blue-600 transition-colors" title={project.repoName}>
+                                      {project.repoName}
+                                   </h3>
+                                   <div className="flex items-center gap-1.5">
+                                       <span className="bg-slate-100 border border-slate-200 text-slate-700 text-[9px] font-extrabold px-1.5 py-0.5 rounded-sm uppercase tracking-wider">
+                                         {project.language || 'Code'}
+                                       </span>
+                                       {project.analysisStatus === 'completed' && (
+                                         <span className="text-[#65A30D] text-[9px] font-extrabold uppercase tracking-widest flex items-center gap-0.5">
+                                            <CheckCircle2 className="w-3 h-3" /> Verified
+                                         </span>
+                                       )}
+                                   </div>
+                                </div>
+                             </div>
+
+                             {/* Menu */}
+                               <DropdownMenu>
+                                  <DropdownMenuTrigger asChild onClick={(e) => e.preventDefault()}>
+                                     <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-sm -mr-1">
+                                        <MoreVertical className="h-3.5 w-3.5" />
+                                     </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="rounded-md border-slate-200 shadow-lg min-w-[140px]">
+                                     <DropdownMenuItem onClick={() => analyzeProjectMutation.mutate(project.id)} className="text-xs font-bold text-slate-700 focus:bg-slate-50">
+                                        <RefreshCw className="mr-2 h-3.5 w-3.5" /> Re-analyze
+                                     </DropdownMenuItem>
+                                     <DropdownMenuItem className="text-xs font-bold text-red-600 focus:bg-red-50 focus:text-red-700" onClick={() => deleteProjectMutation.mutate(project.id)}>
+                                        <Trash2 className="mr-2 h-3.5 w-3.5" /> Remove
+                                     </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                               </DropdownMenu>
+                         </div>
+
+                         {/* Description */}
+                         <p className="text-slate-500 text-xs font-medium line-clamp-2 leading-relaxed mb-5 min-h-[32px]">
+                            {project.description || 'No description provided. Add one in GitHub to improve verification context.'}
+                         </p>
+
+                         {/* Footer Stats */}
+                         <div className="mt-auto flex items-center justify-between pt-3 border-t border-slate-100">
+                            <div className="flex items-center gap-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                                <div className="flex items-center gap-1 hover:text-slate-800 transition-colors">
+                                   <Star className="h-3 w-3 text-slate-400" />
+                                   <span>{formatNumber(project.stars)}</span>
+                                </div>
+                                 <div className="flex items-center gap-1 hover:text-slate-800 transition-colors">
+                                   <GitFork className="h-3 w-3 text-slate-400" />
+                                   <span>{project.forks || 0}</span>
+                                </div>
+                            </div>
+                        
+                            <div className="text-right">
+                               <div className="flex items-center gap-1 text-[#65A30D] font-extrabold text-[11px] bg-[#84CC16]/10 px-1.5 py-0.5 rounded-sm border border-[#84CC16]/20">
+                                  <Zap className="h-3 w-3" />
+                                  +{project.auraContribution || 0} Aura
+                               </div>
+                            </div>
+                         </div>
+                         
+                         {/* Hover Accent Line */}
+                         <div className="absolute inset-x-0 bottom-0 h-[2px] bg-slate-900 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-b-lg" />
+                      </div>
+                   </Link>
+                </motion.div>
+             ))}
+          </motion.div>
+        )}
+      </div>
+
+      {/* ============================================
+        ADD PROJECT MODAL (Command Menu Style)
+        ============================================
+      */}
       <AnimatePresence>
         {showAddModal && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-            onClick={() => {
-              setShowAddModal(false)
-              setSelectedRepos(new Set())
-              setRepoSearch('')
-            }}
+            className="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/40 backdrop-blur-sm pt-[10vh]"
+            onClick={() => setShowAddModal(false)}
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.98, opacity: 0, y: -10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.98, opacity: 0, y: -10 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-card border border-border/50 rounded-xl shadow-2xl p-6 w-full max-w-2xl mx-4 max-h-[85vh] flex flex-col"
+              className="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-2xl mx-4 max-h-[80vh] flex flex-col overflow-hidden"
             >
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <Github className="h-5 w-5 text-primary" />
-                  Select Repositories
-                </h2>
+              {/* Modal Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div className="flex items-center gap-2">
+                    <FolderGit2 className="h-4 w-4 text-slate-500" />
+                    <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-widest">Import Repository</h2>
+                </div>
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  onClick={() => {
-                    setShowAddModal(false)
-                    setSelectedRepos(new Set())
-                    setRepoSearch('')
-                  }}
+                  onClick={() => setShowAddModal(false)}
+                  className="h-6 w-6 rounded-md hover:bg-slate-200 text-slate-500"
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-              
-              <p className="text-muted-foreground text-sm mb-4">
-                Select repositories from your GitHub account to analyze
-              </p>
 
-              {/* Project Type Selection */}
-              <div className="mb-4">
-                <label className="text-sm font-medium text-foreground mb-2 block">Project Type</label>
-                <div className="grid grid-cols-5 gap-2">
-                  {[
-                    { value: 'backend', label: 'Backend', icon: Server },
-                    { value: 'frontend', label: 'Frontend', icon: Cpu },
-                    { value: 'fullstack', label: 'Fullstack', icon: Layers },
-                    { value: 'ml', label: 'ML / AI', icon: Beaker },
-                    { value: 'library', label: 'Library', icon: Package },
-                  ].map(({ value, label, icon: Icon }) => (
-                    <button
-                      key={value}
-                      onClick={() => setProjectType(value as ProjectType)}
-                      className={cn(
-                        'flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all',
-                        projectType === value
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-border hover:border-primary/50 text-muted-foreground hover:text-foreground'
-                      )}
-                    >
-                      <Icon className="h-5 w-5" />
-                      <span className="text-xs font-medium">{label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Search repos */}
-              <div className="relative mb-4">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search your repositories..."
-                  value={repoSearch}
-                  onChange={(e) => setRepoSearch(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              {/* Repo list */}
-              <div className="flex-1 overflow-y-auto border border-border/50 rounded-xl min-h-[300px] max-h-[400px] bg-muted/20">
-                {isLoadingRepos ? (
-                  <div className="flex items-center justify-center h-full">
-                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                  </div>
-                ) : reposError ? (
-                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-4">
-                    <AlertCircle className="h-12 w-12 mb-2 text-destructive opacity-70" />
-                    <p className="text-sm font-medium text-destructive">Failed to load repositories</p>
-                    <p className="text-xs mt-1">Please check your connection and try again</p>
-                  </div>
-                ) : filteredRepos.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-4">
-                    <FolderGit2 className="h-12 w-12 mb-2 opacity-50" />
-                    <p className="text-sm">
-                      {repoSearch ? 'No repositories match your search' : 'No repositories found'}
-                    </p>
-                    <p className="text-xs mt-1 text-muted-foreground/70">
-                      Make sure your GitHub account has public repositories
-                    </p>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-border/50">
-                    {filteredRepos.map((repo) => {
-                      const isSelected = selectedRepos.has(repo.url)
-                      const isTooLarge = repo.sizeMB > 500 // Block repos > 500MB
-                      const isDisabled = repo.isAdded || isTooLarge
-                      return (
-                        <div
-                          key={repo.id}
-                          onClick={() => {
-                            if (isDisabled) return
-                            const newSelected = new Set(selectedRepos)
-                            if (isSelected) {
-                              newSelected.delete(repo.url)
-                              const newBranches = { ...selectedBranches }
-                              delete newBranches[repo.url]
-                              setSelectedBranches(newBranches)
-                            } else {
-                              newSelected.add(repo.url)
-                              fetchBranches(repo.url)
-                            }
-                            setSelectedRepos(newSelected)
-                          }}
+               {/* Project Role Tabs */}
+               <div className="px-6 pt-5 pb-2">
+                 <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-2 block">Project Architecture</label>
+                 <div className="flex gap-2 overflow-x-auto scrollbar-none">
+                    {[
+                      {id: 'fullstack', label: 'Fullstack', icon: Layers},
+                      {id: 'backend', label: 'Backend', icon: Server}, 
+                      {id: 'frontend', label: 'Frontend', icon: MonitorSmartphone}, 
+                      {id: 'ml', label: 'AI/ML', icon: BrainCircuit}
+                    ].map((type) => (
+                       <button
+                          key={type.id}
+                          onClick={() => setProjectType(type.id as ProjectType)}
                           className={cn(
-                            "flex items-center gap-3 p-3 transition-colors cursor-pointer",
-                            isDisabled && "opacity-50 cursor-not-allowed bg-muted/30",
-                            !isDisabled && isSelected && "bg-primary/10",
-                            !isDisabled && !isSelected && "hover:bg-muted/50"
+                             "px-3 py-1.5 rounded-md text-[11px] font-extrabold border flex items-center gap-1.5 transition-all shrink-0",
+                             projectType === type.id 
+                                ? "bg-slate-900 text-white border-slate-900 shadow-sm" 
+                                : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
                           )}
-                        >
-                          {/* Checkbox */}
-                          <div className={cn(
-                            "h-5 w-5 rounded border-2 flex items-center justify-center transition-colors",
-                            isDisabled && "border-muted-foreground/30 bg-muted",
-                            !isDisabled && isSelected && "border-primary bg-primary",
-                            !isDisabled && !isSelected && "border-muted-foreground/50"
-                          )}>
-                            {(isSelected || isDisabled) && (
-                              <Check className={cn(
-                                "h-3 w-3",
-                                isDisabled ? "text-muted-foreground/50" : "text-primary-foreground"
-                              )} />
-                            )}
-                          </div>
-
-                          {/* Repo info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium truncate">{repo.name}</span>
-                              {repo.isAdded && (
-                                <Badge variant="secondary" className="text-xs">Already Added</Badge>
-                              )}
-                            </div>
-                            {repo.description && (
-                              <p className="text-sm text-muted-foreground truncate mt-0.5">
-                                {repo.description}
-                              </p>
-                            )}
-                            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                              {repo.language && (
-                                <span className="flex items-center gap-1">
-                                  <span 
-                                    className="h-2 w-2 rounded-full" 
-                                    style={{ backgroundColor: getLanguageColor(repo.language) }}
-                                  />
-                                  {repo.language}
-                                </span>
-                              )}
-                              <span className="flex items-center gap-1">
-                                <Star className="h-3 w-3" />
-                                {formatNumber(repo.stars)}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <GitFork className="h-3 w-3" />
-                                {formatNumber(repo.forks)}
-                              </span>
-                              {/* Size indicator */}
-                              <span className={cn(
-                                "flex items-center gap-1 font-medium",
-                                repo.sizeMB > 100 ? "text-yellow-500" : "",
-                                repo.sizeMB > 500 ? "text-red-500" : ""
-                              )}>
-                                {repo.sizeMB > 0 ? `${repo.sizeMB} MB` : '< 1 MB'}
-                                {repo.sizeMB > 100 && repo.sizeMB <= 500 && " ⚠️"}
-                                {repo.sizeMB > 500 && " 🚫"}
-                              </span>
-                            </div>
-
-                            {/* Branch Selection */}
-                            {isSelected && !isDisabled && (
-                              <div className="mt-3 space-y-2" onClick={e => e.stopPropagation()}>
-                                <div className="flex items-center gap-2">
-                                  <GitFork className="h-3 w-3 text-muted-foreground" />
-                                  <Select
-                                    value={selectedBranches[repo.url] || repo.defaultBranch}
-                                    onValueChange={(val) => setSelectedBranches(prev => ({ ...prev, [repo.url]: val }))}
-                                    disabled={loadingBranches.has(repo.url)}
-                                  >
-                                    <SelectTrigger className="h-7 w-[180px] text-xs">
-                                      <SelectValue placeholder="Select branch" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {(repoBranches[repo.url] || [{ name: repo.defaultBranch, protected: false }]).map(b => (
-                                        <SelectItem key={b.name} value={b.name} className="text-xs">
-                                          {b.name}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                  {loadingBranches.has(repo.url) && (
-                                    <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-                                  )}
-                                </div>
-                                
-                                <div className="flex items-center gap-2">
-                                  <FolderGit2 className="h-3 w-3 text-muted-foreground" />
-                                  <div className="flex flex-1 items-center gap-2">
-                                    <Input 
-                                      placeholder="/path (optional)"
-                                      className="h-7 text-xs font-mono"
-                                      value={analysisPaths[repo.url] || ''}
-                                      onChange={(e) => setAnalysisPaths(prev => ({ ...prev, [repo.url]: e.target.value }))}
-                                    />
-                                    <Button
-                                      variant="outline"
-                                      size="icon"
-                                      className="h-7 w-7 shrink-0"
-                                      onClick={() => setOpenFolderSelector(repo.url)}
-                                      title="Browse Folders"
-                                    >
-                                      <List className="h-3 w-3" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Folder Selector Modal */}
-                            <AnimatePresence>
-                              {openFolderSelector === repo.url && (
-                                <FolderSelector
-                                  repoUrl={repo.url}
-                                  currentPath={analysisPaths[repo.url] || ''}
-                                  onSelect={(path) => setAnalysisPaths(prev => ({ ...prev, [repo.url]: path }))}
-                                  isOpen={true}
-                                  onClose={() => setOpenFolderSelector(null)}
-                                />
-                              )}
-                            </AnimatePresence>
-
-
-                            {/* Large repo warning */}
-                            {repo.sizeMB > 100 && (
-                              <div className={cn(
-                                "mt-2 text-xs px-2 py-1 rounded",
-                                repo.sizeMB > 500 
-                                  ? "bg-red-500/10 text-red-500" 
-                                  : "bg-yellow-500/10 text-yellow-500"
-                              )}>
-                                {repo.sizeMB > 500 
-                                  ? "❌ Too large to analyze (>500MB)"
-                                  : "⚠️ Large repo - analysis may take time"
-                                }
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Selection count and actions */}
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50">
-                <div className="text-sm text-muted-foreground">
-                  {selectedRepos.size > 0 ? (
-                    <span className="text-primary font-medium">
-                      {selectedRepos.size} repository{selectedRepos.size !== 1 ? 'ies' : 'y'} selected
-                    </span>
-                  ) : (
-                    'Select repositories to analyze'
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowAddModal(false)
-                      setSelectedRepos(new Set())
-                      setSelectedBranches({})
-                      setRepoSearch('')
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      const allRepos = availableReposData?.repos || []
-                      const reposToAdd = allRepos.filter(r => selectedRepos.has(r.url))
-                      addSelectedReposMutation.mutate({ repos: reposToAdd, type: projectType })
-                    }}
-                    disabled={selectedRepos.size === 0 || addSelectedReposMutation.isPending}
-                  >
-                    {addSelectedReposMutation.isPending ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Sparkles className="h-4 w-4 mr-2" />
-                    )}
-                    Analyze {selectedRepos.size > 0 ? `(${selectedRepos.size})` : ''}
-                  </Button>
+                       >
+                          <type.icon className="w-3 h-3" /> {type.label}
+                       </button>
+                    ))}
+                 </div>
+               </div>
+              
+              {/* Search Bar */}
+              <div className="px-6 py-3 border-b border-slate-100">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    placeholder="Search GitHub repositories..."
+                    value={repoSearch}
+                    onChange={(e) => setRepoSearch(e.target.value)}
+                    className="pl-9 h-10 rounded-md border-slate-200 bg-white shadow-sm text-sm font-medium focus:ring-slate-300 focus:border-slate-300"
+                    autoFocus
+                  />
                 </div>
               </div>
+
+              {/* Repo List */}
+              <div className="flex-1 overflow-y-auto min-h-[300px] p-2 bg-slate-50/50 scrollbar-thin">
+                {isLoadingRepos ? (
+                   <div className="h-full flex items-center justify-center">
+                      <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+                   </div>
+                ) : filteredRepos.length === 0 ? (
+                   <div className="h-full flex flex-col items-center justify-center text-slate-400">
+                     <Code2 className="h-8 w-8 mb-2 opacity-50" />
+                     <p className="text-xs font-bold">No repositories found</p>
+                   </div>
+                ) : (filteredRepos.map(repo => (
+                   <div 
+                      key={repo.id}
+                      onClick={() => {
+                        if (repo.isAdded) return;
+                        const newSelected = new Set(selectedRepos)
+                        newSelected.has(repo.url) ? newSelected.delete(repo.url) : newSelected.add(repo.url)
+                        setSelectedRepos(newSelected)
+                      }}
+                      className={cn(
+                         "p-3 mx-4 my-1 rounded-md border flex items-center justify-between cursor-pointer transition-all",
+                         selectedRepos.has(repo.url) ? "bg-blue-50 border-blue-200 shadow-sm" : "bg-white border-transparent hover:border-slate-200 hover:shadow-sm",
+                         repo.isAdded && "opacity-50 cursor-not-allowed bg-slate-50 border-transparent"
+                      )}
+                   >
+                      <div className="flex items-center gap-3 min-w-0">
+                         <div className={cn(
+                            "w-4 h-4 rounded-sm border flex items-center justify-center shrink-0 transition-colors",
+                             selectedRepos.has(repo.url) ? "bg-blue-500 border-blue-500" : "border-slate-300 bg-white"
+                         )}>
+                            {selectedRepos.has(repo.url) && <Check className="w-3 h-3 text-white" />}
+                         </div>
+                         <div className="min-w-0">
+                            <h4 className="font-extrabold text-sm text-slate-900 truncate">{repo.name}</h4>
+                            <p className="text-[10px] text-slate-500 truncate mt-0.5">{repo.description || 'No description available'}</p>
+                         </div>
+                      </div>
+                      {repo.language && (
+                         <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-sm text-[9px] font-extrabold text-slate-600 shrink-0 uppercase tracking-wider ml-3">
+                            {repo.language}
+                         </span>
+                      )}
+                   </div>
+                )))}
+              </div>
+              
+              {/* Footer */}
+              <div className="p-4 border-t border-slate-200 bg-white flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                    {selectedRepos.size} Selected
+                  </span>
+                  <Button 
+                    size="sm"
+                    disabled={selectedRepos.size === 0}
+                    onClick={() => addSelectedReposMutation.mutate({ repos: filteredRepos.filter(r => selectedRepos.has(r.url)), type: projectType })}
+                    className="rounded-md bg-slate-900 hover:bg-slate-800 text-white font-extrabold px-6 shadow-sm"
+                  >
+                     Import Projects
+                  </Button>
+              </div>
+
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Filters & Controls */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="flex flex-col lg:flex-row gap-4"
-      >
-        {/* Search */}
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search projects by name, language, or description..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-2">
-          <Select value={languageFilter} onValueChange={setLanguageFilter}>
-            <SelectTrigger className="w-[140px]">
-              <Code2 className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Language" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Languages</SelectItem>
-              {stats.languages.map(lang => (
-                <SelectItem key={lang} value={lang!}>
-                  <span className="flex items-center gap-2">
-                    <span 
-                      className="h-2 w-2 rounded-full" 
-                      style={{ backgroundColor: getLanguageColor(lang!) }}
-                    />
-                    {lang}
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[140px]">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="completed">Analyzed</SelectItem>
-              <SelectItem value="analyzing">Analyzing</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="failed">Failed</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select value={sortField} onValueChange={(v: string) => setSortField(v as SortField)}>
-            <SelectTrigger className="w-[140px]">
-              <BarChart3 className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="updatedAt">Last Updated</SelectItem>
-              <SelectItem value="stars">Stars</SelectItem>
-              <SelectItem value="auraContribution">Aura</SelectItem>
-              <SelectItem value="name">Name</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setSortOrder(o => o === 'asc' ? 'desc' : 'asc')}
-          >
-            {sortOrder === 'desc' ? (
-              <SortDesc className="h-4 w-4" />
-            ) : (
-              <SortAsc className="h-4 w-4" />
-            )}
-          </Button>
-          
-          <div className="border-l h-8 mx-1" />
-          
-          <Button
-            variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-            size="icon"
-            onClick={() => setViewMode('grid')}
-          >
-            <LayoutGrid className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-            size="icon"
-            onClick={() => setViewMode('list')}
-          >
-            <List className="h-4 w-4" />
-          </Button>
-        </div>
-      </motion.div>
-
-      {/* Batch Actions */}
-      <AnimatePresence>
-        {selectedProjects.size > 0 && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <Card className="border-primary/50 bg-primary/5">
-              <CardContent className="py-3 flex items-center justify-between">
-                <span className="text-sm font-medium">
-                  {selectedProjects.size} project{selectedProjects.size > 1 ? 's' : ''} selected
-                </span>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setSelectedProjects(new Set())}
-                  >
-                    Clear Selection
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => batchAnalyzeMutation.mutate([...selectedProjects])}
-                    disabled={batchAnalyzeMutation.isPending}
-                  >
-                    {batchAnalyzeMutation.isPending ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                    )}
-                    Analyze All
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => batchDeleteMutation.mutate([...selectedProjects])}
-                    disabled={batchDeleteMutation.isPending}
-                  >
-                    {batchDeleteMutation.isPending ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4 mr-2" />
-                    )}
-                    Delete All
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Projects List */}
-      {isLoading ? (
-        <div className={cn(
-          viewMode === 'grid' 
-            ? 'grid gap-4 md:grid-cols-2 lg:grid-cols-3'
-            : 'space-y-4'
-        )}>
-          {[...Array(6)].map((_, i) => (
-            <ProjectCardSkeleton key={i} />
-          ))}
-        </div>
-      ) : filteredProjects.length > 0 ? (
-        <>
-          {/* Select All */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <input 
-              type="checkbox" 
-              checked={selectedProjects.size === filteredProjects.length && filteredProjects.length > 0}
-              onChange={selectAll}
-              className="rounded border-muted-foreground/30"
-            />
-            <span>
-              Showing {filteredProjects.length} of {data?.projects?.length || 0} projects
-            </span>
-          </div>
-          
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className={cn(
-              viewMode === 'grid' 
-                ? 'grid gap-4 md:grid-cols-2 lg:grid-cols-3'
-                : 'space-y-3'
-            )}
-          >
-            {filteredProjects.map((project) => {
-              const score = project.auraContribution || 0
-              const isAnalyzed = project.analysisStatus?.toLowerCase() === 'completed'
-              const repoName = project.repoName || project.name || 'Untitled'
-              const topTechs = (project.technologies || []).slice(0, 3)
-
-              return viewMode === 'grid' ? (
-                // GRID VIEW - Premium Dashboard Style
-                <motion.div key={project.id} variants={itemVariants}>
-                  <div 
-                    onClick={() => router.push(`/projects/${project.id}`)}
-                    className={cn(
-                      "group relative cursor-pointer rounded-2xl border border-border/50 bg-gradient-to-br from-card via-card/90 to-card/80 backdrop-blur-xl p-5 transition-all duration-300",
-                      "hover:border-primary/40 hover:shadow-xl hover:shadow-primary/15 hover:scale-[1.01]",
-                      selectedProjects.has(project.id) && "border-primary bg-primary/5"
-                    )}
-                  >
-                    {/* Checkbox for selection (absolute) */}
-                    <div 
-                      className="absolute top-4 right-4 z-20"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedProjects.has(project.id)}
-                        onChange={() => toggleProjectSelection(project.id)}
-                        className="rounded border-muted-foreground/30 accent-primary w-4 h-4 cursor-pointer"
-                      />
-                    </div>
-                    
-                    {/* Pin Indicator */}
-                    {project.isPinned && (
-                      <div className="absolute top-4 right-10 z-10 text-primary">
-                        <Pin className="h-4 w-4 fill-current" />
-                      </div>
-                    )}
-
-                    <div className="flex items-start gap-4">
-                      {/* Circular Score with Glow */}
-                      <div className="relative shrink-0">
-                        <div className={cn(
-                          "absolute inset-0 rounded-full blur-lg opacity-30 transition-opacity group-hover:opacity-50",
-                          score >= 80 ? "bg-emerald-500" : score >= 50 ? "bg-primary" : "bg-amber-500"
-                        )} />
-                        <CircularProgress value={score > 100 ? 100 : score} />
-                      </div>
-                      
-                      {/* Project Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-gradient-to-br from-muted/80 to-muted/40 border border-border/50 shrink-0">
-                            <Github className="w-3.5 h-3.5 text-foreground" />
-                          </div>
-                          <h3 className="font-bold text-foreground group-hover:text-primary transition-colors truncate text-base">
-                            {repoName}
-                          </h3>
-                        </div>
-                        
-                        {project.description && (
-                          <p className="text-xs text-muted-foreground/80 truncate mb-3">
-                            {project.description}
-                          </p>
-                        )}
-                        
-                        {/* Project Analysis Status or Tags */}
-                        {!isAnalyzed ? (
-                          <div className="mb-3 mt-2">
-                            <ProjectAnalysisProgress 
-                              status={project.analysisStatus!} 
-                              showDetails={true} 
-                            />
-                          </div>
-                        ) : (
-                          /* Tags */
-                          <div className="flex flex-wrap items-center gap-2 mb-3">
-                          {project.language && (
-                            <span className="flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                              <span 
-                                className="w-1.5 h-1.5 rounded-full" 
-                                style={{ backgroundColor: getLanguageColor(project.language) }}
-                              />
-                              {project.language}
-                            </span>
-                          )}
-                          {topTechs.map((tech, i) => (
-                            <span 
-                              key={i}
-                              className="text-xs px-2 py-0.5 rounded-full bg-muted/50 text-muted-foreground border border-border/30"
-                            >
-                              {tech}
-                            </span>
-                          ))}
-                        </div>
-                        )}
-                        
-                        {/* Stats Row */}
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Star className="w-3.5 h-3.5 text-amber-500" />
-                            <span className="font-medium text-foreground">{formatNumber(project.stars)}</span>
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <GitFork className="w-3.5 h-3.5" />
-                            <span className="font-medium text-foreground">{formatNumber(project.forks)}</span>
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span>{formatRelativeTime(project.updatedAt)}</span>
-                          </span>
-                          
-                          {/* Aura Badge */}
-                          {score > 0 && (
-                            <span className="ml-auto flex items-center gap-1 text-primary font-bold">
-                              <Zap className="w-3.5 h-3.5" />
-                              +{score}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* View Details Hint & Actions - Appear on Hover */}
-                    <div className="mt-4 pt-3 border-t border-border/30 flex items-center justify-between opacity-80 group-hover:opacity-100 transition-opacity">
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground group-hover:text-primary transition-colors">
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span>View details</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() => togglePinMutation.mutate({ id: project.id, isPinned: project.isPinned })}
-                        >
-                          <Pin className={cn("h-3.5 w-3.5", project.isPinned && "fill-current text-primary")} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() => analyzeProjectMutation.mutate(project.id)}
-                          disabled={project.analysisStatus === 'analyzing'}
-                        >
-                          <RefreshCw className={cn("h-3.5 w-3.5", project.analysisStatus === 'analyzing' && "animate-spin")} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-destructive hover:text-destructive"
-                          onClick={() => deleteProjectMutation.mutate(project.id)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ) : (
-                // LIST VIEW - Simplified
-                <motion.div key={project.id} variants={itemVariants}>
-                  <Card 
-                    className={cn(
-                      "group transition-all duration-300 hover:shadow-md hover:border-primary/30",
-                      selectedProjects.has(project.id) && "border-primary bg-primary/5"
-                    )}
-                  >
-                    <CardContent className="p-4 flex items-center gap-4">
-                      <input
-                        type="checkbox"
-                        checked={selectedProjects.has(project.id)}
-                        onChange={() => toggleProjectSelection(project.id)}
-                        className="rounded border-muted-foreground/30 accent-primary cursor-pointer"
-                      />
-                      
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        {isAnalyzed ? (
-                          <div className="font-bold text-primary">{score}</div>
-                        ) : (
-                          <FolderGit2 className="h-5 w-5 text-primary" />
-                        )}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0 cursor-pointer" onClick={() => router.push(`/projects/${project.id}`)}>
-                         <div className="flex items-center gap-2">
-                            {project.isPinned && <Pin className="h-3.5 w-3.5 text-primary fill-primary" />}
-                            <h3 className="font-semibold hover:text-primary transition-colors truncate">
-                              {repoName}
-                            </h3>
-                            <Badge variant="outline" className="text-xs font-normal">
-                              {project.language || 'Unknown'}
-                            </Badge>
-                         </div>
-                         <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-                            <span className="flex items-center gap-1">
-                              <Star className="h-3 w-3" /> {formatNumber(project.stars)}
-                            </span>
-                            <span>Updated {formatRelativeTime(project.updatedAt)}</span>
-                         </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                         <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => togglePinMutation.mutate({ id: project.id, isPinned: project.isPinned })}
-                          >
-                            <Pin className={cn("h-4 w-4", project.isPinned && "fill-current")} />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive"
-                            onClick={() => deleteProjectMutation.mutate(project.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                          <Link href={`/projects/${project.id}`}>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <ChevronRight className="h-4 w-4" />
-                            </Button>
-                          </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )
-            })}
-          </motion.div>
-        </>
-      ) : (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-        >
-          <Card className="border-dashed border-border/50 bg-card/50">
-            <CardContent className="py-16 text-center">
-              <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <FolderGit2 className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-bold mb-2">
-                {search || languageFilter !== 'all' || statusFilter !== 'all'
-                  ? 'No matching projects'
-                  : 'No projects yet'}
-              </h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                {search || languageFilter !== 'all' || statusFilter !== 'all'
-                  ? 'Try adjusting your filters or search term'
-                  : 'Add your first GitHub repository to get it analyzed and start building your developer profile'}
-              </p>
-              {!search && languageFilter === 'all' && statusFilter === 'all' && (
-                <Button onClick={() => setShowAddModal(true)} className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add Your First Project
-                </Button>
-              )}
-              {(search || languageFilter !== 'all' || statusFilter !== 'all') && (
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setSearch('')
-                    setLanguageFilter('all')
-                    setStatusFilter('all')
-                  }}
-                  className="gap-2"
-                >
-                  <X className="h-4 w-4" />
-                  Clear Filters
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
     </div>
   )
 }

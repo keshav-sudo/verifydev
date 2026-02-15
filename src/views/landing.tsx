@@ -1,1181 +1,239 @@
-﻿"use client"
+'use client';
 
-import Link from 'next/link'
-import Image from 'next/image'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
-import { useAuthStore } from '@/store/auth-store'
-import { InteractiveDashboardShowcase } from '@/components/dashboard-showcase'
-import {
-  Github,
-  Zap,
-  Shield,
-  ArrowRight,
-  Star,
-  Code2,
-  Users,
-  Sparkles,
-  Target,
-  Building,
-  Briefcase,
-  CheckCircle2,
-  Play,
-  ChevronRight,
-  Brain,
-  Trophy,
-  Globe,
-  Heart,
-  BarChart3,
-  Cpu,
-  GitBranch,
-  Award,
-  TrendingUp,
-  FileCode2,
-  Rocket,
-  Eye,
-  Lock,
-  Search,
-  ArrowUpRight,
-  Twitter,
-} from 'lucide-react'
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
-import { useRef, useState, useEffect } from 'react'
+import React from 'react';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+import Image from 'next/image';
+import panda from "../data/panda.png";
 
-// Animation variants
-const fadeInUp = {
-  hidden: { opacity: 0, y: 60 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
-}
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { delay, duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+});
 
-const fadeInLeft = {
-  hidden: { opacity: 0, x: -60 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
-}
+const scaleIn = (delay = 0) => ({
+  initial: { opacity: 0, scale: 0.92 },
+  animate: { opacity: 1, scale: 1 },
+  transition: { delay, duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+});
 
-const fadeInRight = {
-  hidden: { opacity: 0, x: 60 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
-}
+const skills = [
+  { name: 'TypeScript', pct: 95, color: '#3178C6' },
+  { name: 'React', pct: 88, color: '#61DAFB' },
+  { name: 'Go', pct: 82, color: '#00ADD8' },
+  { name: 'Docker', pct: 65, color: '#2496ED' },
+];
 
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.15, delayChildren: 0.1 }
-  }
-}
-
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.8 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } }
-}
-
-
-// Features data - Enhanced with more info
-const features = [
-  {
-    icon: Code2,
-    title: "Deep Code Analysis",
-    description: "AI analyzes every commit, PR, and line of code to understand your true capabilities. We look at patterns, best practices, and real-world implementations.",
-    gradient: "from-blue-500 to-cyan-500",
-    stats: "2.5M+ commits analyzed",
-    delay: 0
-  },
-  {
-    icon: Brain,
-    title: "AI-Powered Scoring",
-    description: "Get an objective AURA score that represents your actual coding skills and impact. Our ML models are trained on millions of successful developers.",
-    gradient: "from-purple-500 to-pink-500",
-    stats: "95% accuracy rate",
-    delay: 0.1
-  },
-  {
-    icon: Shield,
-    title: "Verified Credentials",
-    description: "Blockchain-backed verification ensures your profile is tamper-proof and trustworthy. Recruiters see authentic, verified skills.",
-    gradient: "from-green-500 to-emerald-500",
-    stats: "100% tamper-proof",
-    delay: 0.2
-  },
-  {
-    icon: Target,
-    title: "Smart Job Matching",
-    description: "Get matched with roles that fit your verified skills, not just keywords on resumes. Our AI understands context and skill depth.",
-    gradient: "from-orange-500 to-red-500",
-    stats: "85% interview rate",
-    delay: 0.3
-  },
-  {
-    icon: BarChart3,
-    title: "Growth Insights",
-    description: "Track your skill progression over time with detailed analytics and personalized recommendations for improvement.",
-    gradient: "from-indigo-500 to-blue-500",
-    stats: "Real-time tracking",
-    delay: 0.4
-  },
-  {
-    icon: Globe,
-    title: "Global Opportunities",
-    description: "Connect with top companies worldwide looking for verified developer talent. Remote, hybrid, or on-site - you choose.",
-    gradient: "from-teal-500 to-cyan-500",
-    stats: "500+ companies",
-    delay: 0.5
-  }
-]
-
-// How it works steps - Enhanced
 const steps = [
-  {
-    number: "01",
-    title: "Connect GitHub",
-    description: "Link your GitHub account with one click. We securely analyze your public contributions and repositories. Your private data stays private.",
-    icon: Github,
-    color: "from-gray-700 to-gray-900"
-  },
-  {
-    number: "02",
-    title: "AI Analysis",
-    description: "Our AI examines code quality, commit patterns, collaboration style, and technical depth across all your projects.",
-    icon: Cpu,
-    color: "from-purple-600 to-pink-600"
-  },
-  {
-    number: "03",
-    title: "Get Your AURA",
-    description: "Receive your verified AURA score with detailed breakdown of your coding prowess. Skills verified with evidence.",
-    icon: Award,
-    color: "from-amber-500 to-orange-500"
-  },
-  {
-    number: "04",
-    title: "Land Dream Jobs",
-    description: "Get matched with companies that value your verified skills. No more resume guessing games.",
-    icon: Briefcase,
-    color: "from-green-500 to-emerald-500"
-  }
-]
+  { icon: '📥', label: 'Add', sub: 'GitHub repos' },
+  { icon: '🧠', label: 'Analyze', sub: '400+ techs' },
+  { icon: '⚡', label: 'Score', sub: 'Aura engine' },
+  { icon: '🎯', label: 'Match', sub: '342 jobs' },
+];
 
-// Stats - Enhanced
-const stats = [
-  { value: "50K+", label: "Developers Verified", icon: Users, color: "text-blue-500" },
-  { value: "2.5M+", label: "Commits Analyzed", icon: GitBranch, color: "text-purple-500" },
-  { value: "500+", label: "Partner Companies", icon: Building, color: "text-orange-500" },
-  { value: "95%", label: "Placement Rate", icon: TrendingUp, color: "text-green-500" }
-]
-
-// Testimonials - Enhanced
-const testimonials = [
-  {
-    name: "Sarah Chen",
-    role: "Senior Engineer at Stripe",
-    avatar: "SC",
-    content: "My AURA profile landed me interviews at 5 top companies. The AI analysis showed skills I didn't even know I had!",
-    rating: 5,
-    aura: 847,
-    gradient: "from-purple-500 to-pink-500"
-  },
-  {
-    name: "Marcus Johnson",
-    role: "Full Stack at Airbnb",
-    avatar: "MJ",
-    content: "From unknown developer to getting recruited by top startups. VerifyDev changed my entire career trajectory.",
-    rating: 5,
-    aura: 792,
-    gradient: "from-blue-500 to-cyan-500"
-  },
-  {
-    name: "Priya Sharma",
-    role: "Tech Lead at Google",
-    avatar: "PS",
-    content: "The verified profile gave recruiters confidence in my abilities. Got a 40% higher offer than expected.",
-    rating: 5,
-    aura: 923,
-    gradient: "from-green-500 to-emerald-500"
-  }
-]
-
-// Trusted companies - with logos mockup
-const trustedCompanies = [
-  { name: "Google", icon: Search },
-  { name: "Microsoft", icon: Building },
-  { name: "Amazon", icon: Rocket },
-  { name: "Meta", icon: Globe },
-  { name: "Apple", icon: Code2 },
-  { name: "Netflix", icon: Play },
-  { name: "Stripe", icon: Lock },
-  { name: "Airbnb", icon: Heart }
-]
-
-// Key benefits
-const benefits = [
-  { icon: CheckCircle2, text: "100% Free for developers", subtext: "No hidden fees, ever" },
-  { icon: CheckCircle2, text: "Takes less than 2 minutes", subtext: "Quick and easy setup" },
-  { icon: CheckCircle2, text: "Privacy-first approach", subtext: "Your data, your control" },
-  { icon: CheckCircle2, text: "No spam, ever", subtext: "Only relevant opportunities" }
-]
-
-// For developers vs recruiters comparison
-const comparisons = {
-  developers: [
-    { icon: FileCode2, title: "Prove Real Skills", desc: "Stop self-claiming, start proving" },
-    { icon: Trophy, title: "Stand Out", desc: "Rise above generic resumes" },
-    { icon: Rocket, title: "Career Growth", desc: "Track and improve your skills" },
-  ],
-  recruiters: [
-    { icon: Eye, title: "See Real Abilities", desc: "Beyond keywords and buzzwords" },
-    { icon: Target, title: "Perfect Matches", desc: "Find exactly who you need" },
-    { icon: BarChart3, title: "Data-Driven", desc: "Hire with confidence" },
-  ]
-}
-
-// Floating particles component - Optimized for performance
-function FloatingParticles() {
-  // Skip particles on mobile entirely
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
-
-  if (isMobile) {
-    return null
-  }
-
+export default function Landing() {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Minimal glowing orbs - reduced to 6 for performance */}
-      {[...Array(6)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute rounded-full blur-sm bg-primary/30"
-          style={{
-            width: 4 + (i % 3) * 2,
-            height: 4 + (i % 3) * 2,
-            left: `${15 + i * 15}%`,
-            top: `${20 + (i % 3) * 25}%`,
-          }}
-          animate={{
-            y: [-20, 20, -20],
-            opacity: [0.3, 0.6, 0.3],
-          }}
-          transition={{
-            duration: 4 + i,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
-    </div>
-  )
-}
+    <div className="h-screen w-full bg-[#050505] font-sans flex flex-col overflow-hidden relative selection:bg-[#ADFF2F] selection:text-black">
 
-// Aurora background component - Static for performance
-function AuroraBackground() {
-  return (
-    <div className="absolute inset-0 overflow-hidden">
-      <div className="aurora-layer aurora-1" />
-      <div className="aurora-layer aurora-2" />
-      {/* Static glow layers */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(var(--primary)/0.15),transparent_50%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,hsl(var(--primary)/0.1),transparent_50%)]" />
-    </div>
-  )
-}
+      {/* SUBTLE GRID */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff04_1px,transparent_1px),linear-gradient(to_bottom,#ffffff04_1px,transparent_1px)] bg-[size:48px_48px] pointer-events-none" />
 
-// Animated counter component
-function AnimatedCounter({ value, suffix = "" }: { value: string; suffix?: string }) {
-  return (
-    <span className="stat-number">{value}{suffix}</span>
-  )
-}
+      {/* AMBIENT GLOW */}
+      <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-[#ADFF2F]/[0.03] rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-30%] left-[-10%] w-[500px] h-[500px] bg-[#ADFF2F]/[0.02] rounded-full blur-[100px] pointer-events-none" />
 
-// Horizontal Scroll Features Component - Optimized for less whitespace
-function HorizontalScrollFeatures() {
-  const targetRef = useRef<HTMLDivElement>(null)
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const [scrollRange, setScrollRange] = useState(0)
-  const [isReady, setIsReady] = useState(false)
-
-  // Measure content to ensure perfect scroll sync
-  useEffect(() => {
-    if (typeof window === "undefined" || !scrollRef.current) return
-
-    const updateScroll = () => {
-      if (!scrollRef.current) return
-      
-      const scrollWidth = scrollRef.current.scrollWidth
-      const clientWidth = window.innerWidth
-      
-      // Calculate exactly how much we need to move - reduced buffer for tighter scroll
-      const scrollNeeded = scrollWidth - clientWidth
-      setScrollRange(scrollNeeded > 0 ? scrollNeeded : 0)
-      setIsReady(true)
-    }
-
-    // Initial measure with small delay for accurate measurements
-    const timer = setTimeout(updateScroll, 100)
-    
-    window.addEventListener("resize", updateScroll)
-    return () => {
-      window.removeEventListener("resize", updateScroll)
-      clearTimeout(timer)
-    }
-  }, [])
-
-  const { scrollYProgress } = useScroll({
-    target: targetRef,
-  })
-
-  // Map vertical scroll to horizontal movement - tighter mapping
-  const x = useTransform(scrollYProgress, [0, 1], [0, -scrollRange])
-
-  // Reduced container height - uses 80vh base for tighter vertical space
-  // The sticky section will pin during the horizontal scroll
-  const containerHeight = isReady && scrollRange > 0 
-    ? `${Math.max(scrollRange * 0.8, window.innerHeight * 1.2)}px` 
-    : "150vh"
-
-  return (
-    <section 
-      ref={targetRef} 
-      style={{ height: containerHeight }} 
-      className="relative bg-background w-full" 
-      id="features"
-    >
-      <div className="sticky top-0 h-screen flex items-center overflow-hidden w-full">
-        {/* Background Effects */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8882_1px,transparent_1px),linear-gradient(to_bottom,#8882_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-[0.05]" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[400px] bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
-
-        <div className="w-full h-full flex items-center max-w-[1920px] mx-auto">
-          <motion.div 
-            ref={scrollRef}
-            style={{ x }} 
-            className="flex gap-6 px-6 md:px-16 items-center w-max"
+      {/* NAVBAR */}
+      <nav className="relative z-50 px-6 md:px-12 lg:px-16 flex items-center justify-between h-[68px] border-b border-white/[0.06]">
+        <Link href="/" className="text-xl font-black text-white tracking-tight">
+          Verify<span className="text-[#ADFF2F]">Dev</span>
+        </Link>
+        <div className="flex gap-8 items-center">
+          <Link href="/login" className="text-zinc-500 hover:text-white text-sm font-medium transition-colors duration-200">
+            Sign In
+          </Link>
+          <Link
+            href="/signup"
+            className="bg-white text-black px-5 py-2 rounded-full text-sm font-semibold hover:bg-[#ADFF2F] transition-all duration-300 hover:shadow-[0_0_24px_rgba(173,255,47,0.3)]"
           >
-              {/* Header Section as the first "Slide" - More compact */}
-              <div className="w-[80vw] md:w-[450px] flex-shrink-0 pr-8">
-                  <Badge variant="outline" className="mb-4 px-4 py-1.5 border-primary/30">
-                  <Zap className="w-3 h-3 mr-2 text-primary" />
-                  Powerful Features
-                </Badge>
-                <h2 className="section-headline text-3xl md:text-4xl lg:text-5xl mb-4 leading-tight">
-                   <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                    Skills That Speak
-                  </span>
-                  <br />
-                  <span className="bg-gradient-to-r from-primary via-orange-500 to-pink-500 bg-clip-text text-transparent">
-                    For Themselves
-                  </span>
-                </h2>
-                 <p className="subheadline text-base md:text-lg text-muted-foreground max-w-lg leading-relaxed">
-                   We don't just scan your resume. We understand your code at a fundamental level.
-                 </p>
-                 <div className="mt-6 flex items-center gap-2 text-primary font-medium">
-                    <ArrowRight className="w-5 h-5"/> 
-                    <span>Keep scrolling...</span>
-                 </div>
-              </div>
-
-              {/* Feature Cards - Simple & Fast */}
-              {features.map((feature) => (
-                 <div key={feature.title}>
-                   <Card className="w-[280px] md:w-[340px] h-[380px] flex-shrink-0 bg-card/60 backdrop-blur border-border/40 hover:border-primary/50 hover:shadow-xl transition-all duration-300 rounded-[1.5rem] overflow-hidden group">
-                      <CardContent className="p-6 flex flex-col h-full justify-between relative">
-                         {/* Static Gradient Glow */}
-                         <div className={`absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br ${feature.gradient} blur-[60px] opacity-10 group-hover:opacity-30 transition-opacity duration-300`} />
-                         
-                         <div>
-                            <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${feature.gradient} flex items-center justify-center mb-4 shadow-lg`}>
-                               <feature.icon className="w-6 h-6 text-white" />
-                            </div>
-                            <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">{feature.title}</h3>
-                            <p className="text-muted-foreground leading-relaxed text-sm">{feature.description}</p>
-                         </div>
-                         
-                         <div className="pt-4 border-t border-border/20">
-                            <div className="text-sm text-primary font-bold tracking-wide flex items-center justify-between uppercase">
-                               <span>{feature.stats}</span>
-                               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all">
-                                  <ArrowRight className="w-4 h-4 -rotate-45 group-hover:rotate-0 transition-transform duration-300" />
-                               </div>
-                            </div>
-                         </div>
-                      </CardContent>
-                   </Card>
-                 </div>
-              ))}
-          </motion.div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-
-export default function LandingPage() {
-  const { isAuthenticated } = useAuthStore()
-  const heroRef = useRef<HTMLDivElement>(null)
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"]
-  })
-
-  const heroY = useTransform(scrollYProgress, [0, 1], [0, 200])
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
-  const [activeTestimonial, setActiveTestimonial] = useState(0)
-  const [activeTab, setActiveTab] = useState<'developers' | 'recruiters'>('developers')
-
-  // Auto-rotate testimonials
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveTestimonial((prev) => (prev + 1) % testimonials.length)
-    }, 5000)
-    return () => clearInterval(interval)
-  }, [])
-
-  return (
-    <main className="min-h-screen bg-background overflow-hidden">
-      {/* Navigation Bar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-2xl border-b border-border/40 shadow-sm transition-all duration-300">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-2">
-              <Image 
-                src="/logo.png" 
-                alt="VerifyDev"
-                width={36}
-                height={36}
-                className="rounded-xl shadow-lg"
-                priority
-              />
-              <span className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">VerifyDev</span>
-            </Link>
-
-            <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-all relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-primary after:transition-all">Features</a>
-              <a href="#how-it-works" className="text-sm text-muted-foreground hover:text-foreground transition-all relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-primary after:transition-all">How It Works</a>
-              <a href="#testimonials" className="text-sm text-muted-foreground hover:text-foreground transition-all relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-primary after:transition-all">Testimonials</a>
-              <Link href="/recruiter" className="text-sm text-muted-foreground hover:text-foreground transition-colors">For Recruiters</Link>
-            </div>
-
-            <div className="flex items-center gap-3">
-              {isAuthenticated ? (
-                <Link href="/dashboard">
-                  <Button className="rounded-xl bg-gradient-to-r from-primary to-purple-600 hover:opacity-90">
-                    Dashboard
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-              ) : (
-                <>
-                  <Link href="/get-started" className="hidden sm:block">
-                    <Button variant="ghost" className="rounded-xl">Sign In</Button>
-                  </Link>
-                  <Link href="/get-started">
-                    <Button className="rounded-xl bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 btn-shine">
-                      <Github className="mr-2 h-4 w-4" />
-                      Get Started
-                    </Button>
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
+            Get Started →
+          </Link>
         </div>
       </nav>
 
-      {/* Hero Section - Ultra Premium */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
-        {/* Animated Background */}
-        <div className="absolute inset-0">
-          <AuroraBackground />
+      {/* HERO */}
+      <div className="relative z-10 flex-1 grid lg:grid-cols-[1fr_1.15fr] gap-0">
 
-          {/* Grid pattern */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#8882_1px,transparent_1px),linear-gradient(to_bottom,#8882_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-30" />
+        {/* LEFT COLUMN */}
+        <div className="flex flex-col justify-center px-6 lg:px-16 relative z-30">
 
-          {/* Radial gradient overlay */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,hsl(var(--background))_70%)]" />
-
-          <FloatingParticles />
-        </div>
-
-        <motion.div
-          style={{ y: heroY, opacity: heroOpacity }}
-          className="relative z-10 container mx-auto px-4 py-8 lg:py-12"
-        >
-            {/* Horizontal Layout: Unified Grid */}
-            <div className="grid lg:grid-cols-12 gap-12 items-center">
-              {/* Left: Text Content - Span 7 */}
-              <motion.div
-                initial="hidden"
-                animate="visible"
-                variants={staggerContainer}
-                className="lg:col-span-7 flex flex-col justify-center text-center lg:text-left pt-10 lg:pt-0"
-              >
-              {/* Announcement Badge */}
-              <motion.div variants={fadeInUp} className="mb-8">
-                <Badge variant="outline" className="badge-text px-6 py-2.5 text-sm border-primary/50 bg-primary/5 backdrop-blur-sm hover:bg-primary/10 transition-colors cursor-pointer group">
-                  <Sparkles className="w-4 h-4 mr-2 text-primary animate-pulse" />
-                  <span>Introducing AI-Powered Skill Verification</span>
-                  <ArrowUpRight className="w-3 h-3 ml-2 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                </Badge>
-              </motion.div>
-
-              {/* Main Heading - ULTRA Premium Typography */}
-              <motion.h1
-                variants={fadeInUp}
-                className="hero-headline text-6xl sm:text-7xl md:text-8xl lg:text-[7rem] mb-6 sm:mb-8 leading-[0.9] tracking-tighter"
-              >
-                <motion.span
-                  className="block text-foreground"
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
-                >
-                  Stop Claiming.
-                </motion.span>
-                <motion.span
-                  className="block mt-2 relative hero-headline-gradient"
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.4 }}
-                >
-                  <span className="bg-gradient-to-r from-primary via-orange-500 to-pink-600 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">
-                    Start Proving.
-                  </span>
-                  {/* Glow effect behind text - theme aware */}
-                  <span className="absolute inset-0 bg-gradient-to-r from-primary/30 via-orange-500/20 to-pink-500/10 blur-3xl -z-10" />
-                </motion.span>
-              </motion.h1>
-
-              {/* Subheading */}
-              <motion.p
-                variants={fadeInUp}
-                className="subheadline text-xl sm:text-2xl md:text-3xl text-muted-foreground max-w-xl lg:max-w-2xl mb-8 sm:mb-12 px-2 sm:px-0 font-light"
-              >
-                AI-powered code analysis that creates a <span className="text-foreground font-medium">verified profile</span> of your actual abilities. Your code tells your story.
-              </motion.p>
-
-              {/* CTA Buttons */}
-              <motion.div
-                variants={fadeInUp}
-                className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center mb-6 sm:mb-10 px-4 sm:px-0"
-              >
-                {isAuthenticated ? (
-                  <Link href="/dashboard">
-                    <Button size="lg" className="group px-10 py-7 text-lg rounded-xl bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 transition-all shadow-2xl shadow-primary/25 btn-shine">
-                      Go to Dashboard
-                      <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-                ) : (
-                  <>
-                    <Link href="/get-started">
-                      <Button size="lg" className="relative overflow-hidden group px-6 sm:px-10 py-5 sm:py-7 text-base sm:text-lg rounded-xl bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 hover:scale-105 transition-all duration-300 shadow-xl shadow-primary/25 hover:shadow-primary/40 btn-shine w-full sm:w-auto">
-                        <Github className="mr-2 h-5 w-5" />
-                        <span className="hidden sm:inline">Get Verified — It's Free</span>
-                        <span className="sm:hidden">Get Verified Free</span>
-                        <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                      </Button>
-                    </Link>
-                    <Link href="/get-started" className="w-full sm:w-auto">
-                      <Button size="lg" variant="outline" className="px-6 sm:px-10 py-5 sm:py-7 text-base sm:text-lg rounded-2xl border-2 hover:bg-primary/5 hover:scale-105 hover:border-primary/50 transition-all w-full">
-                        <Building className="mr-2 h-5 w-5" />
-                        <span className="hidden sm:inline">I'm Hiring Developers</span>
-                        <span className="sm:hidden">Hire Developers</span>
-                      </Button>
-                    </Link>
-                  </>
-                )}
-              </motion.div>
-
-              {/* Trust Indicators */}
-              <motion.div variants={fadeInUp} className="flex flex-wrap justify-center lg:justify-start gap-6 mb-8 lg:mb-0">
-                {[
-                  { icon: CheckCircle2, text: "Free forever" },
-                  { icon: Zap, text: "2 min setup" },
-                  { icon: Shield, text: "Privacy first" },
-                  { icon: Lock, text: "Enterprise secure" },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <item.icon className="w-4 h-4 text-green-500" />
-                    <span>{item.text}</span>
-                  </div>
-                ))}
-              </motion.div>
-
-              </motion.div>
-
-              {/* Right: Visual Content - Span 5 */}
-              <motion.div
-                variants={scaleIn}
-                className="lg:col-span-5 relative h-full flex items-center justify-center lg:justify-end"
-              >
-              {/* Interactive Dashboard Showcase with multiple previews */}
-              <InteractiveDashboardShowcase />
-            </motion.div>
-          </div>
-        </motion.div>
-
-        {/* Scroll indicator */}
-        <motion.div
-          className="absolute bottom-4 left-0 right-0 z-20 flex justify-center"
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <div className="flex flex-col items-center gap-2 text-muted-foreground">
-            <span className="text-sm">Scroll to explore</span>
-            <ChevronRight className="w-5 h-5 rotate-90" />
-          </div>
-        </motion.div>
-      </section>
-
-      {/* Stats Section - Enhanced */}
-      <section className="py-12 md:py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-primary/5 to-background" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8882_1px,transparent_1px),linear-gradient(to_bottom,#8882_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-[0.1]" />
-        <div className="container mx-auto px-4 relative">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={staggerContainer}
-            className="grid grid-cols-2 md:grid-cols-4 gap-6"
-          >
-            {stats.map((stat) => (
-              <motion.div
-                key={stat.label}
-                variants={scaleIn}
-                className="group"
-              >
-                <motion.div
-                  whileHover={{ scale: 1.05, y: -8 }}
-                  className="relative p-6 sm:p-10 rounded-2xl bg-card/50 backdrop-blur-xl border border-border/40 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 transition-all overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div className="relative">
-                    <stat.icon className={`w-10 h-10 ${stat.color} mb-4 group-hover:scale-110 transition-transform`} />
-                    <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent mb-2">
-                      <AnimatedCounter value={stat.value} />
-                    </div>
-                    <p className="text-muted-foreground font-medium">{stat.label}</p>
-                  </div>
-                </motion.div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* For Developers & Recruiters Section */}
-      <section className="py-16 md:py-32 relative overflow-hidden bg-gradient-to-br from-background via-primary/5 to-background">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(var(--primary)/0.05),transparent_50%)]" />
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="text-center mb-16"
-          >
-            <motion.h2 variants={fadeInUp} className="section-headline text-4xl md:text-6xl mb-6">
-              <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                Built for
-              </span>{" "}
-              <span className="bg-gradient-to-r from-primary via-orange-500 to-pink-500 bg-clip-text text-transparent">
-                Everyone
-              </span>
-            </motion.h2>
+          <motion.div {...fadeUp(0.1)} className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] w-fit mb-7">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#ADFF2F] animate-pulse" />
+            <span className="text-zinc-400 text-xs font-medium tracking-wide">The Developer Credit Score</span>
           </motion.div>
 
-          {/* Tab Switcher */}
-          <div className="flex justify-center mb-12">
-            <div className="inline-flex p-1.5 bg-card/50 backdrop-blur-xl rounded-xl border border-border/80">
-              {(['developers', 'recruiters'] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-8 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === tab
-                    ? 'bg-primary text-primary-foreground shadow-lg'
-                    : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                >
-                  {tab === 'developers' ? '👨‍💻 For Developers' : '👔 For Recruiters'}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Content */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto"
+          <motion.h1
+            {...fadeUp(0.15)}
+            className="text-[48px] md:text-[64px] lg:text-[76px] xl:text-[100px] font-josefin font-black leading-[0.92] text-white tracking-[-0.04em]"
+          >
+            Stop<br />Claiming.
+            <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ADFF2F] via-[#c8ff60] to-[#ADFF2F]">
+              Start Proving.
+            </span>
+          </motion.h1>
+  <motion.div {...fadeUp(0.35)} className="mt-7 flex items-center gap-5">
+            <motion.button
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              className="bg-[#ADFF2F] rounded-full px-7 py-3.5 font-semibold text-black text-[15px] hover:shadow-[0_0_32px_rgba(173,255,47,0.4)] transition-all duration-300"
             >
-              {comparisons[activeTab].map((item, index) => (
-                <motion.div
-                  key={item.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ y: -5 }}
-                  className="group"
-                >
-                  <Card className="h-full bg-card/50 backdrop-blur-xl border-border/50 hover:border-primary/30 transition-all rounded-3xl overflow-hidden">
-                    <CardContent className="p-8 text-center">
-                      <div className="w-16 h-16 mx-auto rounded-xl bg-gradient-to-r from-primary to-purple-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                        <item.icon className="w-8 h-8 text-white" />
-                      </div>
-                      <h3 className="text-xl font-bold mb-2">{item.title}</h3>
-                      <p className="text-muted-foreground">{item.desc}</p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </section>
-
-      {/* Features Section - Horizontal Scroll Carousel */}
-      <HorizontalScrollFeatures />
-
-      {/* How It Works Section - Clean & Fast */}
-      <section id="how-it-works" className="py-16 md:py-24 relative overflow-hidden bg-gradient-to-b from-primary/5 via-background to-background">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.03)_1px,transparent_1px)] bg-[size:24px_24px] opacity-50" />
-        
-        <div className="container mx-auto px-4 relative">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="text-center mb-16"
-          >
-            <motion.div variants={fadeInUp}>
-              <Badge variant="outline" className="mb-6 px-4 py-1.5 border-primary/30">
-                <Play className="w-3 h-3 mr-2 text-primary" />
-                Simple Process
-              </Badge>
-            </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-4xl md:text-6xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                Four Steps to
-              </span>
-              <br />
-              <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-                Your Dream Job
-              </span>
-            </motion.h2>
+              Start Verification →
+            </motion.button>
+            <p className="text-zinc-600 text-xs font-medium">3 min setup · Free</p>
           </motion.div>
 
-          {/* Steps - Simple Timeline */}
-          <div className="max-w-5xl mx-auto relative">
-            {/* Static Connection Line */}
-            <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-purple-500 to-green-500" />
 
-            {steps.map((step, index) => (
+        </div>
+
+        {/* RIGHT COLUMN */}
+        <div className="relative h-full w-full overflow-hidden lg:rounded-tl-[48px]">
+
+          {/* GREEN BG */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#ADFF2F] via-[#b8ff47] to-[#9beb00]" />
+          <div className="absolute inset-0 opacity-[0.12] bg-[radial-gradient(circle_at_center,#000_1.5px,transparent_1.5px)] bg-[size:24px_24px]" />
+
+          {/* PANDA (z-index: 20) */}
+          <motion.div
+            {...scaleIn(0.3)}
+            className="absolute inset-x-0 bottom-0 h-[72%] z-20 pointer-events-none"
+          >
+            <Image
+              src={panda}
+              alt="VerifyDev AI Panda"
+              fill
+              priority
+              draggable={false}
+              className="object-contain object-bottom scale-[1.55] origin-bottom drop-shadow-[0_12px_40px_rgba(0,0,0,0.3)]"
+            />
+          </motion.div>
+
+          {/* FLOATING AURA SCORE CARD (z-index: 30 - Now floats ABOVE Panda) */}
+          <motion.div
+            initial={{ opacity: 0, x: 20, y: -10 }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute top-[10%] right-[20%] z-30 bg-black/80 backdrop-blur-2xl rounded-2xl p-4 w-[170px] border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
+          >
+            <div className="flex items-center justify-between mb-2.5">
+              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Aura Score</span>
+              <span className="text-[8px] font-bold text-[#ADFF2F] bg-[#ADFF2F]/10 px-1.5 py-0.5 rounded-full">STRONG</span>
+            </div>
+            <div className="text-[28px] font-black text-white leading-none">892</div>
+            <div className="text-[10px] text-zinc-600 mt-0.5 mb-2.5">out of 1,000</div>
+            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
               <motion.div
-                key={step.number}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`flex flex-col md:flex-row items-center gap-8 mb-16 ${index % 2 === 1 ? 'md:flex-row-reverse' : ''}`}
-              >
-                {/* Content Card */}
-                <div className="flex-1 text-center md:text-left">
-                  <div className="relative bg-card/60 backdrop-blur-sm rounded-2xl border border-border/80 p-6 md:p-8 hover:border-primary/30 hover:shadow-lg transition-all duration-300">
-                    <div className="inline-flex items-center gap-4 mb-4">
-                      <span className={`text-5xl font-black bg-gradient-to-r ${step.color} bg-clip-text text-transparent`}>
-                        {step.number}
-                      </span>
-                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${step.color} flex items-center justify-center shadow-lg`}>
-                        <step.icon className="w-6 h-6 text-white" />
-                      </div>
-                    </div>
-                    <h3 className="text-2xl md:text-3xl font-bold mb-3">{step.title}</h3>
-                    <p className="text-base text-muted-foreground leading-relaxed">{step.description}</p>
+                initial={{ width: 0 }}
+                animate={{ width: '89%' }}
+                transition={{ delay: 0.9, duration: 1.2, ease: 'easeOut' }}
+                className="h-full bg-gradient-to-r from-[#ADFF2F] to-[#7dcc16] rounded-full"
+              />
+            </div>
+          </motion.div>
+
+          {/* FLOATING SKILLS CARD (z-index: 30 - Now floats ABOVE Panda) */}
+          <motion.div
+            initial={{ opacity: 0, x: -20, y: 10 }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            transition={{ delay: 0.8, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute top-[30%] left-[8%] z-30 bg-black/80 backdrop-blur-2xl rounded-2xl p-3.5 w-[185px] border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
+          >
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Verified Stack</span>
+            <div className="mt-2.5 space-y-2">
+              {skills.map((s, i) => (
+                <div key={s.name}>
+                  <div className="flex justify-between mb-0.5">
+                    <span className="text-[11px] font-semibold text-white">{s.name}</span>
+                    <span className="text-[10px] font-bold text-zinc-400">{s.pct}%</span>
+                  </div>
+                  <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${s.pct}%` }}
+                      transition={{ delay: 1.0 + i * 0.1, duration: 1, ease: 'easeOut' }}
+                      className="h-full rounded-full"
+                      style={{ backgroundColor: s.color }}
+                    />
                   </div>
                 </div>
-
-                {/* Center Dot */}
-                <div className="hidden md:flex w-8 h-8 rounded-full bg-gradient-to-r from-primary to-purple-500 items-center justify-center z-10 shadow-lg">
-                  <div className="w-3 h-3 rounded-full bg-white" />
-                </div>
-
-                {/* Spacer */}
-                <div className="flex-1 hidden md:block" />
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section - Enhanced */}
-      <section id="testimonials" className="py-12 md:py-20 relative overflow-hidden bg-gradient-to-t from-background via-primary/5 to-background">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--primary)/0.05)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.05)_1px,transparent_1px)] bg-[size:6rem_4rem]" />
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={staggerContainer}
-            className="text-center mb-16"
-          >
-            <motion.div variants={fadeInUp}>
-              <Badge variant="outline" className="mb-6 px-4 py-1.5 border-primary/30">
-                <Heart className="w-3 h-3 mr-2 text-red-500" />
-                Developer Stories
-              </Badge>
-            </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-4xl md:text-6xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                Loved by
-              </span>
-              {" "}
-              <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-                Developers
-              </span>
-            </motion.h2>
-          </motion.div>
-
-          {/* Testimonial Cards - Enhanced Carousel */}
-          <div className="max-w-4xl mx-auto relative h-[350px]">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTestimonial}
-                initial={{ opacity: 0, x: 100, scale: 0.95 }}
-                animate={{ opacity: 1, x: 0, scale: 1 }}
-                exit={{ opacity: 0, x: -100, scale: 0.95 }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute inset-0"
-              >
-                <Card className="h-full bg-card/50 backdrop-blur-xl border-border/50 rounded-3xl overflow-hidden">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${testimonials[activeTestimonial].gradient} opacity-5`} />
-                  <CardContent className="p-8 md:p-12 h-full flex flex-col justify-center relative">
-                    <div className="flex items-center gap-4 mb-8">
-                      <div className={`w-16 h-16 rounded-xl bg-gradient-to-r ${testimonials[activeTestimonial].gradient} flex items-center justify-center text-white font-bold text-xl shadow-lg`}>
-                        {testimonials[activeTestimonial].avatar}
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-lg">{testimonials[activeTestimonial].name}</h3>
-                        <p className="text-muted-foreground">{testimonials[activeTestimonial].role}</p>
-                      </div>
-                      <div className="ml-auto">
-                        <Badge className="bg-primary/10 text-primary border-0 px-4 py-2">
-                          <Trophy className="w-4 h-4 mr-2" />
-                          AURA {testimonials[activeTestimonial].aura}
-                        </Badge>
-                      </div>
-                    </div>
-                    <blockquote className="text-2xl md:text-3xl leading-relaxed mb-8 font-medium">
-                      "{testimonials[activeTestimonial].content}"
-                    </blockquote>
-                    <div className="flex gap-1">
-                      {[...Array(testimonials[activeTestimonial].rating)].map((_, i) => (
-                        <Star key={i} className="w-6 h-6 fill-yellow-500 text-yellow-500" />
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </AnimatePresence>
-
-            {/* Testimonial indicators */}
-            <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 flex gap-3">
-              {testimonials.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setActiveTestimonial(index)}
-                  aria-label={`View testimonial ${index + 1}`}
-                  aria-current={index === activeTestimonial}
-                  className={`h-3 rounded-full transition-all duration-300 ${index === activeTestimonial
-                    ? 'bg-primary w-10'
-                    : 'bg-border w-3 hover:bg-primary/50'
-                    }`}
-                />
               ))}
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Trusted By Section - Enhanced */}
-      <section className="py-10 md:py-20 relative overflow-hidden border-y border-border/30 bg-card/30">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="text-center"
-          >
-            <motion.p variants={fadeInUp} className="text-sm text-muted-foreground mb-12 uppercase tracking-wider font-medium">
-              Trusted by developers from world's leading companies
-            </motion.p>
-            <motion.div variants={fadeInUp} className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
-              {trustedCompanies.map((company) => (
-                <motion.div
-                  key={company.name}
-                  whileHover={{ scale: 1.15, y: -4, rotate: 2 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                  className="flex items-center gap-2 text-2xl font-bold text-muted-foreground/40 hover:text-primary transition-colors duration-300 cursor-pointer"
-                >
-                  <company.icon className="w-6 h-6" />
-                  <span>{company.name}</span>
-                </motion.div>
-              ))}
-            </motion.div>
           </motion.div>
-        </div>
-      </section>
 
-      {/* Why Different Section - Enhanced */}
-      <section className="py-16 md:py-32 relative overflow-hidden">
-        <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeInLeft}
-            >
-              <Badge variant="outline" className="mb-6 px-4 py-1.5 border-primary/30">
-                <Award className="w-3 h-3 mr-2 text-primary" />
-                Why We're Different
-              </Badge>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                Built by developers,{" "}
-                <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-                  for developers
-                </span>
-              </h2>
-              <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                We understand the frustration of being judged by resumes that don't reflect your true abilities.
-                That's why we created a system that lets your actual code do the talking.
-              </p>
-              <div className="space-y-5">
-                {benefits.map((benefit, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="flex items-start gap-4 group"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                      <benefit.icon className="w-5 h-5 text-green-500" />
-                    </div>
-                    <div>
-                      <span className="font-semibold text-lg">{benefit.text}</span>
-                      <p className="text-sm text-muted-foreground">{benefit.subtext}</p>
-                    </div>
-                  </motion.div>
+          {/* BOTTOM DASHBOARD STRIP (z-index: 40 - Now floats ABOVE Panda) */}
+          <div className="absolute bottom-[25%] left-0 right-0 z-[100]">
+            <div className="bg-white/[0.97] backdrop-blur-xl border-t border-gray-200/50 px-4 lg:px-5 py-3 lg:py-3.5">
+
+              {/* Pipeline steps */}
+              <div className="flex items-center gap-1 mb-2.5">
+                {steps.map((step, i) => (
+                  <React.Fragment key={step.label}>
+                    <motion.div
+                      {...scaleIn(1.0 + i * 0.12)}
+                      className="flex items-center gap-1.5 bg-gray-50/80 hover:bg-gray-100 border border-gray-200/80 rounded-lg px-2.5 py-1.5 transition-all duration-200 flex-1 cursor-default"
+                    >
+                      <span className="text-sm leading-none">{step.icon}</span>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold text-gray-900 leading-none">{step.label}</p>
+                        <p className="text-[8px] text-gray-400 font-medium leading-none mt-0.5">{step.sub}</p>
+                      </div>
+                    </motion.div>
+                    {i < steps.length - 1 && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 0.4 }}
+                        transition={{ delay: 1.2 + i * 0.12 }}
+                        className="text-gray-400 text-[10px] flex-shrink-0 mx-0.5"
+                      >
+                        →
+                      </motion.div>
+                    )}
+                  </React.Fragment>
                 ))}
               </div>
-            </motion.div>
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeInRight}
-              className="relative"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-[40px] blur-3xl" />
-              <div className="relative bg-card/50 backdrop-blur-xl rounded-[40px] border border-border/50 p-8 overflow-hidden">
-                {/* Lightweight CSS Illustration - Developer Verified */}
-                <div className="h-[400px] w-full flex flex-col items-center justify-center gap-6">
-                  {/* Animated Checkmark Badge */}
-                  <motion.div 
-                    className="relative"
-                    initial={{ scale: 0, rotate: -180 }}
-                    whileInView={{ scale: 1, rotate: 0 }}
-                    transition={{ duration: 0.8, type: "spring", bounce: 0.5 }}
-                  >
-                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary via-orange-500 to-pink-500 flex items-center justify-center shadow-2xl shadow-primary/30">
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        whileInView={{ scale: 1 }}
-                        transition={{ delay: 0.5, duration: 0.4, type: "spring" }}
-                      >
-                        <CheckCircle2 className="w-16 h-16 text-white" />
-                      </motion.div>
-                    </div>
-                    {/* Pulse rings */}
-                    <motion.div 
-                      className="absolute inset-0 rounded-full border-2 border-primary/50"
-                      initial={{ scale: 1, opacity: 1 }}
-                      animate={{ scale: 1.5, opacity: 0 }}
-                      transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
-                    />
-                    <motion.div 
-                      className="absolute inset-0 rounded-full border-2 border-primary/30"
-                      initial={{ scale: 1, opacity: 1 }}
-                      animate={{ scale: 2, opacity: 0 }}
-                      transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut", delay: 0.3 }}
-                    />
-                  </motion.div>
-                  
-                  {/* Text */}
-                  <motion.div 
-                    className="text-center"
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 }}
-                  >
-                    <h3 className="text-2xl font-bold text-foreground mb-2">100% Free Forever</h3>
-                    <p className="text-muted-foreground">No hidden costs. No premium tiers.</p>
-                  </motion.div>
-                  
-                  {/* Floating stats */}
-                  <div className="flex gap-6">
-                    {[
-                      { label: '50K+', desc: 'Developers' },
-                      { label: '2.5M+', desc: 'Commits' },
-                      { label: '500+', desc: 'Companies' },
-                    ].map((stat, i) => (
-                      <motion.div 
-                        key={i}
-                        className="text-center p-3 rounded-xl bg-muted/30 border border-border/50"
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.8 + i * 0.1 }}
-                        whileHover={{ scale: 1.05, borderColor: 'hsl(var(--primary))' }}
-                      >
-                        <div className="text-lg font-bold text-primary">{stat.label}</div>
-                        <div className="text-xs text-muted-foreground">{stat.desc}</div>
-                      </motion.div>
+
+              {/* Terminal bar */}
+              <motion.div
+                {...fadeUp(1.6)}
+                className="bg-[#0a0a0a] rounded-xl px-4 py-2 flex items-center justify-between shadow-lg"
+              >
+                <div className="flex items-center gap-2">
+                  <motion.div
+                    animate={{ opacity: [1, 0.3, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="w-1.5 h-1.5 rounded-full bg-[#ADFF2F] shadow-[0_0_6px_#ADFF2F]"
+                  />
+                  <code className="text-[10px] font-mono">
+                    <span className="text-[#ADFF2F]">verifydev</span>
+                    <span className="text-zinc-700"> ~ </span>
+                    <span className="text-zinc-500">analyzing 47 repos...</span>
+                    <span className="text-white font-medium"> 100% organic ✓</span>
+                  </code>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex -space-x-1.5">
+                    {['from-blue-500 to-blue-600', 'from-red-500 to-red-600', 'from-purple-500 to-purple-600'].map((g, i) => (
+                      <div key={i} className={`w-4 h-4 rounded-full bg-gradient-to-br ${g} border-[1.5px] border-[#0a0a0a]`} />
                     ))}
                   </div>
+                  <span className="text-zinc-500 text-[10px] font-semibold hidden sm:block">342 jobs</span>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
           </div>
-        </div>
-      </section>
 
-      {/* CTA Section - Ultra Premium */}
-      <section className="py-16 md:py-32 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-purple-500/5 to-primary/10" />
-        {/* Aurora only on desktop for performance */}
-        <div className="hidden md:block">
-          <AuroraBackground />
         </div>
-        <div className="container mx-auto px-4 relative">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="max-w-4xl mx-auto text-center"
-          >
-            <motion.div variants={scaleIn} className="mb-8">
-              <div className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-r from-primary to-purple-500 flex items-center justify-center shadow-2xl shadow-primary/30 mb-8">
-                <Rocket className="w-12 h-12 text-white" />
-              </div>
-            </motion.div>
-            <motion.h2 variants={fadeInUp} className="text-4xl md:text-6xl font-bold mb-6">
-              Your Code Has a Story.{" "}
-              <br />
-              <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-                Let the World Hear It.
-              </span>
-            </motion.h2>
-            <motion.p variants={fadeInUp} className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-              50,000+ developers have already discovered their true potential.
-              It's your turn to shine.
-            </motion.p>
-            <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href="/get-started">
-                <Button size="lg" className="px-12 py-8 text-lg rounded-xl bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 transition-all shadow-2xl shadow-primary/25 btn-shine">
-                  <Github className="mr-2 h-6 w-6" />
-                  Get Verified Now — It's Free
-                  <ArrowRight className="ml-2 h-6 w-6" />
-                </Button>
-              </Link>
-            </motion.div>
-            <motion.p variants={fadeInUp} className="mt-6 text-sm text-muted-foreground flex items-center justify-center gap-4">
-              <span className="flex items-center gap-1"><Zap className="w-4 h-4 text-primary" /> 2 min setup</span>
-              <span className="w-1 h-1 rounded-full bg-muted-foreground" />
-              <span className="flex items-center gap-1"><Lock className="w-4 h-4 text-green-500" /> No credit card</span>
-              <span className="w-1 h-1 rounded-full bg-muted-foreground" />
-              <span className="flex items-center gap-1"><Shield className="w-4 h-4 text-blue-500" /> Privacy first</span>
-            </motion.p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Footer - Enhanced */}
-      <footer className="py-10 md:py-20 border-t border-border/50 bg-card/30">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 md:gap-12 mb-8 md:mb-12">
-            <div className="col-span-2">
-              <div className="flex items-center gap-2 mb-4">
-                <Image 
-                  src="/logo.png" 
-                  alt="VerifyDev"
-                  width={40}
-                  height={40}
-                  className="rounded-xl shadow-lg"
-                />
-                <span className="text-xl font-bold">VerifyDev</span>
-              </div>
-              <p className="text-muted-foreground mb-4 md:mb-6 max-w-sm text-sm md:text-base">
-                Revolutionizing how developers prove their skills and find their dream jobs. Your code tells your story.
-              </p>
-              <div className="flex gap-4">
-                <a href="https://github.com/keshav-sudo" target="_blank" rel="noopener noreferrer" aria-label="Visit our GitHub" className="w-10 h-10 rounded-xl bg-card border border-border hover:border-primary/50 flex items-center justify-center text-muted-foreground hover:text-primary transition-all">
-                  <Github className="w-5 h-5" />
-                </a>
-                <a href="https://x.com/keshavsharmma" target="_blank" rel="noopener noreferrer" aria-label="Visit our Twitter" className="w-10 h-10 rounded-xl bg-card border border-border hover:border-primary/50 flex items-center justify-center text-muted-foreground hover:text-primary transition-all">
-                  <Twitter className="w-5 h-5" />
-                </a>
-              </div>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4 text-base">Product</h3>
-              <ul className="space-y-2 md:space-y-3 text-muted-foreground text-sm">
-                <li><Link href="/features" className="hover:text-primary transition-colors">Features</Link></li>
-                <li><Link href="/pricing" className="hover:text-primary transition-colors">Pricing</Link></li>
-                <li><Link href="/api" className="hover:text-primary transition-colors">API</Link></li>
-              </ul>
-            </div>
-            <div className="flex gap-16 md:contents">
-              <div className="-ml-8 md:ml-0">
-                <h3 className="font-semibold mb-4 text-base">Company</h3>
-                <ul className="space-y-2 md:space-y-3 text-muted-foreground text-sm">
-                  <li><Link href="/about" className="hover:text-primary transition-colors">About</Link></li>
-                  <li><Link href="/careers" className="hover:text-primary transition-colors">Careers</Link></li>
-                  <li><Link href="/blog" className="hover:text-primary transition-colors">Blog</Link></li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-semibold mb-4 text-base">Legal</h3>
-                <ul className="space-y-2 md:space-y-3 text-muted-foreground text-sm">
-                  <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy</Link></li>
-                  <li><Link href="/terms" className="hover:text-primary transition-colors">Terms</Link></li>
-                  <li><Link href="/security" className="hover:text-primary transition-colors">Security</Link></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-border/50 pt-6 md:pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-muted-foreground text-sm text-center md:text-left">
-              © 2026 VerifyDev. All rights reserved.<br className="md:hidden" />
-              <span className="hidden md:inline"> </span>Built with ❤️ for developers.
-            </p>
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <span className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                All systems operational
-              </span>
-            </div>
-          </div>
-        </div>
-      </footer>
-    </main>
-  )
+      </div>
+    </div>
+  );
 }

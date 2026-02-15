@@ -1,7 +1,9 @@
 ﻿// User Types
 import { Job, ExperienceLevel } from './job'
+import { IntelligenceVerdict } from './intelligence-v2'
 
 export interface User {
+  isVerified: any
   id: string
   githubId: string
   username: string
@@ -451,41 +453,7 @@ export interface IntelligenceSkill {
   resumeReady: boolean
 }
 
-export interface IntelligenceVerdict {
-  // Summary
-  projectIntentSummary: string
-  techStackSnapshot: string[]
 
-  // Scores
-  architectureMaturity: number // 0-10
-  overallScore: number         // 0-100
-
-  // Developer Assessment
-  developerLevel: string // JUNIOR/INTERMEDIATE/SENIOR/EXPERT
-  projectIntent: string  // LEARNING/HOBBY/PRODUCTION/ENTERPRISE
-
-  // Signals
-  keySignals: string[]
-  strengthSignals: string[]
-  riskSignals: string[]
-
-  // Suggestions (sorted by priority)
-  suggestions: IntelligenceSuggestion[]
-
-  // Skills (extracted with confidence)
-  extractedSkills: IntelligenceSkill[]
-
-  // Recruiter Output
-  seniorEngineerVerdict: string
-  hireSignal: HireSignal
-
-  // Metadata
-  analysisTimeMs: number
-  modulesExecuted: string[]
-  modulesSkipped: string[]
-  earlyTermination: boolean
-  exitReason?: string
-}
 
 // Extended Project with Industry Analysis and Intelligence Verdict
 export interface ProjectWithIndustry extends Project {
@@ -645,3 +613,151 @@ export * from './job'
 export * from './dimensions'
 export * from './intelligence-v2'
 
+// ============================================
+// DASHBOARD TYPES
+// ============================================
+
+export interface DashboardData {
+  user: {
+    id: string
+    username: string
+    email: string | null
+    name: string | null
+    avatarUrl: string | null
+    bio: string | null
+    location: string | null
+    company: string | null
+    isVerified: boolean
+    isOpenToWork: boolean
+    primaryRole: string | null
+    primaryNiche: string | null
+    joinedAt: string
+  }
+
+  aura: {
+    total: number
+    rank: string
+    percentile: number
+    breakdown: {
+      profile: number
+      projects: number
+      skills: number
+      activity: number
+      github: number
+      community: number
+    }
+    recentGains: Array<{
+      type: 'PROJECT_ANALYZED' | 'SKILL_VERIFIED' | 'GITHUB_ACTIVITY' | 'LOGIN' | 'PROFILE_UPDATE'
+      points: number
+      description: string
+      timestamp: string
+    }>
+    trend: {
+      change: number
+      direction: 'UP' | 'DOWN' | 'STABLE'
+    }
+  }
+
+  projects: {
+    total: number
+    analyzed: number
+    avgScore: number
+    topLanguages: Array<{
+      name: string
+      count: number
+      percentage: number
+    }>
+    featured: Array<{
+      id: string
+      repoName: string | null
+      description: string | null
+      language: string | null
+      stars: number
+      forks: number
+      overallScore: number
+      complexityScore: number | null
+      bestPracticesScore: number | null
+      analysisStatus: string
+      lastAnalyzed: string | null
+      githubUrl: string | null
+    }>
+  }
+
+  skills: {
+    total: number
+    verified: number
+    categories: Array<{
+      category: string
+      count: number
+      avgScore: number
+    }>
+    top: Array<{
+      name: string
+      verifiedScore: number
+      category: string | null
+      isVerified: boolean
+      projectCount: number
+    }>
+    trending: Array<{
+      name: string
+      growthRate: number
+    }>
+  }
+
+  jobs: {
+    applied: number
+    shortlisted: number
+    interviews: number
+    offers: number
+    rejected: number
+    pending: number
+    successRate: number
+    recent: Array<{
+      id: string
+      jobId: string
+      companyName: string
+      role: string
+      status: string
+      matchScore: number | null
+      appliedAt: string
+    }>
+  }
+
+  activity: {
+    recentActions: Array<{
+      type: 'PROJECT_ADDED' | 'SKILL_VERIFIED' | 'JOB_APPLIED' | 'PROFILE_UPDATED' | 'GITHUB_SYNC'
+      title: string
+      description: string
+      timestamp: string
+      metadata?: any
+    }>
+    stats: {
+      projectsThisMonth: number
+      skillsAddedThisMonth: number
+      jobsAppliedThisMonth: number
+      loginStreak: number
+    }
+  }
+
+  recommendations: {
+    skillsToLearn: Array<{
+      name: string
+      reason: string
+      demand: 'HIGH' | 'MEDIUM' | 'LOW'
+      relatedToExisting: string[]
+    }>
+    profileImprovements: Array<{
+      area: string
+      suggestion: string
+      impact: 'HIGH' | 'MEDIUM' | 'LOW'
+      completed: boolean
+    }>
+    matchingJobs: Array<{
+      id: string
+      role: string
+      company: string
+      matchScore: number
+      reason: string
+    }>
+  }
+}

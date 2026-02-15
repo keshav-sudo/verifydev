@@ -171,15 +171,63 @@ export interface IndustryAnalysisV2 {
   skills: SkillTaxonomy
   architecture: ArchitectureVerdict
   riskProfile: RiskProfile
-  confidenceCalibration: CalibratedConfidence
-  verdict: {
-    projectIntentSummary: string
-    techStackSnapshot: string[]
-    architectureMaturity: number
-    overallScore: number
-    developerLevel: string
-    hireSignal: 'STRONG_HIRE' | 'HIRE' | 'BORDERLINE' | 'NO_HIRE'
-    seniorEngineerVerdict: string
-    analysisTimeMs: number
-  }
+  // AI Verdict (Gemini)
+  title: string
+  summary: string
+  strengths: string[]
+  weaknesses: string[]
+  hireRecommendation: 'STRONG_HIRE' | 'HIRE' | 'MAYBE' | 'NO'
+  riskScore: number
+  riskAnalysis: string
+  skillsNarrative: string
+  interviewQuestions: string[]
 }
+
+export interface IntelligenceVerdict {
+  title: string
+  summary: string
+  strengths: string[]
+  weaknesses: string[]
+  hireRecommendation: 'STRONG_HIRE' | 'HIRE' | 'MAYBE' | 'NO'
+  riskScore: number
+  riskAnalysis: string
+  skillsNarrative: string
+  interviewQuestions: string[]
+}
+
+// ============================================
+// AI PROJECT INSIGHT (Enhanced dual-purpose)
+// Section 1: Developer-facing project insights
+// Section 2: Recruiter verdict
+// ============================================
+
+export interface GrowthArea {
+  area: string
+  current: string
+  suggestion: string
+  impact: 'HIGH' | 'MEDIUM' | 'LOW'
+}
+
+export interface RecruiterVerdict {
+  headline: string
+  recommendation: 'STRONG_HIRE' | 'HIRE' | 'LEAN_HIRE' | 'NO_HIRE'
+  confidenceLevel: string
+  oneLineSummary: string
+  topStrengths: string[]
+  topConcerns: string[]
+  estimatedLevel: string
+  interviewFocus: string[]
+}
+
+export interface AIProjectInsight {
+  projectTitle: string
+  projectSummary: string
+  whatYouBuilt: string
+  techHighlights: string[]
+  impressivePatterns: string[]
+  growthAreas: GrowthArea[]
+  learningPath: string[]
+  projectMaturity: string
+  recruiterVerdict: RecruiterVerdict
+}
+
