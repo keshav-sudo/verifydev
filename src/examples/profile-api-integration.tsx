@@ -1,10 +1,10 @@
 /**
  * API INTEGRATION EXAMPLE
- * Shows how to fetch and transform real API data for PublicProfileV2
+ * Shows how to fetch and transform real API data for PublicProfile
  */
 
 import { get } from '@/api/client'
-import PublicProfileV2 from '@/views/public-profile-v2'
+import PublicProfile from '@/views/public-profile'
 
 // Type for API response (adjust based on your actual API)
 interface ApiUserProfile {
@@ -108,7 +108,7 @@ export async function fetchProfileData(username: string): Promise<ApiUserProfile
 export default async function PublicProfilePage({ params }: { params: { username: string } }) {
   const profileData = await fetchProfileData(params.username)
   
-  return <PublicProfileV2 data={profileData} />
+  return <PublicProfile data={profileData} />
 }
 
 /**
@@ -156,7 +156,7 @@ export function PublicProfileClient({ username }: { username: string }) {
     )
   }
 
-  return <PublicProfileV2 data={data} />
+  return <PublicProfile data={data} />
 }
 
 /**
