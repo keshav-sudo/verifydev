@@ -6,12 +6,12 @@ import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from '@/components/ui/select'
 import { get, post, del } from '@/api/client'
 import { toast } from '@/hooks/use-toast'
@@ -133,27 +133,27 @@ function CircularProgress({ value, size = 48, strokeWidth = 4 }: { value: number
 function ProjectCardSkeleton() {
   return (
     <div className="bg-white border border-slate-200 rounded-lg p-5 h-[240px] flex flex-col">
-       <div className="flex justify-between items-start mb-5 pb-4 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-             <div className="h-10 w-10 rounded-md bg-slate-100 animate-pulse" />
-             <div>
-               <div className="h-4 w-32 bg-slate-100 rounded-sm animate-pulse mb-2" />
-               <div className="h-3 w-20 bg-slate-100 rounded-sm animate-pulse" />
-             </div>
+      <div className="flex justify-between items-start mb-5 pb-4 border-b border-slate-100">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-md bg-slate-100 animate-pulse" />
+          <div>
+            <div className="h-4 w-32 bg-slate-100 rounded-sm animate-pulse mb-2" />
+            <div className="h-3 w-20 bg-slate-100 rounded-sm animate-pulse" />
           </div>
-          <div className="h-8 w-8 bg-slate-100 rounded-full animate-pulse" />
-       </div>
-       <div className="flex-1 space-y-2.5">
-          <div className="h-3 w-full bg-slate-100 rounded-sm animate-pulse" />
-          <div className="h-3 w-4/5 bg-slate-100 rounded-sm animate-pulse" />
-       </div>
-       <div className="flex justify-between mt-4 pt-4 border-t border-slate-100">
-          <div className="flex gap-3">
-            <div className="h-4 w-12 bg-slate-100 rounded-sm animate-pulse" />
-            <div className="h-4 w-12 bg-slate-100 rounded-sm animate-pulse" />
-          </div>
-          <div className="h-4 w-16 bg-slate-100 rounded-sm animate-pulse" />
-       </div>
+        </div>
+        <div className="h-8 w-8 bg-slate-100 rounded-full animate-pulse" />
+      </div>
+      <div className="flex-1 space-y-2.5">
+        <div className="h-3 w-full bg-slate-100 rounded-sm animate-pulse" />
+        <div className="h-3 w-4/5 bg-slate-100 rounded-sm animate-pulse" />
+      </div>
+      <div className="flex justify-between mt-4 pt-4 border-t border-slate-100">
+        <div className="flex gap-3">
+          <div className="h-4 w-12 bg-slate-100 rounded-sm animate-pulse" />
+          <div className="h-4 w-12 bg-slate-100 rounded-sm animate-pulse" />
+        </div>
+        <div className="h-4 w-16 bg-slate-100 rounded-sm animate-pulse" />
+      </div>
     </div>
   )
 }
@@ -183,7 +183,7 @@ export default function Projects() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [showAddModal, setShowAddModal] = useState(false)
   const [projectType, setProjectType] = useState<ProjectType>('fullstack')
-  
+
   const queryClient = useQueryClient()
 
   const { data, isLoading, refetch } = useQuery({
@@ -204,7 +204,7 @@ export default function Projects() {
     const repos = availableReposData?.repos || []
     if (!repoSearch) return repos
     const searchLower = repoSearch.toLowerCase()
-    return repos.filter(repo => 
+    return repos.filter(repo =>
       repo.name.toLowerCase().includes(searchLower) ||
       repo.fullName.toLowerCase().includes(searchLower) ||
       repo.description?.toLowerCase().includes(searchLower) ||
@@ -227,10 +227,10 @@ export default function Projects() {
   // Filtered and sorted projects
   const filteredProjects = useMemo(() => {
     let projects = data?.projects || []
-    
+
     if (search) {
       const searchLower = search.toLowerCase()
-      projects = projects.filter(p => 
+      projects = projects.filter(p =>
         p.name?.toLowerCase().includes(searchLower) ||
         p.language?.toLowerCase().includes(searchLower) ||
         p.description?.toLowerCase().includes(searchLower)
@@ -242,7 +242,7 @@ export default function Projects() {
     if (statusFilter !== 'all') {
       projects = projects.filter(p => p.analysisStatus?.toLowerCase() === statusFilter)
     }
-    
+
     projects = [...projects].sort((a, b) => {
       let comparison = 0
       switch (sortField) {
@@ -254,7 +254,7 @@ export default function Projects() {
       }
       return sortOrder === 'desc' ? -comparison : comparison
     })
-    
+
     return projects.sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0))
   }, [data?.projects, search, languageFilter, statusFilter, sortField, sortOrder])
 
@@ -262,9 +262,9 @@ export default function Projects() {
   const addSelectedReposMutation = useMutation({
     mutationFn: async ({ repos, type }: { repos: GitHubRepo[], type: ProjectType }) => {
       const results = await Promise.allSettled(
-        repos.map(repo => 
-          post('/v1/projects', { 
-            githubRepoUrl: repo.url, 
+        repos.map(repo =>
+          post('/v1/projects', {
+            githubRepoUrl: repo.url,
             repoName: repo.name,
             description: repo.description || undefined,
             defaultBranch: repo.defaultBranch,
@@ -329,40 +329,40 @@ export default function Projects() {
 
   return (
     <div className="space-y-6 pb-12 w-full min-h-screen bg-[#F8F9FA] relative font-['Plus_Jakarta_Sans'] text-slate-800">
-      
+
       {/* Subtle Blueprint Grid */}
       <div className="absolute inset-0 z-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] opacity-30 pointer-events-none"></div>
 
-    {/* NAYI LINE: pt-6 ko hatakar pt-0 kar diya taaki gap khatam ho jaye */}
+      {/* NAYI LINE: pt-6 ko hatakar pt-0 kar diya taaki gap khatam ho jaye */}
       <div className="max-w-[1536px] mx-auto relative z-10 px-4 md:px-6 lg:px-8 pt-0">
-        
-{/* ========================================= */}
+
+        {/* ========================================= */}
         {/* HEADER SECTION                            */}
         {/* ========================================= */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col md:flex-row md:items-center justify-between mb-4 pb-3 border-b border-slate-200 gap-4"
         >
           <div>
             <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2 mb-1">
-               <FolderGit2 className="h-5 w-5 text-slate-400" /> Project Hub
+              <FolderGit2 className="h-5 w-5 text-slate-400" /> Project Hub
             </h1>
             <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-               Manage & Verify Repositories
+              Manage & Verify Repositories
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => refetch()}
               className="bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-sm transition-all h-8 px-4 text-xs font-bold rounded-md"
             >
               <RefreshCw className="h-3 w-3 mr-2" /> Refresh
             </Button>
-            <Button 
-              onClick={() => setShowAddModal(true)} 
+            <Button
+              onClick={() => setShowAddModal(true)}
               className="bg-[#1A1A1A] text-white hover:bg-black shadow-md transition-all h-8 px-5 text-xs font-bold gap-1.5 rounded-md"
             >
               <Plus className="h-3 w-3" /> Import Project
@@ -376,62 +376,62 @@ export default function Projects() {
         {isLoading ? (
           <StatsSkeleton />
         ) : (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="bg-[#0A0A0A] border border-slate-800 rounded-lg shadow-lg flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-slate-800 mb-6 overflow-hidden"
           >
-              <div className="flex-1 p-5 relative group">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-all pointer-events-none" />
-                <div className="flex items-center gap-2 text-blue-400 mb-2">
-                  <FolderGit2 className="w-4 h-4" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">Repositories</span>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <div className="text-3xl font-black text-white leading-none tracking-tight">{stats.total}</div>
-                  <div className="text-[9px] font-bold text-slate-500 uppercase">Tracked</div>
-                </div>
+            <div className="flex-1 p-5 relative group">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-all pointer-events-none" />
+              <div className="flex items-center gap-2 text-blue-400 mb-2">
+                <FolderGit2 className="w-4 h-4" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">Repositories</span>
               </div>
+              <div className="flex items-baseline gap-2">
+                <div className="text-3xl font-black text-white leading-none tracking-tight">{stats.total}</div>
+                <div className="text-[9px] font-bold text-slate-500 uppercase">Tracked</div>
+              </div>
+            </div>
 
-              <div className="flex-1 p-5 relative group">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-[#ADFF2F]/5 rounded-full blur-2xl group-hover:bg-[#ADFF2F]/10 transition-all pointer-events-none" />
-                <div className="flex items-center gap-2 text-[#ADFF2F] mb-2">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">Analysis Status</span>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <div className="text-3xl font-black text-white leading-none tracking-tight">{stats.analyzed}</div>
-                  <div className="text-[9px] font-bold text-slate-500 uppercase">Verified</div>
-                </div>
-                {stats.total > 0 && (
-                  <div className="w-full bg-slate-800 h-1 rounded-sm mt-3 overflow-hidden">
-                    <div className="bg-[#ADFF2F] h-full rounded-sm shadow-[0_0_8px_rgba(173,255,47,0.5)]" style={{ width: `${(stats.analyzed / stats.total) * 100}%` }}></div>
-                  </div>
-                )}
+            <div className="flex-1 p-5 relative group">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-[#ADFF2F]/5 rounded-full blur-2xl group-hover:bg-[#ADFF2F]/10 transition-all pointer-events-none" />
+              <div className="flex items-center gap-2 text-[#ADFF2F] mb-2">
+                <CheckCircle2 className="w-4 h-4" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">Analysis Status</span>
               </div>
+              <div className="flex items-baseline gap-2">
+                <div className="text-3xl font-black text-white leading-none tracking-tight">{stats.analyzed}</div>
+                <div className="text-[9px] font-bold text-slate-500 uppercase">Verified</div>
+              </div>
+              {stats.total > 0 && (
+                <div className="w-full bg-slate-800 h-1 rounded-sm mt-3 overflow-hidden">
+                  <div className="bg-[#ADFF2F] h-full rounded-sm shadow-[0_0_8px_rgba(173,255,47,0.5)]" style={{ width: `${(stats.analyzed / stats.total) * 100}%` }}></div>
+                </div>
+              )}
+            </div>
 
-              <div className="flex-1 p-5">
-                <div className="flex items-center gap-2 text-amber-400 mb-2">
-                  <Star className="w-4 h-4" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">Total Stars</span>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <div className="text-3xl font-black text-white leading-none tracking-tight">{formatNumber(stats.totalStars)}</div>
-                  <div className="text-[9px] font-bold text-slate-500 uppercase">Across all repos</div>
-                </div>
+            <div className="flex-1 p-5">
+              <div className="flex items-center gap-2 text-amber-400 mb-2">
+                <Star className="w-4 h-4" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">Total Stars</span>
               </div>
+              <div className="flex items-baseline gap-2">
+                <div className="text-3xl font-black text-white leading-none tracking-tight">{formatNumber(stats.totalStars)}</div>
+                <div className="text-[9px] font-bold text-slate-500 uppercase">Across all repos</div>
+              </div>
+            </div>
 
-              <div className="flex-1 p-5">
-                <div className="flex items-center gap-2 text-purple-400 mb-2">
-                  <Zap className="w-4 h-4" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">Aura Yield</span>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <div className="text-3xl font-black text-white leading-none tracking-tight">+{formatNumber(stats.totalAura)}</div>
-                  <div className="text-[9px] font-bold text-slate-500 uppercase">Points Gained</div>
-                </div>
+            <div className="flex-1 p-5">
+              <div className="flex items-center gap-2 text-purple-400 mb-2">
+                <Zap className="w-4 h-4" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">Aura Yield</span>
               </div>
+              <div className="flex items-baseline gap-2">
+                <div className="text-3xl font-black text-white leading-none tracking-tight">+{formatNumber(stats.totalAura)}</div>
+                <div className="text-[9px] font-bold text-slate-500 uppercase">Points Gained</div>
+              </div>
+            </div>
           </motion.div>
         )}
 
@@ -439,78 +439,78 @@ export default function Projects() {
         {/* FILTERS & SEARCH (High Contrast Bar)      */}
         {/* ========================================= */}
         <div className="flex flex-col md:flex-row gap-3 items-center bg-white p-3 rounded-lg border border-slate-200 shadow-sm mb-6">
-            <div className="relative flex-1 w-full md:w-auto">
-               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-4 w-4" />
-               <Input 
-                  placeholder="Filter by name, language..." 
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9 h-9 rounded-md border-slate-200 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-slate-300 text-sm font-medium"
-               />
+          <div className="relative flex-1 w-full md:w-auto">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-4 w-4" />
+            <Input
+              placeholder="Filter by name, language..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-9 rounded-md border-slate-200 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-slate-300 text-sm font-medium"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto scrollbar-none pb-1 md:pb-0">
+            {/* Language */}
+            <Select value={languageFilter} onValueChange={setLanguageFilter}>
+              <SelectTrigger className="w-[130px] h-9 rounded-md bg-white border-slate-200 font-bold text-[11px] text-slate-600 uppercase tracking-wide">
+                <Code2 className="w-3.5 h-3.5 mr-1.5 text-slate-400" />
+                <SelectValue placeholder="Lang" />
+              </SelectTrigger>
+              <SelectContent className="rounded-md">
+                <SelectItem value="all" className="text-xs font-bold">All Languages</SelectItem>
+                {stats.languages.map(lang => (
+                  <SelectItem key={lang} value={lang} className="text-xs font-bold">{lang}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Status */}
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[130px] h-9 rounded-md bg-white border-slate-200 font-bold text-[11px] text-slate-600 uppercase tracking-wide">
+                <Activity className="w-3.5 h-3.5 mr-1.5 text-slate-400" />
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent className="rounded-md">
+                <SelectItem value="all" className="text-xs font-bold">All Status</SelectItem>
+                <SelectItem value="completed" className="text-xs font-bold">Verified</SelectItem>
+                <SelectItem value="analyzing" className="text-xs font-bold">Analyzing</SelectItem>
+                <SelectItem value="failed" className="text-xs font-bold">Failed</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Sort */}
+            <Select value={sortField} onValueChange={(val) => setSortField(val as SortField)}>
+              <SelectTrigger className="w-[130px] h-9 rounded-md bg-white border-slate-200 font-bold text-[11px] text-slate-600 uppercase tracking-wide">
+                <SortAsc className="w-3.5 h-3.5 mr-1.5 text-slate-400" />
+                <SelectValue placeholder="Sort" />
+              </SelectTrigger>
+              <SelectContent className="rounded-md">
+                <SelectItem value="updatedAt" className="text-xs font-bold">Updated</SelectItem>
+                <SelectItem value="stars" className="text-xs font-bold">Stars</SelectItem>
+                <SelectItem value="auraContribution" className="text-xs font-bold">Aura Score</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* View Toggles */}
+            <div className="flex bg-slate-50 rounded-md border border-slate-200 p-0.5 ml-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn("rounded-sm h-7 w-8 text-slate-400 hover:text-slate-900 hover:bg-slate-200", viewMode === 'grid' && "bg-white text-slate-900 shadow-sm border border-slate-200/50")}
+                onClick={() => setViewMode('grid')}
+              >
+                <LayoutGrid className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn("rounded-sm h-7 w-8 text-slate-400 hover:text-slate-900 hover:bg-slate-200", viewMode === 'list' && "bg-white text-slate-900 shadow-sm border border-slate-200/50")}
+                onClick={() => setViewMode('list')}
+              >
+                <List className="h-3.5 w-3.5" />
+              </Button>
             </div>
-            
-            <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto scrollbar-none pb-1 md:pb-0">
-               {/* Language */}
-               <Select value={languageFilter} onValueChange={setLanguageFilter}>
-                  <SelectTrigger className="w-[130px] h-9 rounded-md bg-white border-slate-200 font-bold text-[11px] text-slate-600 uppercase tracking-wide">
-                     <Code2 className="w-3.5 h-3.5 mr-1.5 text-slate-400" />
-                     <SelectValue placeholder="Lang" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-md">
-                     <SelectItem value="all" className="text-xs font-bold">All Languages</SelectItem>
-                     {stats.languages.map(lang => (
-                        <SelectItem key={lang} value={lang} className="text-xs font-bold">{lang}</SelectItem>
-                     ))}
-                  </SelectContent>
-               </Select>
-
-               {/* Status */}
-               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[130px] h-9 rounded-md bg-white border-slate-200 font-bold text-[11px] text-slate-600 uppercase tracking-wide">
-                     <Activity className="w-3.5 h-3.5 mr-1.5 text-slate-400" />
-                     <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-md">
-                     <SelectItem value="all" className="text-xs font-bold">All Status</SelectItem>
-                     <SelectItem value="completed" className="text-xs font-bold">Verified</SelectItem>
-                     <SelectItem value="analyzing" className="text-xs font-bold">Analyzing</SelectItem>
-                     <SelectItem value="failed" className="text-xs font-bold">Failed</SelectItem>
-                  </SelectContent>
-               </Select>
-
-               {/* Sort */}
-               <Select value={sortField} onValueChange={(val) => setSortField(val as SortField)}>
-                  <SelectTrigger className="w-[130px] h-9 rounded-md bg-white border-slate-200 font-bold text-[11px] text-slate-600 uppercase tracking-wide">
-                     <SortAsc className="w-3.5 h-3.5 mr-1.5 text-slate-400" />
-                     <SelectValue placeholder="Sort" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-md">
-                     <SelectItem value="updatedAt" className="text-xs font-bold">Updated</SelectItem>
-                     <SelectItem value="stars" className="text-xs font-bold">Stars</SelectItem>
-                     <SelectItem value="auraContribution" className="text-xs font-bold">Aura Score</SelectItem>
-                  </SelectContent>
-               </Select>
-
-               {/* View Toggles */}
-               <div className="flex bg-slate-50 rounded-md border border-slate-200 p-0.5 ml-1">
-                  <Button 
-                     variant="ghost" 
-                     size="icon" 
-                     className={cn("rounded-sm h-7 w-8 text-slate-400 hover:text-slate-900 hover:bg-slate-200", viewMode === 'grid' && "bg-white text-slate-900 shadow-sm border border-slate-200/50")}
-                     onClick={() => setViewMode('grid')}
-                  >
-                     <LayoutGrid className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button 
-                     variant="ghost" 
-                     size="icon" 
-                     className={cn("rounded-sm h-7 w-8 text-slate-400 hover:text-slate-900 hover:bg-slate-200", viewMode === 'list' && "bg-white text-slate-900 shadow-sm border border-slate-200/50")}
-                     onClick={() => setViewMode('list')}
-                  >
-                      <List className="h-3.5 w-3.5" />
-                  </Button>
-               </div>
-            </div>
+          </div>
         </div>
 
         {/* ========================================= */}
@@ -518,112 +518,112 @@ export default function Projects() {
         {/* ========================================= */}
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-             {[1, 2, 3, 4, 5, 6].map(i => <ProjectCardSkeleton key={i} />)}
+            {[1, 2, 3, 4, 5, 6].map(i => <ProjectCardSkeleton key={i} />)}
           </div>
         ) : filteredProjects.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-lg border border-dashed border-slate-300 shadow-sm group">
-             <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-md flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                <FolderGit2 className="h-5 w-5 text-slate-400 group-hover:text-slate-900 transition-colors" />
-             </div>
-             <h3 className="text-sm font-extrabold text-slate-900">No Projects Tracked</h3>
-             <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-               {search || languageFilter !== 'all' ? 'Adjust your filters to find what you are looking for.' : 'Import your repositories to start earning Aura points.'}
-             </p>
-             {!search && languageFilter === 'all' && (
-                <Button onClick={() => setShowAddModal(true)} className="mt-5 rounded-md bg-slate-900 hover:bg-slate-800 text-xs font-bold gap-2 px-5 h-8">
-                   <Plus className="h-3.5 w-3.5" /> Import Repository
-                </Button>
-             )}
+            <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-md flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+              <FolderGit2 className="h-5 w-5 text-slate-400 group-hover:text-slate-900 transition-colors" />
+            </div>
+            <h3 className="text-sm font-extrabold text-slate-900">No Projects Tracked</h3>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+              {search || languageFilter !== 'all' ? 'Adjust your filters to find what you are looking for.' : 'Import your repositories to start earning Aura points.'}
+            </p>
+            {!search && languageFilter === 'all' && (
+              <Button onClick={() => setShowAddModal(true)} className="mt-5 rounded-md bg-slate-900 hover:bg-slate-800 text-xs font-bold gap-2 px-5 h-8">
+                <Plus className="h-3.5 w-3.5" /> Import Repository
+              </Button>
+            )}
           </div>
         ) : (
-          <motion.div 
+          <motion.div
             className={cn(
-               "grid gap-5",
-               viewMode === 'grid' ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
+              "grid gap-5",
+              viewMode === 'grid' ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
             )}
             variants={containerVariants}
             initial="hidden"
             animate="visible"
           >
-             {filteredProjects.map((project) => (
-                <motion.div key={project.id} variants={itemVariants}>
-                   <Link href={`/projects/${project.id}`}>
-                      <div className="group h-full bg-white rounded-lg p-5 shadow-sm border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all duration-300 relative flex flex-col">
-                         
-                         {/* Header & Score */}
-                         <div className="flex justify-between items-start mb-4 pb-3 border-b border-slate-100">
-                             <div className="flex items-start gap-3">
-                                {/* Sharp Score Visual */}
-                                <div className="shrink-0 bg-slate-50 border border-slate-100 p-1.5 rounded-md shadow-sm">
-                                  <CircularProgress value={project.score || 0} size={36} strokeWidth={3.5} />
-                                </div>
-                                <div className="pt-0.5">
-                                   <h3 className="text-sm font-extrabold text-slate-900 leading-tight line-clamp-1 mb-1 group-hover:text-blue-600 transition-colors" title={project.repoName}>
-                                      {project.repoName}
-                                   </h3>
-                                   <div className="flex items-center gap-1.5">
-                                       <span className="bg-slate-100 border border-slate-200 text-slate-700 text-[9px] font-extrabold px-1.5 py-0.5 rounded-sm uppercase tracking-wider">
-                                         {project.language || 'Code'}
-                                       </span>
-                                       {project.analysisStatus === 'completed' && (
-                                         <span className="text-[#65A30D] text-[9px] font-extrabold uppercase tracking-widest flex items-center gap-0.5">
-                                            <CheckCircle2 className="w-3 h-3" /> Verified
-                                         </span>
-                                       )}
-                                   </div>
-                                </div>
-                             </div>
+            {filteredProjects.map((project) => (
+              <motion.div key={project.id} variants={itemVariants}>
+                <Link href={`/projects/${project.id}`}>
+                  <div className="group h-full bg-white rounded-lg p-5 shadow-sm border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all duration-300 relative flex flex-col">
 
-                             {/* Menu */}
-                               <DropdownMenu>
-                                  <DropdownMenuTrigger asChild onClick={(e) => e.preventDefault()}>
-                                     <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-sm -mr-1">
-                                        <MoreVertical className="h-3.5 w-3.5" />
-                                     </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="rounded-md border-slate-200 shadow-lg min-w-[140px]">
-                                     <DropdownMenuItem onClick={() => analyzeProjectMutation.mutate(project.id)} className="text-xs font-bold text-slate-700 focus:bg-slate-50">
-                                        <RefreshCw className="mr-2 h-3.5 w-3.5" /> Re-analyze
-                                     </DropdownMenuItem>
-                                     <DropdownMenuItem className="text-xs font-bold text-red-600 focus:bg-red-50 focus:text-red-700" onClick={() => deleteProjectMutation.mutate(project.id)}>
-                                        <Trash2 className="mr-2 h-3.5 w-3.5" /> Remove
-                                     </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                               </DropdownMenu>
-                         </div>
-
-                         {/* Description */}
-                         <p className="text-slate-500 text-xs font-medium line-clamp-2 leading-relaxed mb-5 min-h-[32px]">
-                            {project.description || 'No description provided. Add one in GitHub to improve verification context.'}
-                         </p>
-
-                         {/* Footer Stats */}
-                         <div className="mt-auto flex items-center justify-between pt-3 border-t border-slate-100">
-                            <div className="flex items-center gap-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                                <div className="flex items-center gap-1 hover:text-slate-800 transition-colors">
-                                   <Star className="h-3 w-3 text-slate-400" />
-                                   <span>{formatNumber(project.stars)}</span>
-                                </div>
-                                 <div className="flex items-center gap-1 hover:text-slate-800 transition-colors">
-                                   <GitFork className="h-3 w-3 text-slate-400" />
-                                   <span>{project.forks || 0}</span>
-                                </div>
-                            </div>
-                        
-                            <div className="text-right">
-                               <div className="flex items-center gap-1 text-[#65A30D] font-extrabold text-[11px] bg-[#84CC16]/10 px-1.5 py-0.5 rounded-sm border border-[#84CC16]/20">
-                                  <Zap className="h-3 w-3" />
-                                  +{project.auraContribution || 0} Aura
-                               </div>
-                            </div>
-                         </div>
-                         
-                         {/* Hover Accent Line */}
-                         <div className="absolute inset-x-0 bottom-0 h-[2px] bg-slate-900 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-b-lg" />
+                    {/* Header & Score */}
+                    <div className="flex justify-between items-start mb-4 pb-3 border-b border-slate-100">
+                      <div className="flex items-start gap-3">
+                        {/* Sharp Score Visual */}
+                        <div className="shrink-0 bg-slate-50 border border-slate-100 p-1.5 rounded-md shadow-sm">
+                          <CircularProgress value={project.auraContribution || project.score || 0} size={36} strokeWidth={3.5} />
+                        </div>
+                        <div className="pt-0.5">
+                          <h3 className="text-sm font-extrabold text-slate-900 leading-tight line-clamp-1 mb-1 group-hover:text-blue-600 transition-colors" title={project.repoName}>
+                            {project.repoName}
+                          </h3>
+                          <div className="flex items-center gap-1.5">
+                            <span className="bg-slate-100 border border-slate-200 text-slate-700 text-[9px] font-extrabold px-1.5 py-0.5 rounded-sm uppercase tracking-wider">
+                              {project.language || 'Code'}
+                            </span>
+                            {project.analysisStatus === 'completed' && (
+                              <span className="text-[#65A30D] text-[9px] font-extrabold uppercase tracking-widest flex items-center gap-0.5">
+                                <CheckCircle2 className="w-3 h-3" /> Verified
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                   </Link>
-                </motion.div>
-             ))}
+
+                      {/* Menu */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.preventDefault()}>
+                          <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-sm -mr-1">
+                            <MoreVertical className="h-3.5 w-3.5" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="rounded-md border-slate-200 shadow-lg min-w-[140px]">
+                          <DropdownMenuItem onClick={() => analyzeProjectMutation.mutate(project.id)} className="text-xs font-bold text-slate-700 focus:bg-slate-50">
+                            <RefreshCw className="mr-2 h-3.5 w-3.5" /> Re-analyze
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-xs font-bold text-red-600 focus:bg-red-50 focus:text-red-700" onClick={() => deleteProjectMutation.mutate(project.id)}>
+                            <Trash2 className="mr-2 h-3.5 w-3.5" /> Remove
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-slate-500 text-xs font-medium line-clamp-2 leading-relaxed mb-5 min-h-[32px]">
+                      {project.description || 'No description provided. Add one in GitHub to improve verification context.'}
+                    </p>
+
+                    {/* Footer Stats */}
+                    <div className="mt-auto flex items-center justify-between pt-3 border-t border-slate-100">
+                      <div className="flex items-center gap-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                        <div className="flex items-center gap-1 hover:text-slate-800 transition-colors">
+                          <Star className="h-3 w-3 text-slate-400" />
+                          <span>{formatNumber(project.stars)}</span>
+                        </div>
+                        <div className="flex items-center gap-1 hover:text-slate-800 transition-colors">
+                          <GitFork className="h-3 w-3 text-slate-400" />
+                          <span>{project.forks || 0}</span>
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <div className="flex items-center gap-1 text-[#65A30D] font-extrabold text-[11px] bg-[#84CC16]/10 px-1.5 py-0.5 rounded-sm border border-[#84CC16]/20">
+                          <Zap className="h-3 w-3" />
+                          +{project.auraContribution || 0} Aura
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Hover Accent Line */}
+                    <div className="absolute inset-x-0 bottom-0 h-[2px] bg-slate-900 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-b-lg" />
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
           </motion.div>
         )}
       </div>
@@ -651,12 +651,12 @@ export default function Projects() {
               {/* Modal Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
                 <div className="flex items-center gap-2">
-                    <FolderGit2 className="h-4 w-4 text-slate-500" />
-                    <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-widest">Import Repository</h2>
+                  <FolderGit2 className="h-4 w-4 text-slate-500" />
+                  <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-widest">Import Repository</h2>
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setShowAddModal(false)}
                   className="h-6 w-6 rounded-md hover:bg-slate-200 text-slate-500"
                 >
@@ -664,32 +664,32 @@ export default function Projects() {
                 </Button>
               </div>
 
-               {/* Project Role Tabs */}
-               <div className="px-6 pt-5 pb-2">
-                 <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-2 block">Project Architecture</label>
-                 <div className="flex gap-2 overflow-x-auto scrollbar-none">
-                    {[
-                      {id: 'fullstack', label: 'Fullstack', icon: Layers},
-                      {id: 'backend', label: 'Backend', icon: Server}, 
-                      {id: 'frontend', label: 'Frontend', icon: MonitorSmartphone}, 
-                      {id: 'ml', label: 'AI/ML', icon: BrainCircuit}
-                    ].map((type) => (
-                       <button
-                          key={type.id}
-                          onClick={() => setProjectType(type.id as ProjectType)}
-                          className={cn(
-                             "px-3 py-1.5 rounded-md text-[11px] font-extrabold border flex items-center gap-1.5 transition-all shrink-0",
-                             projectType === type.id 
-                                ? "bg-slate-900 text-white border-slate-900 shadow-sm" 
-                                : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
-                          )}
-                       >
-                          <type.icon className="w-3 h-3" /> {type.label}
-                       </button>
-                    ))}
-                 </div>
-               </div>
-              
+              {/* Project Role Tabs */}
+              <div className="px-6 pt-5 pb-2">
+                <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-2 block">Project Architecture</label>
+                <div className="flex gap-2 overflow-x-auto scrollbar-none">
+                  {[
+                    { id: 'fullstack', label: 'Fullstack', icon: Layers },
+                    { id: 'backend', label: 'Backend', icon: Server },
+                    { id: 'frontend', label: 'Frontend', icon: MonitorSmartphone },
+                    { id: 'ml', label: 'AI/ML', icon: BrainCircuit }
+                  ].map((type) => (
+                    <button
+                      key={type.id}
+                      onClick={() => setProjectType(type.id as ProjectType)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-md text-[11px] font-extrabold border flex items-center gap-1.5 transition-all shrink-0",
+                        projectType === type.id
+                          ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                          : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                      )}
+                    >
+                      <type.icon className="w-3 h-3" /> {type.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Search Bar */}
               <div className="px-6 py-3 border-b border-slate-100">
                 <div className="relative">
@@ -707,63 +707,63 @@ export default function Projects() {
               {/* Repo List */}
               <div className="flex-1 overflow-y-auto min-h-[300px] p-2 bg-slate-50/50 scrollbar-thin">
                 {isLoadingRepos ? (
-                   <div className="h-full flex items-center justify-center">
-                      <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
-                   </div>
+                  <div className="h-full flex items-center justify-center">
+                    <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+                  </div>
                 ) : filteredRepos.length === 0 ? (
-                   <div className="h-full flex flex-col items-center justify-center text-slate-400">
-                     <Code2 className="h-8 w-8 mb-2 opacity-50" />
-                     <p className="text-xs font-bold">No repositories found</p>
-                   </div>
+                  <div className="h-full flex flex-col items-center justify-center text-slate-400">
+                    <Code2 className="h-8 w-8 mb-2 opacity-50" />
+                    <p className="text-xs font-bold">No repositories found</p>
+                  </div>
                 ) : (filteredRepos.map(repo => (
-                   <div 
-                      key={repo.id}
-                      onClick={() => {
-                        if (repo.isAdded) return;
-                        const newSelected = new Set(selectedRepos)
-                        newSelected.has(repo.url) ? newSelected.delete(repo.url) : newSelected.add(repo.url)
-                        setSelectedRepos(newSelected)
-                      }}
-                      className={cn(
-                         "p-3 mx-4 my-1 rounded-md border flex items-center justify-between cursor-pointer transition-all",
-                         selectedRepos.has(repo.url) ? "bg-blue-50 border-blue-200 shadow-sm" : "bg-white border-transparent hover:border-slate-200 hover:shadow-sm",
-                         repo.isAdded && "opacity-50 cursor-not-allowed bg-slate-50 border-transparent"
-                      )}
-                   >
-                      <div className="flex items-center gap-3 min-w-0">
-                         <div className={cn(
-                            "w-4 h-4 rounded-sm border flex items-center justify-center shrink-0 transition-colors",
-                             selectedRepos.has(repo.url) ? "bg-blue-500 border-blue-500" : "border-slate-300 bg-white"
-                         )}>
-                            {selectedRepos.has(repo.url) && <Check className="w-3 h-3 text-white" />}
-                         </div>
-                         <div className="min-w-0">
-                            <h4 className="font-extrabold text-sm text-slate-900 truncate">{repo.name}</h4>
-                            <p className="text-[10px] text-slate-500 truncate mt-0.5">{repo.description || 'No description available'}</p>
-                         </div>
+                  <div
+                    key={repo.id}
+                    onClick={() => {
+                      if (repo.isAdded) return;
+                      const newSelected = new Set(selectedRepos)
+                      newSelected.has(repo.url) ? newSelected.delete(repo.url) : newSelected.add(repo.url)
+                      setSelectedRepos(newSelected)
+                    }}
+                    className={cn(
+                      "p-3 mx-4 my-1 rounded-md border flex items-center justify-between cursor-pointer transition-all",
+                      selectedRepos.has(repo.url) ? "bg-blue-50 border-blue-200 shadow-sm" : "bg-white border-transparent hover:border-slate-200 hover:shadow-sm",
+                      repo.isAdded && "opacity-50 cursor-not-allowed bg-slate-50 border-transparent"
+                    )}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={cn(
+                        "w-4 h-4 rounded-sm border flex items-center justify-center shrink-0 transition-colors",
+                        selectedRepos.has(repo.url) ? "bg-blue-500 border-blue-500" : "border-slate-300 bg-white"
+                      )}>
+                        {selectedRepos.has(repo.url) && <Check className="w-3 h-3 text-white" />}
                       </div>
-                      {repo.language && (
-                         <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-sm text-[9px] font-extrabold text-slate-600 shrink-0 uppercase tracking-wider ml-3">
-                            {repo.language}
-                         </span>
-                      )}
-                   </div>
+                      <div className="min-w-0">
+                        <h4 className="font-extrabold text-sm text-slate-900 truncate">{repo.name}</h4>
+                        <p className="text-[10px] text-slate-500 truncate mt-0.5">{repo.description || 'No description available'}</p>
+                      </div>
+                    </div>
+                    {repo.language && (
+                      <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-sm text-[9px] font-extrabold text-slate-600 shrink-0 uppercase tracking-wider ml-3">
+                        {repo.language}
+                      </span>
+                    )}
+                  </div>
                 )))}
               </div>
-              
+
               {/* Footer */}
               <div className="p-4 border-t border-slate-200 bg-white flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                    {selectedRepos.size} Selected
-                  </span>
-                  <Button 
-                    size="sm"
-                    disabled={selectedRepos.size === 0}
-                    onClick={() => addSelectedReposMutation.mutate({ repos: filteredRepos.filter(r => selectedRepos.has(r.url)), type: projectType })}
-                    className="rounded-md bg-slate-900 hover:bg-slate-800 text-white font-extrabold px-6 shadow-sm"
-                  >
-                     Import Projects
-                  </Button>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                  {selectedRepos.size} Selected
+                </span>
+                <Button
+                  size="sm"
+                  disabled={selectedRepos.size === 0}
+                  onClick={() => addSelectedReposMutation.mutate({ repos: filteredRepos.filter(r => selectedRepos.has(r.url)), type: projectType })}
+                  className="rounded-md bg-slate-900 hover:bg-slate-800 text-white font-extrabold px-6 shadow-sm"
+                >
+                  Import Projects
+                </Button>
               </div>
 
             </motion.div>

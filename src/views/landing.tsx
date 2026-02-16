@@ -53,7 +53,7 @@ export default function Landing() {
             Sign In
           </Link>
           <Link
-            href="/signup"
+            href="/get-started"
             className="bg-white text-black px-5 py-2 rounded-full text-sm font-semibold hover:bg-[#ADFF2F] transition-all duration-300 hover:shadow-[0_0_24px_rgba(173,255,47,0.3)]"
           >
             Get Started →
@@ -82,7 +82,7 @@ export default function Landing() {
               Start Proving.
             </span>
           </motion.h1>
-  <motion.div {...fadeUp(0.35)} className="mt-7 flex items-center gap-5">
+          <motion.div {...fadeUp(0.35)} className="mt-7 flex items-center gap-5">
             <motion.button
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.97 }}
