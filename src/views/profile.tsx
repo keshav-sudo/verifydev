@@ -266,8 +266,6 @@ export default function Profile() {
   const fetchLeetCode = async () => { try { setLeetcodeStats(await getLeetcodeStats()) } catch (e) { } }
   const fetchGitHubStats = async () => { try { setGithubStats(await getGithubStats()) } catch (e) { } }
 
-  if (!user) return null
-
   const handleSaveProfile = async () => {
     setIsSaving(true)
     try {
@@ -318,6 +316,7 @@ export default function Profile() {
   const TABS = ['overview', 'skills', 'projects', 'github', 'experience']
 
   const handleShareProfile = useCallback(() => {
+    if (!user) return
     const profileUrl = `${window.location.origin}/u/${user.username}`
     navigator.clipboard.writeText(profileUrl).then(() => {
       toast({ title: 'Link Copied! 🔗', description: 'Profile link has been copied to clipboard.' })
@@ -330,9 +329,10 @@ export default function Profile() {
       document.body.removeChild(textArea)
       toast({ title: 'Link Copied! 🔗', description: 'Profile link has been copied to clipboard.' })
     })
-  }, [user.username, toast])
+  }, [user])
 
   const handleOpenEdit = useCallback(() => {
+    if (!user) return
     setEditForm({
       name: user.name || '',
       bio: user.bio || '',
@@ -344,7 +344,7 @@ export default function Profile() {
   }, [user])
 
   const handleShareCard = useCallback(async () => {
-    if (!qrCardRef.current) return
+    if (!qrCardRef.current || !user) return
 
     try {
       const canvas = await html2canvas(qrCardRef.current, {
@@ -393,7 +393,9 @@ export default function Profile() {
       console.error('Error sharing card:', error)
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to share card.' })
     }
-  }, [user.username, user.name, toast])
+  }, [user])
+
+  if (!user) return null
 
 
   return (
