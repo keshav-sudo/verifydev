@@ -25,7 +25,6 @@ import { useUserStore } from '@/store/user-store';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import Image from 'next/image';
 
 export default function Dashboard() {
   const { dashboardData, isLoadingDashboard, error, fetchDashboard } = useUserStore();
@@ -98,15 +97,9 @@ export default function Dashboard() {
           <div className="absolute top-0 right-0 w-96 h-96 bg-[#ADFF2F]/5 rounded-full blur-[100px] pointer-events-none" />
           <div className="absolute bottom-0 left-20 w-64 h-64 bg-[#A78BFA]/5 rounded-full blur-[80px] pointer-events-none" />
           
-          {/* Hero Image - Standalone on Right */}
+          {/* Hero Decorative Element */}
           <div className="absolute right-0 bottom-0 h-[400px] w-[450px] pointer-events-none z-0 hidden lg:block">
-             <Image 
-               src={dashboardHeroImg} 
-               alt="Dashboard Hero" 
-               fill
-               className="object-contain object-bottom"
-               priority
-             />
+             <div className="absolute inset-0 bg-gradient-to-tl from-[#ADFF2F]/10 via-transparent to-transparent rounded-full blur-2xl" />
           </div>
 
           <div className="relative z-10 max-w-2xl space-y-6">

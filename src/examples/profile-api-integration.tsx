@@ -106,9 +106,11 @@ export async function fetchProfileData(username: string): Promise<ApiUserProfile
  * Example: Server Component (Next.js App Router)
  */
 export default async function PublicProfilePage({ params }: { params: { username: string } }) {
-  const profileData = await fetchProfileData(params.username)
+  // PublicProfile reads username from URL params internally via useParams()
+  // fetchProfileData is shown here as an example of how to call the API
+  void params.username
   
-  return <PublicProfile data={profileData} />
+  return <PublicProfile />
 }
 
 /**
@@ -156,7 +158,8 @@ export function PublicProfileClient({ username }: { username: string }) {
     )
   }
 
-  return <PublicProfile data={data} />
+  // PublicProfile fetches its own data internally via useParams() + useQuery()
+  return <PublicProfile />
 }
 
 /**
