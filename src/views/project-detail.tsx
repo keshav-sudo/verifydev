@@ -587,7 +587,7 @@ function DimensionalSection({ dimensional }: any) {
         <ResponsiveContainer width="100%" height={200}>
           <RadarChart data={radarData} margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
             <PolarGrid stroke="#E2E8F0" />
-            <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748B', fontSize: 8, fontWeight: 800, textTransform: 'uppercase' }} />
+            <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748B', fontSize: 8, fontWeight: 800 }} />
             <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} />
             <Radar name="Score" dataKey="score" stroke="#0f172a" fill="#0f172a" fillOpacity={0.1} strokeWidth={1.5} />
           </RadarChart>

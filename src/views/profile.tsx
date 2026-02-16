@@ -491,7 +491,7 @@ export default function Profile() {
                                     <h4 className="text-sm font-extrabold text-slate-900">{exp.title}</h4>
                                     <p className="text-xs font-bold text-blue-600 mt-0.5">{exp.organization}</p>
                                  </div>
-                                 <button onClick={() => setExperiences(exp.id)} className="text-slate-400 hover:text-red-500 transition-colors">
+                                 <button onClick={() => setExperiences(prev => ({ ...prev, work: prev.work.filter(e => e.id !== exp.id) }))} className="text-slate-400 hover:text-red-500 transition-colors">
                                    <Trash2 className="w-3.5 h-3.5" />
                                  </button>
                                </div>
