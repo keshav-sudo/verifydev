@@ -42,7 +42,10 @@ import {
   Server,
   MonitorSmartphone,
   Layers,
-  BrainCircuit
+  BrainCircuit,
+  Settings2,
+  GitBranch,
+  ChevronDown
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -180,6 +183,9 @@ export default function Projects() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [showAddModal, setShowAddModal] = useState(false)
   const [projectType, setProjectType] = useState<ProjectType>('fullstack')
+  const [repoBranches, setRepoBranches] = useState<Record<string, { name: string; isDefault: boolean }[]>>({})
+  const [selectedBranches, setSelectedBranches] = useState<Record<string, string>>({})
+  const [loadingBranches, setLoadingBranches] = useState<Set<string>>(new Set())
 
   const queryClient = useQueryClient()
 
@@ -208,6 +214,30 @@ export default function Projects() {
       repo.language?.toLowerCase().includes(searchLower)
     )
   }, [availableReposData?.repos, repoSearch])
+
+  // Fetch branches for a repo
+  const fetchBranches = async (repoUrl: string, defaultBranch: string) => {
+    if (repoBranches[repoUrl]) return
+    setLoadingBranches(prev => new Set(prev).add(repoUrl))
+    try {
+      const data = await get<{ branches: { name: string; protected: boolean }[] }>(`/v1/projects/repo/branches?repo=${encodeURIComponent(repoUrl)}`)
+      const branches = (data?.branches || []).map(b => ({
+        name: b.name,
+        isDefault: b.name === defaultBranch,
+      }))
+      // Sort so default branch is first
+      branches.sort((a, b) => (b.isDefault ? 1 : 0) - (a.isDefault ? 1 : 0))
+      setRepoBranches(prev => ({ ...prev, [repoUrl]: branches }))
+      // Auto-select default branch
+      setSelectedBranches(prev => ({ ...prev, [repoUrl]: defaultBranch }))
+    } catch (e) {
+      // Fallback to just the default branch
+      setRepoBranches(prev => ({ ...prev, [repoUrl]: [{ name: defaultBranch, isDefault: true }] }))
+      setSelectedBranches(prev => ({ ...prev, [repoUrl]: defaultBranch }))
+    } finally {
+      setLoadingBranches(prev => { const n = new Set(prev); n.delete(repoUrl); return n })
+    }
+  }
 
   // Compute stats
   const stats = useMemo(() => {
@@ -264,7 +294,7 @@ export default function Projects() {
             githubRepoUrl: repo.url,
             repoName: repo.name,
             description: repo.description || undefined,
-            defaultBranch: repo.defaultBranch,
+            defaultBranch: selectedBranches[repo.url] || repo.defaultBranch,
             projectType: type,
           })
         )
@@ -279,6 +309,8 @@ export default function Projects() {
       queryClient.invalidateQueries({ queryKey: ['aura'] })
       queryClient.invalidateQueries({ queryKey: ['profile'] })
       setSelectedRepos(new Set())
+      setSelectedBranches({})
+      setRepoBranches({})
       setRepoSearch('')
       setShowAddModal(false)
       toast({ title: 'Projects added', description: `${selectedRepos.size} project(s) are being analyzed.` })
@@ -715,34 +747,73 @@ export default function Projects() {
                 ) : (filteredRepos.map(repo => (
                   <div
                     key={repo.id}
-                    onClick={() => {
-                      if (repo.isAdded) return;
-                      const newSelected = new Set(selectedRepos)
-                      newSelected.has(repo.url) ? newSelected.delete(repo.url) : newSelected.add(repo.url)
-                      setSelectedRepos(newSelected)
-                    }}
                     className={cn(
-                      "p-3 mx-4 my-1 rounded-md border flex items-center justify-between cursor-pointer transition-all",
+                      "mx-4 my-1 rounded-md border transition-all",
                       selectedRepos.has(repo.url) ? "bg-blue-50 border-blue-200 shadow-sm" : "bg-white border-transparent hover:border-slate-200 hover:shadow-sm",
                       repo.isAdded && "opacity-50 cursor-not-allowed bg-slate-50 border-transparent"
                     )}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={cn(
-                        "w-4 h-4 rounded-sm border flex items-center justify-center shrink-0 transition-colors",
-                        selectedRepos.has(repo.url) ? "bg-blue-500 border-blue-500" : "border-slate-300 bg-white"
-                      )}>
-                        {selectedRepos.has(repo.url) && <Check className="w-3 h-3 text-white" />}
+                    <div
+                      onClick={() => {
+                        if (repo.isAdded) return;
+                        const newSelected = new Set(selectedRepos)
+                        if (newSelected.has(repo.url)) {
+                          newSelected.delete(repo.url)
+                        } else {
+                          newSelected.add(repo.url)
+                          fetchBranches(repo.url, repo.defaultBranch)
+                        }
+                        setSelectedRepos(newSelected)
+                      }}
+                      className="p-3 flex items-center justify-between cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={cn(
+                          "w-4 h-4 rounded-sm border flex items-center justify-center shrink-0 transition-colors",
+                          selectedRepos.has(repo.url) ? "bg-blue-500 border-blue-500" : "border-slate-300 bg-white"
+                        )}>
+                          {selectedRepos.has(repo.url) && <Check className="w-3 h-3 text-white" />}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-extrabold text-sm text-slate-900 truncate">{repo.name}</h4>
+                          <p className="text-[10px] text-slate-500 truncate mt-0.5">{repo.description || 'No description available'}</p>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <h4 className="font-extrabold text-sm text-slate-900 truncate">{repo.name}</h4>
-                        <p className="text-[10px] text-slate-500 truncate mt-0.5">{repo.description || 'No description available'}</p>
-                      </div>
+                      {repo.language && (
+                        <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-sm text-[9px] font-extrabold text-slate-600 shrink-0 uppercase tracking-wider ml-3">
+                          {repo.language}
+                        </span>
+                      )}
                     </div>
-                    {repo.language && (
-                      <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-sm text-[9px] font-extrabold text-slate-600 shrink-0 uppercase tracking-wider ml-3">
-                        {repo.language}
-                      </span>
+                    {/* Branch selector - shown when repo is selected */}
+                    {selectedRepos.has(repo.url) && (
+                      <div className="px-3 pb-3 pt-0 ml-10" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-2">
+                          <GitBranch className="w-3 h-3 text-slate-400 shrink-0" />
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider shrink-0">Branch:</span>
+                          {loadingBranches.has(repo.url) ? (
+                            <div className="flex items-center gap-1.5">
+                              <Loader2 className="w-3 h-3 animate-spin text-slate-400" />
+                              <span className="text-[10px] text-slate-400">Loading...</span>
+                            </div>
+                          ) : (
+                            <div className="relative">
+                              <select
+                                value={selectedBranches[repo.url] || repo.defaultBranch}
+                                onChange={(e) => setSelectedBranches(prev => ({ ...prev, [repo.url]: e.target.value }))}
+                                className="appearance-none bg-white border border-slate-200 rounded-md px-2.5 py-1 pr-7 text-[11px] font-bold text-slate-700 cursor-pointer hover:border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition-colors"
+                              >
+                                {(repoBranches[repo.url] || [{ name: repo.defaultBranch, isDefault: true }]).map(branch => (
+                                  <option key={branch.name} value={branch.name}>
+                                    {branch.name}{branch.isDefault ? ' (default)' : ''}
+                                  </option>
+                                ))}
+                              </select>
+                              <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     )}
                   </div>
                 )))}

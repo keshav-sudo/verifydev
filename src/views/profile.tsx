@@ -99,10 +99,10 @@ function ContributionHeatmap({ data, type }: { data: Record<string, number>; typ
     if (value === 0) return 'bg-slate-100'
     const intensity = value / maxValue
     if (type === 'github') {
-      if (intensity > 0.75) return 'bg-purple-600'
-      if (intensity > 0.5) return 'bg-purple-500'
-      if (intensity > 0.25) return 'bg-purple-400'
-      return 'bg-purple-200'
+      if (intensity > 0.75) return 'bg-[#4D7C0F]'
+      if (intensity > 0.5) return 'bg-[#65A30D]'
+      if (intensity > 0.25) return 'bg-[#84CC16]'
+      return 'bg-[#D9F99D]'
     } else {
       if (intensity > 0.75) return 'bg-[#4D7C0F]'
       if (intensity > 0.5) return 'bg-[#65A30D]'
@@ -259,17 +259,33 @@ export default function Profile() {
   const fetchLeetCode = async () => { try { setLeetcodeStats(await getLeetcodeStats()) } catch (e) { } }
   const fetchGitHubStats = async () => { try { setGithubStats(await getGithubStats()) } catch (e) { } }
 
+  if (!user) return null
+
+  const profileUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/u/${user.username}`
+    : `https://verifydev.me/u/${user.username}`
+
   const handleSaveProfile = async () => {
     setIsSaving(true)
     try {
-      await put('/v1/users/me', editForm)
+      // Prepare payload — clean up empty strings and format website
+      const payload: Record<string, string | undefined> = {
+        name: editForm.name.trim() || undefined,
+        bio: editForm.bio?.trim() || '',
+        location: editForm.location?.trim() || '',
+        company: editForm.company?.trim() || '',
+        website: editForm.website?.trim() || '',
+      }
+
+      await put('/v1/users/me', payload)
       setIsEditDialogOpen(false)
       const { checkAuth } = useAuthStore.getState()
       await checkAuth()
       await fetchAura()
       toast({ title: 'Profile Updated', description: 'Changes saved successfully.' })
     } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Error', description: e?.response?.data?.message || 'Failed to update' })
+      const message = e?.response?.data?.message || e?.message || 'Failed to update profile'
+      toast({ variant: 'destructive', title: 'Error', description: message })
     } finally {
       setIsSaving(false)
     }
@@ -309,8 +325,6 @@ export default function Profile() {
   const TABS = ['overview', 'skills', 'projects', 'github', 'experience']
 
   const handleShareProfile = useCallback(() => {
-    if (!user) return
-    const profileUrl = `${window.location.origin}/u/${user.username}`
     navigator.clipboard.writeText(profileUrl).then(() => {
       toast({ title: 'Link Copied! 🔗', description: 'Profile link has been copied to clipboard.' })
     }).catch(() => {
@@ -322,7 +336,7 @@ export default function Profile() {
       document.body.removeChild(textArea)
       toast({ title: 'Link Copied! 🔗', description: 'Profile link has been copied to clipboard.' })
     })
-  }, [user])
+  }, [profileUrl, toast])
 
   const handleOpenEdit = useCallback(() => {
     if (!user) return
@@ -342,9 +356,11 @@ export default function Profile() {
     try {
       const html2canvas = await loadHtml2Canvas()
       const canvas = await html2canvas(qrCardRef.current, {
-        backgroundColor: '#0A0A0A',
+        backgroundColor: '#ffffff',
         scale: 2,
         logging: false,
+        useCORS: true,
+        allowTaint: false,
       })
 
       canvas.toBlob(async (blob) => {
@@ -488,20 +504,20 @@ export default function Profile() {
           <div className="relative flex-shrink-0">
             <div ref={qrCardRef} className="bg-white rounded-2xl p-3 shadow-2xl">
               <QRCodeSVG
-                value={`https://verifydev.me/u/${user.username}`}
+                value={profileUrl}
                 size={160}
-                level="M"
+                level="H"
                 includeMargin={false}
                 bgColor="#ffffff"
                 fgColor="#0A0A0A"
-                imageSettings={{
-                  src: user.avatarUrl || '',
+                imageSettings={user.avatarUrl ? {
+                  src: user.avatarUrl,
                   x: undefined,
                   y: undefined,
-                  height: 40,
-                  width: 40,
+                  height: 44,
+                  width: 44,
                   excavate: true,
-                }}
+                } : undefined}
               />
             </div>
             {/* Glow effect */}
@@ -528,7 +544,7 @@ export default function Profile() {
               </Button>
             </div>
             <p className="text-[10px] font-mono text-slate-500 mt-3 truncate max-w-xs">
-              verifydev.me/u/{user.username}
+              {profileUrl.replace(/^https?:\/\//, '')}
             </p>
           </div>
         </motion.div>
@@ -595,11 +611,28 @@ export default function Profile() {
 
                   {/* Activity Heatmap */}
                   <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
-                    <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest mb-4 border-b border-slate-100 pb-3 flex items-center gap-2">
-                      <Activity className="w-4 h-4 text-slate-400" /> Contribution Velocity
-                    </h3>
+                    <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                      <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-[#65A30D]" /> Contribution Velocity
+                      </h3>
+                      <div className="flex items-center gap-1.5 text-[#65A30D] font-extrabold text-[10px] bg-[#84CC16]/10 px-2 py-1 rounded-md border border-[#84CC16]/20">
+                        <Zap className="w-3 h-3" />
+                        {Object.values(githubStats?.submissionCalendar || (user as any).githubStats?.submissionCalendar || {}).reduce((a: number, b: number) => a + b, 0)} contributions
+                      </div>
+                    </div>
                     <div className="p-4 bg-slate-50 border border-slate-100 rounded-md">
                       <ContributionHeatmap data={githubStats?.submissionCalendar || (user as any).githubStats?.submissionCalendar || {}} type="github" />
+                    </div>
+                    <div className="flex items-center gap-2 mt-3 justify-end">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Less</span>
+                      <div className="flex gap-[3px]">
+                        <div className="w-[11px] h-[11px] rounded-[2px] bg-slate-100" />
+                        <div className="w-[11px] h-[11px] rounded-[2px] bg-[#D9F99D]" />
+                        <div className="w-[11px] h-[11px] rounded-[2px] bg-[#84CC16]" />
+                        <div className="w-[11px] h-[11px] rounded-[2px] bg-[#65A30D]" />
+                        <div className="w-[11px] h-[11px] rounded-[2px] bg-[#4D7C0F]" />
+                      </div>
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">More</span>
                     </div>
                   </div>
                 </motion.div>
@@ -723,11 +756,28 @@ export default function Profile() {
                   {/* Contribution Heatmap */}
                   {(githubStats?.submissionCalendar || (user as any).githubStats?.submissionCalendar) && (
                     <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
-                      <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest mb-4 pb-3 border-b border-slate-100 flex items-center gap-2">
-                        <Activity className="w-4 h-4 text-slate-400" /> Contribution Activity
-                      </h3>
+                      <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                        <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                          <Activity className="w-4 h-4 text-[#65A30D]" /> Contribution Activity
+                        </h3>
+                        <div className="flex items-center gap-1.5 text-[#65A30D] font-extrabold text-[10px] bg-[#84CC16]/10 px-2 py-1 rounded-md border border-[#84CC16]/20">
+                          <Zap className="w-3 h-3" />
+                          {Object.values(githubStats?.submissionCalendar || (user as any).githubStats?.submissionCalendar || {}).reduce((a: number, b: number) => a + b, 0)} contributions
+                        </div>
+                      </div>
                       <div className="p-4 bg-slate-50 border border-slate-100 rounded-md">
                         <ContributionHeatmap data={githubStats?.submissionCalendar || (user as any).githubStats?.submissionCalendar || {}} type="github" />
+                      </div>
+                      <div className="flex items-center gap-2 mt-3 justify-end">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Less</span>
+                        <div className="flex gap-[3px]">
+                          <div className="w-[11px] h-[11px] rounded-[2px] bg-slate-100" />
+                          <div className="w-[11px] h-[11px] rounded-[2px] bg-[#D9F99D]" />
+                          <div className="w-[11px] h-[11px] rounded-[2px] bg-[#84CC16]" />
+                          <div className="w-[11px] h-[11px] rounded-[2px] bg-[#65A30D]" />
+                          <div className="w-[11px] h-[11px] rounded-[2px] bg-[#4D7C0F]" />
+                        </div>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">More</span>
                       </div>
                     </div>
                   )}
@@ -752,41 +802,41 @@ export default function Profile() {
                           .sort((a, b) => b.stargazers_count - a.stargazers_count)
                           .slice(0, 6)
                           .map((repo) => (
-                          <a
-                            key={repo.id}
-                            href={repo.html_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block p-4 rounded-lg border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all group"
-                          >
-                            <div className="flex items-start justify-between mb-2">
-                              <h4 className="text-xs font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors truncate">
-                                {repo.name}
-                              </h4>
-                              <ExternalLink className="w-3 h-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2" />
-                            </div>
-                            <p className="text-[11px] text-slate-500 font-medium line-clamp-2 mb-3 leading-relaxed">
-                              {repo.description || 'No description'}
-                            </p>
-                            <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                              {repo.language && (
-                                <span className="flex items-center gap-1.5">
-                                  <span className="w-2 h-2 rounded-full bg-blue-500" />
-                                  {repo.language}
-                                </span>
-                              )}
-                              <span className="flex items-center gap-1"><Star className="w-3 h-3 fill-slate-300" /> {repo.stargazers_count}</span>
-                              <span className="flex items-center gap-1"><GitFork className="w-3 h-3" /> {repo.forks_count}</span>
-                            </div>
-                            {repo.topics && repo.topics.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mt-2.5">
-                                {repo.topics.slice(0, 4).map(t => (
-                                  <span key={t} className="px-1.5 py-0.5 text-[8px] font-bold text-blue-600 bg-blue-50 border border-blue-100 rounded-sm uppercase tracking-wider">{t}</span>
-                                ))}
+                            <a
+                              key={repo.id}
+                              href={repo.html_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block p-4 rounded-lg border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all group"
+                            >
+                              <div className="flex items-start justify-between mb-2">
+                                <h4 className="text-xs font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors truncate">
+                                  {repo.name}
+                                </h4>
+                                <ExternalLink className="w-3 h-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2" />
                               </div>
-                            )}
-                          </a>
-                        ))}
+                              <p className="text-[11px] text-slate-500 font-medium line-clamp-2 mb-3 leading-relaxed">
+                                {repo.description || 'No description'}
+                              </p>
+                              <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                {repo.language && (
+                                  <span className="flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full bg-blue-500" />
+                                    {repo.language}
+                                  </span>
+                                )}
+                                <span className="flex items-center gap-1"><Star className="w-3 h-3 fill-slate-300" /> {repo.stargazers_count}</span>
+                                <span className="flex items-center gap-1"><GitFork className="w-3 h-3" /> {repo.forks_count}</span>
+                              </div>
+                              {repo.topics && repo.topics.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-2.5">
+                                  {repo.topics.slice(0, 4).map(t => (
+                                    <span key={t} className="px-1.5 py-0.5 text-[8px] font-bold text-blue-600 bg-blue-50 border border-blue-100 rounded-sm uppercase tracking-wider">{t}</span>
+                                  ))}
+                                </div>
+                              )}
+                            </a>
+                          ))}
                       </div>
                     )}
                   </div>

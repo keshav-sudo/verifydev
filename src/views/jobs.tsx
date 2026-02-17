@@ -339,7 +339,7 @@ export default function Jobs() {
           )}
 
           {/* Infinite Scroll Trigger */}
-          <div ref={observerTarget} className="h-20 flex items-center justify-center">
+          <div ref={observerTarget} className="h-2 flex items-center justify-center">
             {isFetchingNextPage ? (
               <div className="flex items-center text-slate-400 gap-2 text-xs font-bold"><Loader2 className="h-4 w-4 animate-spin" /> Loading more...</div>
             ) : !hasNextPage && filteredJobs.length > 0 ? (
