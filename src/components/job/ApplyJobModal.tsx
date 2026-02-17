@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+﻿import { useState, useEffect, useMemo } from 'react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -118,7 +118,7 @@ export function ApplyJobModal({ job, open, onOpenChange, applicationData }: Appl
   const projects = projectsData?.projects || []
   const work = experienceData?.work || []
   const certs = experienceData?.certifications || []
-  const skills = skillsResponse?.skills || userProfile?.skills || []
+  const skills = useMemo(() => skillsResponse?.skills || userProfile?.skills || [], [skillsResponse?.skills, userProfile?.skills])
 
   // Initialize from applicationData or defaults
   useEffect(() => {

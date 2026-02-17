@@ -15,7 +15,6 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   LayoutDashboard,
-  Users,
   Briefcase,
   Plus,
   Settings,
@@ -101,6 +100,7 @@ export default function RecruiterLayout({ children }: RecruiterLayoutProps) {
         {/* Logo Section with Detailing */}
         <div className="flex h-16 items-center px-4 border-b border-border/50 bg-muted/5">
           <Link href="/recruiter/dashboard" className="flex items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img 
               src="/logo.png" 
               alt="VerifyDev" 

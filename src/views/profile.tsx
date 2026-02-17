@@ -7,16 +7,13 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { get, post, put, del } from '@/api/client'
+import { get, post, put } from '@/api/client'
 import { addManualSkill, getLeetcodeStats, getGithubStats } from '@/api/services/user.service'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import {
@@ -37,19 +34,13 @@ import {
   ExternalLink,
   Zap,
   TrendingUp,
-  Award,
-  Calendar,
   Star,
   GitFork,
   Edit3,
   Plus,
-  Briefcase,
   Trash2,
-  Play,
   Terminal,
   Activity,
-  CheckSquare,
-  Square,
   FolderGit2,
   ShieldCheck,
   Target,
@@ -58,7 +49,6 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
-import dynamic from 'next/dynamic'
 
 // Lazy load html2canvas only when sharing
 const loadHtml2Canvas = () => import('html2canvas').then(mod => mod.default)
@@ -617,7 +607,7 @@ export default function Profile() {
 
               {activeTab === 'projects' && (
                 <motion.div key="projects" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {projects.map((project, i) => (
+                  {projects.map((project) => (
                     <div key={project.id} className="bg-white rounded-lg p-5 shadow-sm border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all group flex flex-col">
                       <div className="flex justify-between items-start mb-4 pb-3 border-b border-slate-100">
                         <div className="pr-4">

@@ -19,7 +19,6 @@ export function ContributionHeatmap({
     data,
     type,
     totalContributions,
-    username
 }: ContributionHeatmapProps) {
     // Generate last 365 days
     const calendarData = useMemo(() => {

@@ -18,8 +18,6 @@ import {
   ExternalLink,
   Zap,
   TrendingUp,
-  Award,
-  Target,
   Activity,
   Calendar,
   Star,

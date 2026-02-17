@@ -17,7 +17,6 @@ import { get, post, del } from '@/api/client'
 import { toast } from '@/hooks/use-toast'
 import {
   formatNumber,
-  formatRelativeTime,
   cn
 } from '@/lib/utils'
 import type { Project } from '@/types'
@@ -26,7 +25,6 @@ import {
   Search,
   Star,
   GitFork,
-  Clock,
   RefreshCw,
   FolderGit2,
   Loader2,
@@ -44,8 +42,7 @@ import {
   Server,
   MonitorSmartphone,
   Layers,
-  BrainCircuit,
-  Settings2
+  BrainCircuit
 } from 'lucide-react'
 import {
   DropdownMenu,

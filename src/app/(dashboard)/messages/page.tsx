@@ -1,6 +1,4 @@
-﻿"use client"
-
-import Messages from '@/views/messages'
+﻿import Messages from '@/views/messages'
 
 export default function MessagesPage() {
   return <Messages />

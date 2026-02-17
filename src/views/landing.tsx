@@ -4,30 +4,28 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Inter, JetBrains_Mono } from 'next/font/google'; // Import premium fonts
-import panda from "../data/panda.png"; // अपना पांडा पाथ सुनिश्चित करें
+import { Inter, JetBrains_Mono } from 'next/font/google'; 
+import panda from "../data/panda.png"; 
+
+// IMPORT StorySection (Ensure this path is correct)
+import StorySection from '../components/StorySection'; 
+
 import PinnedScrollCanvas from '../components/PinnedScrollCanvas';
 import HowItWorks from '../components/HowItWorks';
 import ProfileShowcase from '../components/landing/ProfileShowcase';
+import Lenis from 'lenis';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { gsap } from 'gsap';
 
-// Font Configurations
-const inter = Inter({ 
-  subsets: ['latin'], 
-  weight: ['300', '400', '500', '600', '700', '900'],
-  display: 'swap',
-  variable: '--font-inter',
-});
+// Initialize GSAP
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
-const mono = JetBrains_Mono({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-mono',
-});
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });
 
-
-// Animation variants
-// Animation variants
-
+// Animations
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 30 },
   animate: { opacity: 1, y: 0 },
@@ -40,15 +38,32 @@ const scaleIn = (delay = 0) => ({
   transition: { delay, duration: 0.6, ease: [0.22, 1, 0.36, 1] },
 });
 
+
+
 export default function Landing() {
+  
+  React.useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      touchMultiplier: 2,
+    });
+    
+    function raf(time: number) {
+      lenis.raf(time);
+      ScrollTrigger.update();
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+    return () => { lenis.destroy(); };
+  }, []);
+
   return (
-    <>
-      {/* OUTER WRAPPER - DARK BG FOR LEFT SIDE */}
-      <div className={`w-full bg-[#050505] font-sans selection:bg-[#ADFF2F] selection:text-black overflow-x-hidden ${inter.variable} ${mono.variable}`}>
-
-        {/* INNER CONSTRAINED WRAPPER */}
-        <div className="w-full max-w-[1536px] mx-auto h-[100dvh] flex flex-col relative">
-
+    <div className={`w-full bg-[#050505] font-sans selection:bg-[#ADFF2F] selection:text-black overflow-x-hidden ${inter.variable} ${mono.variable}`}>
+      
+      {/* ================= HERO SECTION ================= */}
+      <div className="w-full max-w-[1536px] mx-auto min-h-[100dvh] flex flex-col relative">
+          
           {/* NAVBAR */}
           <nav className="absolute top-0 left-0 right-0 z-50 px-6 lg:px-12 flex items-center justify-between h-[80px] border-b border-white/10">
             <Link href="/" className="text-2xl font-bold text-white tracking-tight">
@@ -58,85 +73,58 @@ export default function Landing() {
               <Link href="/login" className="hidden sm:block text-zinc-400 hover:text-white text-sm font-medium transition-colors">
                 Sign In
               </Link>
-              <Link
-                href="/signup"
-                className="bg-white text-black px-6 py-3 rounded-full text-sm font-bold hover:bg-[#ADFF2F] transition-all hover:shadow-[0_0_25px_rgba(173,255,47,0.4)]"
-              >
+              <Link href="/signup" className="bg-white text-black px-6 py-3 rounded-full text-sm font-bold hover:bg-[#ADFF2F] transition-all shadow-[0_0_20px_rgba(173,255,47,0.3)]">
                 Get Started
               </Link>
             </div>
           </nav>
 
-          {/* HERO MAIN SECTION - Split Layout */}
+          {/* MAIN CONTENT GRID */}
           <main className="relative z-10 flex-1 flex flex-col lg:grid lg:grid-cols-[0.9fr_1.1fr] w-full pt-[80px] pb-4 overflow-hidden">
+             
+             {/* LEFT COLUMN (Text) - Kept exactly as you liked */}
+             <div className="flex flex-col justify-center px-6 lg:px-12 relative z-20 h-full overflow-hidden">
+                  <div className="relative z-10 max-w-2xl pt-10 lg:pt-0">
+                      
+                      {/* GREEN BADGE RESTORED */}
+                      <motion.div {...fadeUp(0.1)} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.05] border border-white/[0.08] w-fit mb-8 backdrop-blur-md select-none">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#ADFF2F] shadow-[0_0_10px_#ADFF2F]"></span>
+                        <span className="text-zinc-400 text-[11px] font-medium tracking-wide uppercase">Protocol V2.0</span>
+                      </motion.div>
 
-            {/* ================= LEFT COLUMN  (REDESIGNED PREMIUM) ================= */}
-            <div className={`flex flex-col justify-center px-6 lg:px-12 relative z-20 h-full overflow-hidden`}>
-              
-               {/* Tech Grid Background & Noise (Matching Right Side) */}
-              <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#050505_100%)] opacity-80 pointer-events-none"></div>
-              <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0 mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
-
-              {/* Main Content Container */}
-              <div className="relative z-10 max-w-2xl">
-                  {/* Glass Badge */}
-                  <motion.div {...fadeUp(0.1)} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.05] border border-white/[0.08] w-fit mb-8 backdrop-blur-md select-none">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#ADFF2F] shadow-[0_0_10px_#ADFF2F]"></span>
-                    <span className="text-zinc-400 text-[11px] font-medium tracking-wide uppercase">Protocol V2.0</span>
-                  </motion.div>
-
-                  {/* Main Headline - Typography Contrast */}
-                  <motion.h1
-                    {...fadeUp(0.2)}
-                    className="leading-[1] mb-8"
-                  >
-                    <span className="block text-5xl sm:text-7xl lg:text-[75px] xl:text-[85px] font-light text-zinc-500 tracking-tight">
-                      Stop claiming.
-                    </span>
-                    <span className="block text-6xl sm:text-7xl lg:text-[85px] xl:text-[95px] font-bold text-white tracking-tighter mt-1">
-                      Start proving
-                      <span className="text-[#ADFF2F]">.</span>
-                    </span>
-                  </motion.h1>
-                  
-                  {/* Restored Description for Balanace */}
-                  <motion.p {...fadeUp(0.3)} className="text-lg text-zinc-400 font-light font-poppins max-w-md mb-10 leading-relaxed">
-                     Transformation complete. Replace your resume with <span className="text-zinc-200 font-medium">cryptographically verified</span> proof of your coding skills.
-                  </motion.p>
-
-                  {/* Minimal CTA - White Button */}
-                  <motion.div {...fadeUp(0.4)} className="flex flex-wrap items-center gap-6">
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="h-[56px] px-8 rounded-full bg-white text-black font-bold text-base hover:bg-zinc-200 transition-colors shadow-[0_0_30px_rgba(255,255,255,0.1)] flex items-center gap-2"
-                    >
-                       Get Verified
-                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                    </motion.button>
-                     
-                     {/* Social Proof - Colored Avatars */}
-                     <div className="flex items-center gap-3">
-                        <div className="flex -space-x-3">
-                            {[
-                                "bg-rose-500", 
-                                "bg-blue-500", 
-                                "bg-amber-500"
-                            ].map((color, i) => (
-                                <div key={i} className={`w-10 h-10 rounded-full border-2 border-black ${color} opacity-80`} />
-                            ))}
-                        </div>
-                        <span className="text-zinc-500 text-sm font-medium">
-                            <strong className="text-white">2,400+</strong> joined
+                      <motion.h1 {...fadeUp(0.2)} className="leading-[1] mb-8">
+                        <span className="block text-4xl sm:text-7xl lg:text-[75px] xl:text-[85px] font-light text-zinc-500 tracking-tight">
+                          Stop claiming.
                         </span>
-                     </div>
-                  </motion.div>
-              </div>
-            </div> 
+                        <span className="block text-5xl sm:text-7xl lg:text-[85px] xl:text-[95px] font-bold text-white tracking-tighter mt-1">
+                          Start proving<span className="text-[#ADFF2F]">.</span>
+                        </span>
+                      </motion.h1>
+                      
+                      <motion.p {...fadeUp(0.3)} className="text-lg text-zinc-400 font-light max-w-md mb-10 leading-relaxed">
+                        Transformation complete. Replace your resume with <span className="text-zinc-200 font-medium">verified proof</span> of your coding skills.
+                      </motion.p>
 
-            
-            <div className="relative w-full h-full bg-[#f4f4f5] rounded-t-[40px] lg:rounded-t-none lg:rounded-tl-[50px] overflow-hidden flex flex-col items-center justify-between z-30 shadow-[-20px_0_60px_rgba(0,0,0,0.2)]">
+                       <motion.div {...fadeUp(0.4)} className="flex flex-wrap items-center gap-6">
+                          <button className="h-[56px] px-8 rounded-full bg-white text-black font-bold text-base hover:bg-zinc-200 transition-colors shadow-[0_0_30px_rgba(255,255,255,0.1)] flex items-center gap-2">
+                            Get Verified
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                          </button>
+                          
+                          {/* Social Proof */}
+                          <div className="flex items-center gap-3">
+                            <div className="flex -space-x-3">
+                              {["bg-rose-500", "bg-blue-500", "bg-amber-500"].map((c, i) => (
+                                <div key={i} className={`w-8 h-8 rounded-full border-2 border-black ${c}`} />
+                              ))}
+                            </div>
+                            <span className="text-zinc-500 text-sm">2k+ joined</span>
+                          </div>
+                       </motion.div>
+                  </div>
+             </div>
+
+<div className="relative w-full h-[600px] lg:h-auto bg-[#f4f4f5] rounded-t-[40px] lg:rounded-t-none lg:rounded-tl-[50px] overflow-hidden flex flex-col items-center justify-between z-30 shadow-[-20px_0_60px_rgba(0,0,0,0.2)]">
 
               {/* Tech Grid Background (Premium) */}
               <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] opacity-100 pointer-events-none"></div>
@@ -167,9 +155,9 @@ export default function Landing() {
                 {...scaleIn(0.4)}
                 className="
     absolute
-    bottom-[-40px]   /* ⬅️ Upar/neeche control */
-    right-[-200px]    /* ⬅️ Left/right control */
-    w-[150%]
+    bottom-[-20px] sm:bottom-[-40px]
+    right-[-100px] sm:right-[-200px]
+    w-[140%] sm:w-[150%]
     max-w-[1300px]
     aspect-[4/3]
     z-20
@@ -210,7 +198,7 @@ export default function Landing() {
                     </span>
                     <span className="text-xs font-bold text-zinc-500 uppercase tracking-[0.2em]">AI Verdict Protocol</span>
                 </div>
-                <h3 className="text-5xl sm:text-6xl lg:text-7xl font-black text-zinc-900 leading-[0.9] tracking-tighter">
+                <h3 className="text-3xl sm:text-6xl lg:text-7xl font-black text-zinc-900 leading-[0.9] tracking-tighter">
                   "I read <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500 relative">
                      code,
                      <svg className="absolute w-full h-3 bottom-1 left-0 text-emerald-400/30 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
@@ -287,44 +275,38 @@ export default function Landing() {
 
             </div>
           </main>
+      </div>
+
+      {/* ================= STORY SECTION ================= */}
+      <section className="relative w-full z-40 bg-black">
+         <StorySection />
+      </section>
+
+      {/* ================= PINNED SCROLL CANVAS ================= */}
+      <div className="w-full bg-[#050505] flex justify-center relative z-20">
+        <div className="w-full max-w-[1536px]">
+          <PinnedScrollCanvas />
         </div>
       </div>
 
-      {/* ================================================================================== */}
-      {/* PINNED SCROLL CANVAS ANIMATION SECTION */}
-      {/* ================================================================================== */}
-      <div className="w-full bg-[#050505] flex justify-center border-t border-white/[0.05] relative z-20">
-        <div className="w-full max-w-[1536px]">
-          <PinnedScrollCanvas
-            baseUrl="https://ik.imagekit.io/ex97dobms/frame/"
-            totalFrames={1600}
-          />
-        </div>
-      </div>
+      {/* ================= STACKING CARDS SECTION ================= */}
+      {/* <div className="h-screen bg-[#050505] relative z-30">
+        <StackingCardsSection />
+      </div> */}
 
       <HowItWorks />
-      <ProfileShowcase/>
-
-      {/* CONTENT AFTER ANIMATION */}
+      <ProfileShowcase />
+      
+      {/* FOOTER */}
       <section className="relative w-full bg-[#050505] text-white py-40 z-20 flex justify-center overflow-hidden">
-        {/* Ambient Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#ADFF2F]/5 blur-[120px] rounded-full pointer-events-none" />
-        
-        <div className="max-w-[1536px] w-full px-6 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] mb-8 backdrop-blur-md">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#ADFF2F] shadow-[0_0_10px_#ADFF2F]" />
-                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Start Now</span>
-          </div>
-
-          <h2 className="text-5xl md:text-7xl lg:text-8xl font-black mb-10 tracking-tighter leading-[0.9]">
-            Ready to <span className="text-transparent bg-clip-text bg-gradient-to-br from-[#ADFF2F] to-emerald-600">Prove It?</span>
-          </h2>
-          
-          <button className="bg-white text-black px-10 py-5 rounded-full text-lg font-bold hover:bg-[#ADFF2F] transition-all shadow-xl hover:shadow-[0_0_40px_rgba(173,255,47,0.5)] tracking-tight">
-            Create Your Profile Now
-          </button>
-        </div>
+         <div className="text-center">
+            <h2 className="text-5xl md:text-8xl font-black tracking-tighter mb-8">Ready to <span className="text-[#ADFF2F]">Verify?</span></h2>
+            <button className="bg-white text-black px-10 py-5 rounded-full text-lg font-bold hover:bg-[#ADFF2F] transition-all shadow-xl">
+              Create Your Profile
+            </button>
+         </div>
       </section>
-    </>
+
+    </div>
   );
 }

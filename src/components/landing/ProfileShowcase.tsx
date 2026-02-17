@@ -51,6 +51,7 @@ const CommandCenterHero = () => (
      <div className="flex flex-row items-center gap-6 relative z-10">
         <div className="relative">
            <div className="w-24 h-24 rounded-xl border border-white/10 shadow-xl bg-zinc-900 overflow-hidden relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={MOCK_USER.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
            </div>
            <div className="absolute -bottom-2 -right-2 p-1.5 rounded-md bg-[#0A0A0A] border border-white/10 shadow-md">

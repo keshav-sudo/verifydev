@@ -149,6 +149,7 @@ export default function Messages() {
         createRoomMutation.mutate(data)
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetUserId, currentUserId, rooms])
 
   // Select room

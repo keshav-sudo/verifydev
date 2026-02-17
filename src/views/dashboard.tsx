@@ -11,14 +11,11 @@ import {
   Zap,
   Target,
   Activity,
-  TrendingUp,
   AlertCircle,
   ChevronRight,
   ShieldCheck,
   FolderKanban,
   Briefcase,
-  Building,
-  BarChart3,
   Terminal
 } from 'lucide-react';
 import { useUserStore } from '@/store/user-store';
@@ -37,7 +34,7 @@ export default function Dashboard() {
 
   if (isLoadingDashboard) {
     return (
-      <div className="min-h-screen bg-[#F0F2F5] flex items-center justify-center font-['Plus_Jakarta_Sans']">
+      <div className="min-h-screen bg-[#F0F2F5] flex items-center justify-center font-sans">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-2 border-slate-200 rounded-lg relative overflow-hidden">
             <div className="absolute inset-0 border-2 border-[#ADFF2F] border-t-transparent animate-spin rounded-lg"></div>
@@ -50,7 +47,7 @@ export default function Dashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#F0F2F5] flex items-center justify-center p-4 font-['Plus_Jakarta_Sans']">
+      <div className="min-h-screen bg-[#F0F2F5] flex items-center justify-center p-4 font-sans">
         <div className="bg-white border border-red-200 shadow-sm rounded-xl p-8 max-w-md w-full text-center">
           <div className="w-12 h-12 bg-red-50 rounded-lg mx-auto mb-4 flex items-center justify-center border border-red-100">
             <AlertCircle className="w-5 h-5 text-red-600" />
@@ -92,7 +89,7 @@ export default function Dashboard() {
   const currentDate = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
   return (
-    <div className="w-full min-h-screen bg-[#F0F2F5] relative p-4 md:p-6 lg:p-8 font-['Plus_Jakarta_Sans'] text-slate-800 overflow-x-hidden">
+    <div className="w-full min-h-screen bg-[#F0F2F5] relative p-4 md:p-6 lg:p-8 font-sans text-slate-800 overflow-x-hidden">
       <div className="max-w-[1536px] mx-auto space-y-6">
 
         {/* ========================================= */}

@@ -167,7 +167,7 @@ apiClient.interceptors.response.use(
         }
 
         // Developer token refresh
-        const { refreshToken, setTokens, logout } = useAuthStore.getState()
+        const { refreshToken, setTokens } = useAuthStore.getState()
         
         // Try to refresh token (might be in cookie even if not in store)
         const response = await axios.post(`${API_BASE_URL}/v1/auth/refresh`, {

@@ -5,7 +5,6 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { useRecruiterStore } from '@/store/recruiter-store'
 import dynamic from 'next/dynamic'
 
 // Dynamically import emoji picker to avoid SSR issues
@@ -34,8 +33,6 @@ import {
     Send,
     Loader2,
     MessageSquare,
-    Sparkles,
-    X,
     Smile,
 } from 'lucide-react'
 
@@ -60,7 +57,6 @@ export function SendMessageDialog({
     jobTitle,
     redirectAfterSend = false, // Default to false - don't redirect unless explicitly requested
 }: SendMessageDialogProps) {
-    const { recruiter } = useRecruiterStore()
     const [subject, setSubject] = useState('')
     const [body, setBody] = useState('')
     const [isSending, setIsSending] = useState(false)
@@ -102,7 +98,7 @@ export function SendMessageDialog({
 
         setIsSending(true)
         try {
-            const response = await chatApi.sendDirectMessage({
+            await chatApi.sendDirectMessage({
                 candidateId,
                 content: body.trim(),
                 subject: subject.trim(),

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
+// import { motion } from 'framer-motion';
 import { 
   Zap, Code2, Target, CheckCircle2, Star, GitFork, 
   MapPin, Link as LinkIcon, Building, ShieldCheck, Github
@@ -70,6 +70,7 @@ export default function AntiGravityProfile({ data }: { data: ProfileData }) {
       <div className="flex flex-col md:flex-row gap-6 mb-8 items-start">
         <div className="relative group">
           <div className="w-24 h-24 rounded-xl overflow-hidden border border-white/10 relative z-10 bg-zinc-900">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img 
               src={profile.avatarUrl} 
               alt={profile.name} 

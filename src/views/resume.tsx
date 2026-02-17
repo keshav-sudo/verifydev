@@ -11,8 +11,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
@@ -26,17 +24,12 @@ import {
   Briefcase,
   Award,
   Code,
-  Sparkles,
-  Info,
   MapPin,
   FileText,
   CheckCircle2,
-  ChevronRight,
   Settings2,
-  Zap,
   Target,
   FolderGit2,
-  AlertCircle,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from '@/hooks/use-toast'
@@ -96,7 +89,7 @@ export default function Resume() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isPreviewing, setIsPreviewing] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [skillSources, setSkillSources] = useState<Record<string, string[]>>({})
+
   const [activeTab, setActiveTab] = useState('template')
   const [newExperience, setNewExperience] = useState({
     type: 'WORK' as const,
@@ -126,18 +119,7 @@ export default function Resume() {
 
         fetchAura()
 
-        const mapping: Record<string, string[]> = {}
-        projectsData.forEach((p: any) => {
-          const techs = p.technologies || []
-          if (p.language) techs.push(p.language)
-          techs.forEach((t: string) => {
-            if (!mapping[t]) mapping[t] = []
-            if (!mapping[t].includes(p.repoName)) {
-              mapping[t].push(p.repoName)
-            }
-          })
-        })
-        setSkillSources(mapping)
+
 
         setResumeData((prev) => ({
           ...prev,
