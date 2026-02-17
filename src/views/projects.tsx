@@ -43,7 +43,6 @@ import {
   MonitorSmartphone,
   Layers,
   BrainCircuit,
-  Settings2,
   GitBranch,
   ChevronDown
 } from 'lucide-react'

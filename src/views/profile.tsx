@@ -259,11 +259,10 @@ export default function Profile() {
   const fetchLeetCode = async () => { try { setLeetcodeStats(await getLeetcodeStats()) } catch (e) { } }
   const fetchGitHubStats = async () => { try { setGithubStats(await getGithubStats()) } catch (e) { } }
 
-  if (!user) return null
-
+  const username = user?.username ?? ''
   const profileUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/u/${user.username}`
-    : `https://verifydev.me/u/${user.username}`
+    ? `${window.location.origin}/u/${username}`
+    : `https://verifydev.me/u/${username}`
 
   const handleSaveProfile = async () => {
     setIsSaving(true)
@@ -336,7 +335,7 @@ export default function Profile() {
       document.body.removeChild(textArea)
       toast({ title: 'Link Copied! 🔗', description: 'Profile link has been copied to clipboard.' })
     })
-  }, [profileUrl, toast])
+  }, [profileUrl])
 
   const handleOpenEdit = useCallback(() => {
     if (!user) return
@@ -406,6 +405,12 @@ export default function Profile() {
   }, [user])
 
   if (!user) return null
+
+  const submissionCalendar = githubStats?.submissionCalendar || (user as any).githubStats?.submissionCalendar || {}
+  const totalContributions = Object.values(submissionCalendar).reduce<number>((sum, value) => {
+    if (typeof value === 'number') return sum + value
+    return sum
+  }, 0)
 
 
   return (
@@ -617,11 +622,11 @@ export default function Profile() {
                       </h3>
                       <div className="flex items-center gap-1.5 text-[#65A30D] font-extrabold text-[10px] bg-[#84CC16]/10 px-2 py-1 rounded-md border border-[#84CC16]/20">
                         <Zap className="w-3 h-3" />
-                        {Object.values(githubStats?.submissionCalendar || (user as any).githubStats?.submissionCalendar || {}).reduce((a: number, b: number) => a + b, 0)} contributions
+                        {totalContributions} contributions
                       </div>
                     </div>
                     <div className="p-4 bg-slate-50 border border-slate-100 rounded-md">
-                      <ContributionHeatmap data={githubStats?.submissionCalendar || (user as any).githubStats?.submissionCalendar || {}} type="github" />
+                      <ContributionHeatmap data={submissionCalendar} type="github" />
                     </div>
                     <div className="flex items-center gap-2 mt-3 justify-end">
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Less</span>
@@ -723,7 +728,7 @@ export default function Profile() {
                       { label: 'Repositories', value: user.publicRepos || githubRepos.length || 0, icon: FolderGit2, color: 'text-blue-500' },
                       { label: 'Followers', value: user.followers || 0, icon: Activity, color: 'text-purple-500' },
                       { label: 'Following', value: user.following || 0, icon: Activity, color: 'text-orange-500' },
-                      { label: 'Contributions', value: user.githubContributions || Object.values(githubStats?.submissionCalendar || {}).reduce((a, b) => a + b, 0), icon: Zap, color: 'text-[#65A30D]' },
+                      { label: 'Contributions', value: user.githubContributions || totalContributions, icon: Zap, color: 'text-[#65A30D]' },
                     ].map((stat, i) => (
                       <div key={i} className="bg-white rounded-lg p-5 shadow-sm border border-slate-200 flex flex-col">
                         <div className="flex items-center gap-2 mb-2">
@@ -754,7 +759,7 @@ export default function Profile() {
                   )}
 
                   {/* Contribution Heatmap */}
-                  {(githubStats?.submissionCalendar || (user as any).githubStats?.submissionCalendar) && (
+                  {Object.keys(submissionCalendar).length > 0 && (
                     <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
                       <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
                         <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest flex items-center gap-2">
@@ -762,11 +767,11 @@ export default function Profile() {
                         </h3>
                         <div className="flex items-center gap-1.5 text-[#65A30D] font-extrabold text-[10px] bg-[#84CC16]/10 px-2 py-1 rounded-md border border-[#84CC16]/20">
                           <Zap className="w-3 h-3" />
-                          {Object.values(githubStats?.submissionCalendar || (user as any).githubStats?.submissionCalendar || {}).reduce((a: number, b: number) => a + b, 0)} contributions
+                          {totalContributions} contributions
                         </div>
                       </div>
                       <div className="p-4 bg-slate-50 border border-slate-100 rounded-md">
-                        <ContributionHeatmap data={githubStats?.submissionCalendar || (user as any).githubStats?.submissionCalendar || {}} type="github" />
+                        <ContributionHeatmap data={submissionCalendar} type="github" />
                       </div>
                       <div className="flex items-center gap-2 mt-3 justify-end">
                         <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Less</span>
