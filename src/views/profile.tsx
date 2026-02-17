@@ -58,7 +58,10 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
-import html2canvas from 'html2canvas'
+import dynamic from 'next/dynamic'
+
+// Lazy load html2canvas only when sharing
+const loadHtml2Canvas = () => import('html2canvas').then(mod => mod.default)
 
 // --- Types ---
 interface Experience {
@@ -347,6 +350,7 @@ export default function Profile() {
     if (!qrCardRef.current || !user) return
 
     try {
+      const html2canvas = await loadHtml2Canvas()
       const canvas = await html2canvas(qrCardRef.current, {
         backgroundColor: '#0A0A0A',
         scale: 2,

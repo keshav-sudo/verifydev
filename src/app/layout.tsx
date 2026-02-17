@@ -1,6 +1,48 @@
 ﻿import type { Metadata, Viewport } from 'next'
+import { Inter, Space_Grotesk, Plus_Jakarta_Sans, Poppins, Figtree } from 'next/font/google'
 import Providers from './providers'
 import '@/index.css'
+
+const inter = Inter({ 
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+  variable: '--font-inter',
+  preload: true,
+  fallback: ['system-ui', 'arial'],
+})
+
+const spaceGrotesk = Space_Grotesk({ 
+  subsets: ['latin'],
+  weight: ['400', '600', '700'],
+  display: 'swap',
+  variable: '--font-space-grotesk',
+  preload: false,
+})
+
+const plusJakarta = Plus_Jakarta_Sans({ 
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+  display: 'swap',
+  variable: '--font-plus-jakarta',
+  preload: false,
+})
+
+const poppins = Poppins({ 
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  display: 'swap',
+  variable: '--font-poppins',
+  preload: false,
+})
+
+const figtree = Figtree({ 
+  subsets: ['latin'],
+  weight: ['400', '600', '700'],
+  display: 'swap',
+  variable: '--font-figtree',
+  preload: false,
+})
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://verifydev.me'
 
@@ -99,16 +141,19 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${spaceGrotesk.variable} ${plusJakarta.variable} ${poppins.variable} ${figtree.variable}`}>
       <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Josefin+Sans:wght@100;200;300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
+        {/* Preconnect to critical domains */}
+        <link rel="preconnect" href="https://ik.imagekit.io" />
+        <link rel="dns-prefetch" href="https://ik.imagekit.io" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        
+        {/* Analytics - async loading */}
         <GoogleAnalytics />
         <GoogleTagManager />
       </head>
-      <body className="font-sans antialiased">
+      <body className={`${inter.className} antialiased`}>
         <GoogleTagManagerNoScript />
         <Providers>{children}</Providers>
       </body>

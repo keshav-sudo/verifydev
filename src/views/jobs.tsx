@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useInfiniteQuery, useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -265,7 +266,7 @@ export default function Jobs() {
                     {/* Company Logo */}
                     <div className="w-12 h-12 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center flex-shrink-0 group-hover:border-slate-300 transition-colors">
                       {job.companyLogo ? (
-                        <img src={job.companyLogo} alt={job.company} className="w-8 h-8 object-contain rounded-md" />
+                        <Image src={job.companyLogo} alt={job.company || 'Company'} width={32} height={32} className="object-contain rounded-md" />
                       ) : (
                         <Building className="w-5 h-5 text-slate-400" />
                       )}

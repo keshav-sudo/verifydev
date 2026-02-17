@@ -181,6 +181,7 @@ export default function Landing() {
                   alt="VerifyDev AI Panda"
                   fill
                   priority
+                  quality={85}
                   draggable={false}
                   className="object-contain drop-shadow-[0_-10px_40px_rgba(0,0,0,0.15)]"
                 />

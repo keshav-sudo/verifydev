@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -224,7 +225,7 @@ export default function Applications() {
                       {/* Company Logo */}
                       <div className="w-11 h-11 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center flex-shrink-0">
                         {job.companyLogo ? (
-                          <img src={job.companyLogo} alt={job.companyName || job.company} className="w-7 h-7 object-contain rounded-md" />
+                          <Image src={job.companyLogo} alt={job.companyName || job.company || 'Company'} width={28} height={28} className="object-contain rounded-md" />
                         ) : (
                           <Building className="w-5 h-5 text-slate-400" />
                         )}

@@ -12,7 +12,7 @@ interface ScrollCanvasProps {
 export default function ScrollCanvas({
   baseUrl = 'https://ik.imagekit.io/ex97dobms/frame/',
   totalFrames = 1600,
-  skipFactor = 6, // Load every 6th frame = ~267 frames
+  skipFactor = 16, // Load every 16th frame = ~100 frames (ultra-optimized)
   className = '',
 }: ScrollCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -36,34 +36,43 @@ export default function ScrollCanvas({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d', { alpha: false });
+    const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
     if (!ctx) return;
 
     const img = imagesRef.current[index];
-    if (!img || !img.complete) {
-      // Fill with black while loading
-      ctx.fillStyle = '#000000';
+    if (!img || !img.complete || img.naturalWidth === 0) {
+      // Fill with white while loading
+      ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       return;
     }
 
-    // Clear with black background and draw
-    ctx.fillStyle = '#000000';
+    // Get actual canvas display dimensions
+    const dpr = window.devicePixelRatio || 1;
+    const displayWidth = canvas.width / dpr;
+    const displayHeight = canvas.height / dpr;
+
+    // Clear with white background
+    ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     // Calculate scaling to cover canvas while maintaining aspect ratio
     const scale = Math.max(
-      canvas.width / img.width,
-      canvas.height / img.height
+      displayWidth / img.naturalWidth,
+      displayHeight / img.naturalHeight
     );
     
-    const x = (canvas.width - img.width * scale) / 2;
-    const y = (canvas.height - img.height * scale) / 2;
+    const x = (displayWidth - img.naturalWidth * scale) / 2;
+    const y = (displayHeight - img.naturalHeight * scale) / 2;
+    
+    // Enable image smoothing for better quality
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     
     ctx.drawImage(
       img,
-      0, 0, img.width, img.height,
-      x, y, img.width * scale, img.height * scale
+      0, 0, img.naturalWidth, img.naturalHeight,
+      x, y, img.naturalWidth * scale, img.naturalHeight * scale
     );
   }, []);
 
@@ -71,30 +80,31 @@ export default function ScrollCanvas({
   const preloadImages = useCallback(() => {
     const images: HTMLImageElement[] = [];
     
-    // Load first 10 frames immediately for instant playback
-    for (let i = 0; i < Math.min(10, effectiveFrames); i++) {
+    // Load first 3 frames immediately for instant playback
+    for (let i = 0; i < Math.min(3, effectiveFrames); i++) {
       const img = new Image();
       const frameNum = getFrameNumber(i);
       const paddedNum = String(frameNum).padStart(4, '0');
-      img.src = `${baseUrl}frame_${paddedNum}.webp`;
       img.crossOrigin = 'anonymous';
+      img.src = `${baseUrl}tr:f-avif,q-50,pr-true/frame_${paddedNum}.webp`;
       images[i] = img;
       
-      if (i === 0) {
-        img.onload = () => {
-          loadedImagesRef.current++;
+      img.onload = () => {
+        loadedImagesRef.current++;
+        if (i === 0) {
           renderFrame(0);
-        };
-      } else {
-        img.onload = () => {
-          loadedImagesRef.current++;
-        };
-      }
+        }
+      };
+      
+      img.onerror = () => {
+        console.warn(`Failed to load frame ${i}, retrying with WebP`);
+        img.src = `${baseUrl}tr:f-webp,q-70,pr-true/frame_${paddedNum}.webp`;
+      };
     }
 
     // Load remaining frames progressively in background
-    let currentBatch = 10;
-    const batchSize = 20;
+    let currentBatch = 3;
+    const batchSize = 10;
 
     const loadNextBatch = () => {
       const end = Math.min(currentBatch + batchSize, effectiveFrames);
@@ -103,24 +113,29 @@ export default function ScrollCanvas({
         const img = new Image();
         const frameNum = getFrameNumber(i);
         const paddedNum = String(frameNum).padStart(4, '0');
-        img.src = `${baseUrl}frame_${paddedNum}.webp`;
         img.crossOrigin = 'anonymous';
+        img.src = `${baseUrl}tr:f-avif,q-50,pr-true/frame_${paddedNum}.webp`;
         images[i] = img;
         
         img.onload = () => {
           loadedImagesRef.current++;
+        };
+        
+        img.onerror = () => {
+          // Fallback to WebP if AVIF fails
+          img.src = `${baseUrl}tr:f-webp,q-70,pr-true/frame_${paddedNum}.webp`;
         };
       }
 
       currentBatch = end;
       
       if (currentBatch < effectiveFrames) {
-        setTimeout(loadNextBatch, 100); // Throttle loading
+        setTimeout(loadNextBatch, 150); // Optimized throttle
       }
     };
 
     // Start loading remaining frames after a short delay
-    setTimeout(loadNextBatch, 300);
+    setTimeout(loadNextBatch, 200);
 
     imagesRef.current = images;
   }, [baseUrl, effectiveFrames, getFrameNumber, renderFrame]);
@@ -162,10 +177,17 @@ export default function ScrollCanvas({
     const container = containerRef.current;
     if (!canvas || !container) return;
 
-    // Set canvas size to match container (not viewport)
+    // Set canvas size with device pixel ratio
     const rect = container.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
+    const dpr = window.devicePixelRatio || 1;
+    
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    
+    const ctx = canvas.getContext('2d', { alpha: false });
+    if (ctx) {
+      ctx.scale(dpr, dpr);
+    }
 
     // Re-render current frame
     renderFrame(frameIndexRef.current);
@@ -211,7 +233,14 @@ export default function ScrollCanvas({
         cancelAnimationFrame(rafRef.current);
       }
 
-      // Clean up images
+      // Aggressive memory cleanup - revoke object URLs and clear image references
+      imagesRef.current.forEach(img => {
+        if (img && img.src) {
+          img.src = '';
+          img.onload = null;
+          img.onerror = null;
+        }
+      });
       imagesRef.current = [];
     };
   }, [effectiveFrames, preloadImages, handleScroll, handleResize]);
@@ -219,24 +248,26 @@ export default function ScrollCanvas({
   return (
     <div 
       ref={containerRef} 
-      className={`relative bg-black ${className}`}
+      className={`relative bg-white ${className}`}
       style={{ height: `${scrollHeightRef.current}px` }}
     >
       {/* Canvas Container Box */}
       <div className="sticky top-8 left-0 right-0 mx-auto max-w-6xl px-4">
-        <div className="relative rounded-2xl overflow-hidden border-2 border-gray-800 shadow-2xl">
+        <div className="relative rounded-2xl overflow-hidden border-2 border-gray-200 shadow-2xl">
           <canvas
             ref={canvasRef}
-            className="w-full aspect-video"
+            className="w-full aspect-video bg-white"
             style={{ 
-              willChange: 'transform',
-              imageRendering: 'crisp-edges',
+              willChange: 'contents',
+              imageRendering: 'auto',
               display: 'block',
+              width: '100%',
+              height: 'auto',
             }}
           />
           
           {/* Loading indicator */}
-          <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-mono border border-gray-700">
+          <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md text-gray-800 px-4 py-2 rounded-full text-sm font-mono border border-gray-300 shadow-lg">
             <span className="inline-block w-2 h-2 bg-[#ADFF2F] rounded-full animate-pulse mr-2"></span>
             Frame {frameIndexRef.current + 1}/{effectiveFrames}
           </div>
