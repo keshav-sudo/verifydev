@@ -290,7 +290,7 @@ export function HeroDashboardPreview() {
         </div>
         
         {/* Content */}
-        <div className="p-4 space-y-4" onClick={() => setTotalClicks(c => c + 1)}>
+        <div className="p-4 space-y-4">
           
           {/* AURA Score Hero */}
           <motion.div 
@@ -340,7 +340,7 @@ export function HeroDashboardPreview() {
             </div>
             <div className="flex items-end justify-between h-16 gap-1">
               {chartData.map((height, i) => (
-                <ChartBar key={i} height={height} delay={1000 + i * 100} index={i} />
+                <ChartBar key={i} height={height} delay={1000 + i * 100} />
               ))}
             </div>
             <div className="flex justify-between mt-2">

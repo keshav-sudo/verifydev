@@ -95,7 +95,6 @@ export function DimensionalAnalysisCard({
       <CompactDimensionalCard
         matrix={data.dimensionMatrix}
         experienceLevel={data.quickStats.experienceLevel}
-        trustLevel={data.quickStats.trustLevel}
         className={className}
       />
     )

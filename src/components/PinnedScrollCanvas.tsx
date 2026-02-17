@@ -77,7 +77,7 @@ export default function PinnedScrollCanvas({
     const images: HTMLImageElement[] = [];
     
     for (let i = 0; i < Math.min(50, totalFrames); i++) {
-      const img = new Image();
+      const img = window.Image ? new window.Image() : document.createElement('img');
       img.src = getFrameUrl(i);
       img.crossOrigin = 'anonymous';
       images[i] = img;
@@ -96,7 +96,7 @@ export default function PinnedScrollCanvas({
     const loadNextBatch = () => {
       const end = Math.min(currentBatch + batchSize, totalFrames);
       for (let i = currentBatch; i < end; i++) {
-        const img = new Image();
+        const img = window.Image ? new window.Image() : document.createElement('img');
         img.src = getFrameUrl(i);
         img.crossOrigin = 'anonymous';
         images[i] = img;
