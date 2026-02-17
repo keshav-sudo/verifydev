@@ -1,27 +1,26 @@
 ﻿"use client"
 
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { get, post } from '@/api/client'
+import { get } from '@/api/client'
 import { formatNumber, cn } from '@/lib/utils'
 import {
   ArrowLeft, ExternalLink, Star, GitFork, GitCommit,
   Github, Sparkles, Code, Layers, Server, Zap,
-  TrendingUp, CheckCircle2, AlertTriangle, Target, Brain, Eye, BarChart3,
-  ShieldCheck, FileCheck, Network, Lightbulb, TestTube,
-  Wrench, Rocket, MessageSquare, Activity, Shield, Cpu,
-  Box, Database, Terminal, Gauge, Hash, ArrowUpRight,
-  CircleDot, Workflow, CheckSquare, Square, Users, Flame, BookOpen, Search
+  TrendingUp, AlertTriangle, Target, Brain, Eye, BarChart3,
+  ShieldCheck, FileCheck, TestTube,
+  Wrench, Rocket, Activity,
+  Gauge,
+  CheckSquare, Square, Users, Search
 } from 'lucide-react'
 import {
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
-  ResponsiveContainer, Tooltip as RechartsTooltip, PieChart, Pie, Cell,
+  ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts'
 import { Input } from '@/components/ui/input'
 
@@ -144,8 +143,6 @@ export default function ProjectDetail() {
   const dimensionalAnalysis = fa.dimensionalAnalysis || {}
   const trustAnalysis = fa.trustAnalysis || {}
   const complexity = project.complexity || fa.complexity || {}
-  const folderStructure = fa.folderStructure || {}
-  const techStack = fa.techStack || {}
   const infraSignals = fa.infraSignals || {}
   const verdict = fa.verdict || {}
   const commits = gitDetails?.totalCommits || project.commits || 0
@@ -410,6 +407,7 @@ export default function ProjectDetail() {
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {(gitDetails.contributors || []).slice(0, 12).map((c: any, i: number) => (
                            <div key={i} className="flex items-center gap-3 p-2.5 border border-slate-100 bg-slate-50 rounded-md hover:border-slate-300 transition-colors">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img src={c.avatarUrl} alt={c.login} className="w-8 h-8 rounded-sm border border-slate-200 bg-white" />
                               <div className="flex-1 min-w-0">
                                 <h4 className="font-extrabold text-xs text-slate-900 truncate">{c.login}</h4>

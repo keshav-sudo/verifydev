@@ -32,8 +32,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { toast } from '@/hooks/use-toast'
 import { get, put } from '@/api/client'
-import { AuraScore } from '@/components/aura-score'
-import { MatchScore } from '@/components/match-score'
 import { VerifiedBadge } from '@/components/verified-badge'
 import { SendMessageDialog } from '@/components/messaging/send-message-dialog'
 import {
@@ -47,7 +45,6 @@ import {
   FileText,
   ExternalLink,
   Loader2,
-  Github,
   MapPin,
   Star,
   ChevronDown,
@@ -344,7 +341,7 @@ interface ApplicantCardProps {
   onMessage: () => void
 }
 
-function ApplicantCard({ applicant, job, index, onStatusChange, onAddNote, onMessage }: ApplicantCardProps) {
+function ApplicantCard({ applicant, index, onStatusChange, onAddNote, onMessage }: ApplicantCardProps) {
   const status = STATUS_CONFIG[applicant.status]
   const StatusIcon = status.icon
 

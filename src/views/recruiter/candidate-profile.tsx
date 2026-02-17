@@ -8,8 +8,8 @@
 import { useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { motion } from 'framer-motion'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -37,22 +37,15 @@ import {
   Briefcase,
   Trophy,
   Sparkles,
-  Zap,
   GitBranch,
   Clock,
-  Award,
   Shield,
   CheckCircle2,
   Users,
   MessageSquare,
-  Target,
-  TrendingUp,
   Folder,
-  Brain,
-  Rocket,
   FolderGit2,
-  CheckCircle,
-  Link as LinkIcon
+  CheckCircle
 } from 'lucide-react'
 import { HireSignalBadge } from '@/components/skills/hire-signal-badge'
 
@@ -185,12 +178,10 @@ export default function CandidateProfilePage() {
   
   // Privacy Logic
   const canShowEmail = candidate.showEmail || privacy.showEmail;
-  const canShowPhone = candidate.showPhone || privacy.showPhone;
 
   // Filter lists based on showToRecruiters (and ensure items exist)
   const skills = (candidate.allSkills || candidate.skills || []).filter((s: any) => s && s.showToRecruiters !== false);
   const topSkills = (candidate.topSkills || []).filter((s: any) => s && s.showToRecruiters !== false);
-  const verifiedSkillsCount = skills.filter((s: any) => s?.isVerified).length;
   const projects = (candidate.analyzedProjects || candidate.projects || []).filter((p: any) => p && p.showToRecruiters !== false);
   const experiences = candidate.experiences || candidate.experience || [];
   const educationList = candidate.education || [];

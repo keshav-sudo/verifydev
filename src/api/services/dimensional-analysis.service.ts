@@ -12,7 +12,6 @@ import type {
   TrustAnalysis,
   DimensionalExperienceLevel,
   TrustLevel,
-  AnalysisResponse,
 } from '@/types/dimensions'
 
 // ============================================

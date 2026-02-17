@@ -1,7 +1,7 @@
 ﻿"use client"
 
 import { useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/auth-store'
 
 interface ProtectedRouteProps {
@@ -11,7 +11,6 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useAuthStore()
   const router = useRouter()
-  const pathname = usePathname()
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {

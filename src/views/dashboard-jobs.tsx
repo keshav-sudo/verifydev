@@ -3,10 +3,10 @@
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
-  Zap, TrendingUp, Target, Activity,
-  Calendar, Clock, CheckCircle2, XCircle,
-  Briefcase, ArrowUpRight, MapPin, Building2, 
-  DollarSign, MoreHorizontal, Filter,
+  Activity,
+  Calendar, XCircle,
+  Briefcase, MapPin, 
+  MoreHorizontal, Filter,
   Sparkles, Award
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth-store'
@@ -171,6 +171,7 @@ export default function JobHuntDashboard() {
                             <div className="flex items-center gap-4">
                               <div className="w-10 h-10 rounded-xl bg-white border border-gray-100 shadow-sm flex items-center justify-center p-1.5 flex-shrink-0">
                                 {/* Using clearbit logo API for demo - in prod use next/image */}
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img src={job.logo} alt={job.company} className="w-full h-full object-contain rounded-lg opacity-90 group-hover:opacity-100 transition-opacity" onError={(e) => (e.currentTarget.src = 'https://ui-avatars.com/api/?name=' + job.company)} />
                               </div>
                               <span className="font-bold text-gray-900">{job.company}</span>

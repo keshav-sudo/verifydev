@@ -95,7 +95,6 @@ export function DimensionalAnalysisCard({
       <CompactDimensionalCard
         matrix={data.dimensionMatrix}
         experienceLevel={data.quickStats.experienceLevel}
-        trustLevel={data.quickStats.trustLevel}
         className={className}
       />
     )
@@ -264,12 +263,10 @@ function DimensionRow({ dimension, score }: { dimension: string; score: Dimensio
 function CompactDimensionalCard({
   matrix,
   experienceLevel,
-  trustLevel,
   className,
 }: {
   matrix: DimensionMatrix
   experienceLevel: string
-  trustLevel: string
   className?: string
 }) {
   return (

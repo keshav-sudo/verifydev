@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -437,7 +438,7 @@ export default function Settings() {
                   <div className="flex items-center gap-4">
                     <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
                       {user?.avatarUrl ? (
-                        <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
+                        <Image src={user.avatarUrl} alt={user.name || 'User'} fill className="object-cover" />
                       ) : (
                         <User className="h-10 w-10 text-primary" />
                       )}

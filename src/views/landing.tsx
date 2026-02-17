@@ -4,236 +4,309 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import panda from "../data/panda.png";
+import { Inter, JetBrains_Mono } from 'next/font/google'; 
+import panda from "../data/panda.png"; 
 
+// IMPORT StorySection (Ensure this path is correct)
+import StorySection from '../components/StorySection'; 
+
+import PinnedScrollCanvas from '../components/PinnedScrollCanvas';
+import HowItWorks from '../components/HowItWorks';
+import ProfileShowcase from '../components/landing/ProfileShowcase';
+import Lenis from 'lenis';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { gsap } from 'gsap';
+
+// Initialize GSAP
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });
+
+// Animations
 const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 20 },
+  initial: { opacity: 0, y: 30 },
   animate: { opacity: 1, y: 0 },
-  transition: { delay, duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+  transition: { delay, duration: 0.8, ease: [0.22, 1, 0.36, 1] },
 });
 
 const scaleIn = (delay = 0) => ({
-  initial: { opacity: 0, scale: 0.92 },
+  initial: { opacity: 0, scale: 0.95 },
   animate: { opacity: 1, scale: 1 },
-  transition: { delay, duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+  transition: { delay, duration: 0.6, ease: [0.22, 1, 0.36, 1] },
 });
 
-const skills = [
-  { name: 'TypeScript', pct: 95, color: '#3178C6' },
-  { name: 'React', pct: 88, color: '#61DAFB' },
-  { name: 'Go', pct: 82, color: '#00ADD8' },
-  { name: 'Docker', pct: 65, color: '#2496ED' },
-];
 
-const steps = [
-  { icon: '📥', label: 'Add', sub: 'GitHub repos' },
-  { icon: '🧠', label: 'Analyze', sub: '400+ techs' },
-  { icon: '⚡', label: 'Score', sub: 'Aura engine' },
-  { icon: '🎯', label: 'Match', sub: '342 jobs' },
-];
 
 export default function Landing() {
+  
+  React.useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      touchMultiplier: 2,
+    });
+    
+    function raf(time: number) {
+      lenis.raf(time);
+      ScrollTrigger.update();
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+    return () => { lenis.destroy(); };
+  }, []);
+
   return (
-    <div className="h-screen w-full bg-[#050505] font-sans flex flex-col overflow-hidden relative selection:bg-[#ADFF2F] selection:text-black">
-
-      {/* SUBTLE GRID */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff04_1px,transparent_1px),linear-gradient(to_bottom,#ffffff04_1px,transparent_1px)] bg-[size:48px_48px] pointer-events-none" />
-
-      {/* AMBIENT GLOW */}
-      <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-[#ADFF2F]/[0.03] rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-30%] left-[-10%] w-[500px] h-[500px] bg-[#ADFF2F]/[0.02] rounded-full blur-[100px] pointer-events-none" />
-
-      {/* NAVBAR */}
-      <nav className="relative z-50 px-6 md:px-12 lg:px-16 flex items-center justify-between h-[68px] border-b border-white/[0.06]">
-        <Link href="/" className="text-xl font-black text-white tracking-tight">
-          Verify<span className="text-[#ADFF2F]">Dev</span>
-        </Link>
-        <div className="flex gap-8 items-center">
-          <Link href="/login" className="text-zinc-500 hover:text-white text-sm font-medium transition-colors duration-200">
-            Sign In
-          </Link>
-          <Link
-            href="/get-started"
-            className="bg-white text-black px-5 py-2 rounded-full text-sm font-semibold hover:bg-[#ADFF2F] transition-all duration-300 hover:shadow-[0_0_24px_rgba(173,255,47,0.3)]"
-          >
-            Get Started →
-          </Link>
-        </div>
-      </nav>
-
-      {/* HERO */}
-      <div className="relative z-10 flex-1 grid lg:grid-cols-[1fr_1.15fr] gap-0">
-
-        {/* LEFT COLUMN */}
-        <div className="flex flex-col justify-center px-6 lg:px-16 relative z-30">
-
-          <motion.div {...fadeUp(0.1)} className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] w-fit mb-7">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#ADFF2F] animate-pulse" />
-            <span className="text-zinc-400 text-xs font-medium tracking-wide">The Developer Credit Score</span>
-          </motion.div>
-
-          <motion.h1
-            {...fadeUp(0.15)}
-            className="text-[48px] md:text-[64px] lg:text-[76px] xl:text-[100px] font-josefin font-black leading-[0.92] text-white tracking-[-0.04em]"
-          >
-            Stop<br />Claiming.
-            <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ADFF2F] via-[#c8ff60] to-[#ADFF2F]">
-              Start Proving.
-            </span>
-          </motion.h1>
-          <motion.div {...fadeUp(0.35)} className="mt-7 flex items-center gap-5">
-            <motion.button
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.97 }}
-              className="bg-[#ADFF2F] rounded-full px-7 py-3.5 font-semibold text-black text-[15px] hover:shadow-[0_0_32px_rgba(173,255,47,0.4)] transition-all duration-300"
-            >
-              Start Verification →
-            </motion.button>
-            <p className="text-zinc-600 text-xs font-medium">3 min setup · Free</p>
-          </motion.div>
-
-
-        </div>
-
-        {/* RIGHT COLUMN */}
-        <div className="relative h-full w-full overflow-hidden lg:rounded-tl-[48px]">
-
-          {/* GREEN BG */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#ADFF2F] via-[#b8ff47] to-[#9beb00]" />
-          <div className="absolute inset-0 opacity-[0.12] bg-[radial-gradient(circle_at_center,#000_1.5px,transparent_1.5px)] bg-[size:24px_24px]" />
-
-          {/* PANDA (z-index: 20) */}
-          <motion.div
-            {...scaleIn(0.3)}
-            className="absolute inset-x-0 bottom-0 h-[72%] z-20 pointer-events-none"
-          >
-            <Image
-              src={panda}
-              alt="VerifyDev AI Panda"
-              fill
-              priority
-              draggable={false}
-              className="object-contain object-bottom scale-[1.55] origin-bottom drop-shadow-[0_12px_40px_rgba(0,0,0,0.3)]"
-            />
-          </motion.div>
-
-          {/* FLOATING AURA SCORE CARD (z-index: 30 - Now floats ABOVE Panda) */}
-          <motion.div
-            initial={{ opacity: 0, x: 20, y: -10 }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute top-[10%] right-[20%] z-30 bg-black/80 backdrop-blur-2xl rounded-2xl p-4 w-[170px] border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
-          >
-            <div className="flex items-center justify-between mb-2.5">
-              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Aura Score</span>
-              <span className="text-[8px] font-bold text-[#ADFF2F] bg-[#ADFF2F]/10 px-1.5 py-0.5 rounded-full">STRONG</span>
+    <div className={`w-full bg-[#050505] font-sans selection:bg-[#ADFF2F] selection:text-black overflow-x-hidden ${inter.variable} ${mono.variable}`}>
+      
+      {/* ================= HERO SECTION ================= */}
+      <div className="w-full max-w-[1536px] mx-auto min-h-[100dvh] flex flex-col relative">
+          
+          {/* NAVBAR */}
+          <nav className="absolute top-0 left-0 right-0 z-50 px-6 lg:px-12 flex items-center justify-between h-[80px] border-b border-white/10">
+            <Link href="/" className="text-2xl font-bold text-white tracking-tight">
+              Verify<span className="text-[#ADFF2F]">Dev</span>
+            </Link>
+            <div className="flex gap-6 items-center">
+              <Link href="/login" className="hidden sm:block text-zinc-400 hover:text-white text-sm font-medium transition-colors">
+                Sign In
+              </Link>
+              <Link href="/signup" className="bg-white text-black px-6 py-3 rounded-full text-sm font-bold hover:bg-[#ADFF2F] transition-all shadow-[0_0_20px_rgba(173,255,47,0.3)]">
+                Get Started
+              </Link>
             </div>
-            <div className="text-[28px] font-black text-white leading-none">892</div>
-            <div className="text-[10px] text-zinc-600 mt-0.5 mb-2.5">out of 1,000</div>
-            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: '89%' }}
-                transition={{ delay: 0.9, duration: 1.2, ease: 'easeOut' }}
-                className="h-full bg-gradient-to-r from-[#ADFF2F] to-[#7dcc16] rounded-full"
-              />
-            </div>
-          </motion.div>
+          </nav>
 
-          {/* FLOATING SKILLS CARD (z-index: 30 - Now floats ABOVE Panda) */}
-          <motion.div
-            initial={{ opacity: 0, x: -20, y: 10 }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute top-[30%] left-[8%] z-30 bg-black/80 backdrop-blur-2xl rounded-2xl p-3.5 w-[185px] border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
-          >
-            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Verified Stack</span>
-            <div className="mt-2.5 space-y-2">
-              {skills.map((s, i) => (
-                <div key={s.name}>
-                  <div className="flex justify-between mb-0.5">
-                    <span className="text-[11px] font-semibold text-white">{s.name}</span>
-                    <span className="text-[10px] font-bold text-zinc-400">{s.pct}%</span>
-                  </div>
-                  <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${s.pct}%` }}
-                      transition={{ delay: 1.0 + i * 0.1, duration: 1, ease: 'easeOut' }}
-                      className="h-full rounded-full"
-                      style={{ backgroundColor: s.color }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* BOTTOM DASHBOARD STRIP (z-index: 40 - Now floats ABOVE Panda) */}
-          <div className="absolute bottom-[25%] left-0 right-0 z-[100]">
-            <div className="bg-white/[0.97] backdrop-blur-xl border-t border-gray-200/50 px-4 lg:px-5 py-3 lg:py-3.5">
-
-              {/* Pipeline steps */}
-              <div className="flex items-center gap-1 mb-2.5">
-                {steps.map((step, i) => (
-                  <React.Fragment key={step.label}>
-                    <motion.div
-                      {...scaleIn(1.0 + i * 0.12)}
-                      className="flex items-center gap-1.5 bg-gray-50/80 hover:bg-gray-100 border border-gray-200/80 rounded-lg px-2.5 py-1.5 transition-all duration-200 flex-1 cursor-default"
-                    >
-                      <span className="text-sm leading-none">{step.icon}</span>
-                      <div className="min-w-0">
-                        <p className="text-[10px] font-bold text-gray-900 leading-none">{step.label}</p>
-                        <p className="text-[8px] text-gray-400 font-medium leading-none mt-0.5">{step.sub}</p>
-                      </div>
-                    </motion.div>
-                    {i < steps.length - 1 && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 0.4 }}
-                        transition={{ delay: 1.2 + i * 0.12 }}
-                        className="text-gray-400 text-[10px] flex-shrink-0 mx-0.5"
-                      >
-                        →
+          {/* MAIN CONTENT GRID */}
+          <main className="relative z-10 flex-1 flex flex-col lg:grid lg:grid-cols-[0.9fr_1.1fr] w-full pt-[80px] pb-4 overflow-hidden">
+             
+             {/* LEFT COLUMN (Text) - Kept exactly as you liked */}
+             <div className="flex flex-col justify-center px-6 lg:px-12 relative z-20 h-full overflow-hidden">
+                  <div className="relative z-10 max-w-2xl pt-10 lg:pt-0">
+                      
+                      {/* GREEN BADGE RESTORED */}
+                      <motion.div {...fadeUp(0.1)} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.05] border border-white/[0.08] w-fit mb-8 backdrop-blur-md select-none">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#ADFF2F] shadow-[0_0_10px_#ADFF2F]"></span>
+                        <span className="text-zinc-400 text-[11px] font-medium tracking-wide uppercase">Protocol V2.0</span>
                       </motion.div>
-                    )}
-                  </React.Fragment>
-                ))}
+
+                      <motion.h1 {...fadeUp(0.2)} className="leading-[1] mb-8">
+                        <span className="block text-4xl sm:text-7xl lg:text-[75px] xl:text-[85px] font-light text-zinc-500 tracking-tight">
+                          Stop claiming.
+                        </span>
+                        <span className="block text-5xl sm:text-7xl lg:text-[85px] xl:text-[95px] font-bold text-white tracking-tighter mt-1">
+                          Start proving<span className="text-[#ADFF2F]">.</span>
+                        </span>
+                      </motion.h1>
+                      
+                      <motion.p {...fadeUp(0.3)} className="text-lg text-zinc-400 font-light max-w-md mb-10 leading-relaxed">
+                        Transformation complete. Replace your resume with <span className="text-zinc-200 font-medium">verified proof</span> of your coding skills.
+                      </motion.p>
+
+                       <motion.div {...fadeUp(0.4)} className="flex flex-wrap items-center gap-6">
+                          <button className="h-[56px] px-8 rounded-full bg-white text-black font-bold text-base hover:bg-zinc-200 transition-colors shadow-[0_0_30px_rgba(255,255,255,0.1)] flex items-center gap-2">
+                            Get Verified
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                          </button>
+                          
+                          {/* Social Proof */}
+                          <div className="flex items-center gap-3">
+                            <div className="flex -space-x-3">
+                              {["bg-rose-500", "bg-blue-500", "bg-amber-500"].map((c, i) => (
+                                <div key={i} className={`w-8 h-8 rounded-full border-2 border-black ${c}`} />
+                              ))}
+                            </div>
+                            <span className="text-zinc-500 text-sm">2k+ joined</span>
+                          </div>
+                       </motion.div>
+                  </div>
+             </div>
+
+<div className="relative w-full h-[600px] lg:h-auto bg-[#f4f4f5] rounded-t-[40px] lg:rounded-t-none lg:rounded-tl-[50px] overflow-hidden flex flex-col items-center justify-between z-30 shadow-[-20px_0_60px_rgba(0,0,0,0.2)]">
+
+              {/* Tech Grid Background (Premium) */}
+              <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] opacity-100 pointer-events-none"></div>
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#f4f4f5_100%)] opacity-80 pointer-events-none"></div>
+              
+              {/* Active Scan Line Animation */}
+              <motion.div
+                initial={{ top: "-10%" }}
+                animate={{ top: "110%" }}
+                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#ADFF2F]/50 to-transparent z-10 pointer-events-none blur-[1px]"
+              >
+                  <div className="absolute top-0 left-0 right-0 h-[100px] bg-gradient-to-b from-[#ADFF2F]/5 to-transparent transform -translate-y-full" />
+              </motion.div>
+
+              {/* Technical HUD Corners */}
+              <div className="absolute inset-0 pointer-events-none z-20 p-6 opacity-30">
+                  <div className="absolute top-8 left-8 w-8 h-8 border-t-2 border-l-2 border-zinc-400 rounded-tl-lg"></div>
+                  <div className="absolute top-8 right-8 w-8 h-8 border-t-2 border-r-2 border-zinc-400 rounded-tr-lg"></div>
+                  <div className="absolute bottom-8 left-8 w-8 h-8 border-b-2 border-l-2 border-zinc-400 rounded-bl-lg"></div>
+                  <div className="absolute bottom-8 right-8 w-8 h-8 border-b-2 border-r-2 border-zinc-400 rounded-br-lg"></div>
               </div>
 
-              {/* Terminal bar */}
-              <motion.div
-                {...fadeUp(1.6)}
-                className="bg-[#0a0a0a] rounded-xl px-4 py-2 flex items-center justify-between shadow-lg"
-              >
-                <div className="flex items-center gap-2">
-                  <motion.div
-                    animate={{ opacity: [1, 0.3, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="w-1.5 h-1.5 rounded-full bg-[#ADFF2F] shadow-[0_0_6px_#ADFF2F]"
-                  />
-                  <code className="text-[10px] font-mono">
-                    <span className="text-[#ADFF2F]">verifydev</span>
-                    <span className="text-zinc-700"> ~ </span>
-                    <span className="text-zinc-500">analyzing 47 repos...</span>
-                    <span className="text-white font-medium"> 100% organic ✓</span>
-                  </code>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex -space-x-1.5">
-                    {['from-blue-500 to-blue-600', 'from-red-500 to-red-600', 'from-purple-500 to-purple-600'].map((g, i) => (
-                      <div key={i} className={`w-4 h-4 rounded-full bg-gradient-to-br ${g} border-[1.5px] border-[#0a0a0a]`} />
-                    ))}
-                  </div>
-                  <span className="text-zinc-500 text-[10px] font-semibold hidden sm:block">342 jobs</span>
-                </div>
-              </motion.div>
-            </div>
-          </div>
 
+              {/* ================= MASSIVE PANDA ================= */}
+              {/* ================= MASSIVE PANDA ================= */}
+              <motion.div
+                {...scaleIn(0.4)}
+                className="
+    absolute
+    bottom-[-20px] sm:bottom-[-40px]
+    right-[-100px] sm:right-[-200px]
+    w-[140%] sm:w-[150%]
+    max-w-[1300px]
+    aspect-[4/3]
+    z-20
+    pointer-events-none
+  "
+              >
+                <Image
+                  src={panda}
+                  alt="VerifyDev AI Panda"
+                  fill
+                  priority
+                  quality={85}
+                  draggable={false}
+                  className="object-contain drop-shadow-[0_-10px_40px_rgba(0,0,0,0.15)]"
+                />
+
+              </motion.div>
+              
+
+              {/* GIANT BACKGROUND WATERMARK */}
+              <div className="absolute top-10 left-10 z-0 pointer-events-none opacity-[0.03]">
+                 <h1 className="text-[15vw] font-black text-black leading-none tracking-tighter select-none">
+                    VERIFY
+                 </h1>
+              </div>
+
+              {/* TEXT OVERLAY (Minimalist) */}
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.8, duration: 0.8 }}
+                className="absolute bottom-[20%] left-[8%] z-30 max-w-[500px]"
+              >
+                <div className="inline-flex items-center gap-2 mb-4">
+                    <span className="relative flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-xs font-bold text-zinc-500 uppercase tracking-[0.2em]">AI Verdict Protocol</span>
+                </div>
+                <h3 className="text-3xl sm:text-6xl lg:text-7xl font-black text-zinc-900 leading-[0.9] tracking-tighter">
+                  "I read <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500 relative">
+                     code,
+                     <svg className="absolute w-full h-3 bottom-1 left-0 text-emerald-400/30 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
+                        <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="8" fill="none" />
+                     </svg>
+                  </span>
+                  <br/>not resumes."
+                </h3>
+              </motion.div>
+
+              {/* FLOATING SKILL TAGS (Background Context) */}
+              <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
+                 {['TypeScript', 'System Design', 'Docker', 'Next.js', 'Python', 'Go', 'AWS', 'Kubernetes'].map((skill, i) => (
+                    <motion.div
+                       key={skill}
+                       initial={{ y: 100, opacity: 0 }}
+                       animate={{ 
+                          y: [100, -500], 
+                          opacity: [0, 0.4, 0] 
+                       }}
+                       transition={{ 
+                          duration: 15 + i * 2, 
+                          repeat: Infinity, 
+                          delay: i * 1.5,
+                          ease: "linear"
+                       }}
+                       className="absolute text-xs sm:text-sm font-bold text-zinc-300 select-none"
+                       style={{ 
+                          left: `${10 + (i * 12) % 80}%`, 
+                          bottom: '-10%' 
+                       }}
+                    >
+                       {skill}
+                    </motion.div>
+                 ))}
+              </div>
+
+
+               {/* INFINITE ROLLING TICKER FRAME (Footer) */}
+              <div className="absolute bottom-0 left-0 w-full h-16 bg-white/40 backdrop-blur-md border-t border-white/60 z-20 flex items-center overflow-hidden">
+                 <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-[#f4f4f5] to-transparent z-10" />
+                 <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-[#f4f4f5] to-transparent z-10" />
+                 
+                <motion.div
+                  className="flex gap-12 whitespace-nowrap px-4"
+                  animate={{ x: [0, -1000] }}
+                  transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+                >
+                  {[...Array(4)].map((_, i) => (
+                    <React.Fragment key={i}>
+                       <span className="flex items-center gap-3">
+                          <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">System Design</span>
+                          <span className="h-1 w-1 bg-zinc-300 rounded-full" />
+                       </span>
+                       <span className="flex items-center gap-3">
+                          <span className="text-xs font-bold text-zinc-800 uppercase tracking-widest">Algorithms</span>
+                          <span className="h-1 w-1 bg-zinc-300 rounded-full" />
+                       </span>
+                       <span className="flex items-center gap-3">
+                          <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Database Arch</span>
+                          <span className="h-1 w-1 bg-zinc-300 rounded-full" />
+                       </span>
+                        <span className="flex items-center gap-3">
+                          <span className="text-xs font-bold text-zinc-800 uppercase tracking-widest">Clean Code</span>
+                          <span className="h-1 w-1 bg-zinc-300 rounded-full" />
+                       </span>
+                    </React.Fragment>
+                  ))}
+                </motion.div>
+              </div>
+
+
+
+
+            </div>
+          </main>
+      </div>
+
+      {/* ================= STORY SECTION ================= */}
+      <section className="relative w-full z-40 bg-black">
+         <StorySection />
+      </section>
+
+      {/* ================= PINNED SCROLL CANVAS ================= */}
+      <div className="w-full bg-[#050505] flex justify-center relative z-20">
+        <div className="w-full max-w-[1536px]">
+          <PinnedScrollCanvas />
         </div>
       </div>
+
+      {/* ================= STACKING CARDS SECTION ================= */}
+      {/* <div className="h-screen bg-[#050505] relative z-30">
+        <StackingCardsSection />
+      </div> */}
+
+      <HowItWorks />
+      <ProfileShowcase />
+      
+      {/* FOOTER */}
+      <section className="relative w-full bg-[#050505] text-white py-40 z-20 flex justify-center overflow-hidden">
+         <div className="text-center">
+            <h2 className="text-5xl md:text-8xl font-black tracking-tighter mb-8">Ready to <span className="text-[#ADFF2F]">Verify?</span></h2>
+            <button className="bg-white text-black px-10 py-5 rounded-full text-lg font-bold hover:bg-[#ADFF2F] transition-all shadow-xl">
+              Create Your Profile
+            </button>
+         </div>
+      </section>
+
     </div>
   );
 }

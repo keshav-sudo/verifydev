@@ -7,16 +7,13 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { get, post, put, del } from '@/api/client'
+import { get, post, put } from '@/api/client'
 import { addManualSkill, getLeetcodeStats, getGithubStats } from '@/api/services/user.service'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import {
@@ -37,19 +34,13 @@ import {
   ExternalLink,
   Zap,
   TrendingUp,
-  Award,
-  Calendar,
   Star,
   GitFork,
   Edit3,
   Plus,
-  Briefcase,
   Trash2,
-  Play,
   Terminal,
   Activity,
-  CheckSquare,
-  Square,
   FolderGit2,
   ShieldCheck,
   Target,
@@ -58,7 +49,9 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
-import html2canvas from 'html2canvas'
+
+// Lazy load html2canvas only when sharing
+const loadHtml2Canvas = () => import('html2canvas').then(mod => mod.default)
 
 // --- Types ---
 interface Experience {
@@ -346,6 +339,7 @@ export default function Profile() {
   }, [profileUrl, toast])
 
   const handleOpenEdit = useCallback(() => {
+    if (!user) return
     setEditForm({
       name: user.name || '',
       bio: user.bio || '',
@@ -357,9 +351,10 @@ export default function Profile() {
   }, [user])
 
   const handleShareCard = useCallback(async () => {
-    if (!qrCardRef.current) return
+    if (!qrCardRef.current || !user) return
 
     try {
+      const html2canvas = await loadHtml2Canvas()
       const canvas = await html2canvas(qrCardRef.current, {
         backgroundColor: '#ffffff',
         scale: 2,
@@ -408,7 +403,9 @@ export default function Profile() {
       console.error('Error sharing card:', error)
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to share card.' })
     }
-  }, [user.username, user.name, toast])
+  }, [user])
+
+  if (!user) return null
 
 
   return (
@@ -643,7 +640,7 @@ export default function Profile() {
 
               {activeTab === 'projects' && (
                 <motion.div key="projects" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {projects.map((project, i) => (
+                  {projects.map((project) => (
                     <div key={project.id} className="bg-white rounded-lg p-5 shadow-sm border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all group flex flex-col">
                       <div className="flex justify-between items-start mb-4 pb-3 border-b border-slate-100">
                         <div className="pr-4">

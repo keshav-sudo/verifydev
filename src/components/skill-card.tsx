@@ -55,13 +55,6 @@ export function SkillCard({
     return 'text-gray-600 dark:text-gray-400'
   }
 
-  const getProgressColor = (score: number) => {
-    if (score >= 80) return 'bg-green-500'
-    if (score >= 60) return 'bg-blue-500'
-    if (score >= 40) return 'bg-yellow-500'
-    return 'bg-gray-500'
-  }
-
   if (compact) {
     return (
       <div

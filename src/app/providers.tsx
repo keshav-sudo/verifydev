@@ -18,15 +18,19 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 1000 * 60 * 5, // 5 minutes
-            retry: 1,
+            staleTime: 5 * 60 * 1000, // 5 minutes
+            gcTime: 10 * 60 * 1000, // 10 minutes (was cacheTime in v4)
             refetchOnWindowFocus: false,
+            refetchOnMount: false,
+            refetchOnReconnect: 'always',
+            retry: 1,
+            structuralSharing: true,
           },
         },
       })
   )
 
-  const [isInitializing, setIsInitializing] = useState(true)
+  const [, setIsInitializing] = useState(true)
   const [initError, setInitError] = useState<string | null>(null)
   
   const { checkAuth } = useAuthStore()
@@ -92,18 +96,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     }
   }, [theme, accentColor])
 
-  // Show minimal loading state only briefly
-  if (isInitializing) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-sm text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
+  // Show minimal loading state only briefly - DISABLED to handle potential auth timeouts without blocking
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>

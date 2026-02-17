@@ -78,22 +78,21 @@ export default {
   		},
   		fontFamily: {
   			sans: [
-  				'Inter',
-  				'"Plus Jakarta Sans"',
-  				'Outfit',
-  				'Poppins',
+  				'var(--font-inter)',
+  				'var(--font-poppins)',
   				'system-ui',
   				'sans-serif'
   			],
+  			inter: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+  			poppins: ['var(--font-poppins)', 'system-ui', 'sans-serif'],
+  			figtree: ['var(--font-figtree)', 'system-ui', 'sans-serif'],
+  			helvetica: ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+  			space: ['var(--font-space-grotesk)', 'system-ui', 'sans-serif'],
+  			jakarta: ['var(--font-plus-jakarta)', 'system-ui', 'sans-serif'],
   			mono: [
   				'JetBrains Mono',
   				'monospace'
   			],
-        josefin: [
-          '"Josefin Sans"',
-          'sans-serif'
-        ],
-
   		},
   		borderRadius: {
   			lg: 'var(--radius)',

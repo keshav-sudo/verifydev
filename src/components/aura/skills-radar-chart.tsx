@@ -1,7 +1,6 @@
 ﻿import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Zap } from 'lucide-react'
 import type { VerifiedSkill } from '@/types'
 
 interface SkillsRadarChartProps {
@@ -41,12 +40,10 @@ export function SkillsRadarChart({ skills, className }: SkillsRadarChartProps) {
       <Card className={className}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Zap className="h-5 w-5 text-primary" />
             Skills Radar
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-          <Zap className="h-10 w-10 mb-2 opacity-50" />
           <p className="text-sm">No verified skills yet</p>
           <p className="text-xs">Analyze projects to verify your skills</p>
         </CardContent>
@@ -58,7 +55,6 @@ export function SkillsRadarChart({ skills, className }: SkillsRadarChartProps) {
     <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
-          <Zap className="h-5 w-5 text-primary" />
           Skills Radar
         </CardTitle>
       </CardHeader>

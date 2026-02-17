@@ -19,13 +19,10 @@ import { getInitials, formatNumber } from '@/lib/utils'
 import {
   Briefcase,
   Users,
-  UserPlus,
   Star,
   Plus,
   ArrowRight,
   TrendingUp,
-  Clock,
-  Search,
   MessageSquare,
   Activity,
   Zap,
