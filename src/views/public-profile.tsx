@@ -52,10 +52,10 @@ function ContributionHeatmap({ data, type }: { data: Record<string, number>; typ
     if (value === 0) return 'bg-slate-100'
     const intensity = value / maxValue
     if (type === 'github') {
-      if (intensity > 0.75) return 'bg-purple-600'
-      if (intensity > 0.5) return 'bg-purple-500'
-      if (intensity > 0.25) return 'bg-purple-400'
-      return 'bg-purple-200'
+      if (intensity > 0.75) return 'bg-[#4D7C0F]'
+      if (intensity > 0.5) return 'bg-[#65A30D]'
+      if (intensity > 0.25) return 'bg-[#84CC16]'
+      return 'bg-[#D9F99D]'
     }
     if (intensity > 0.75) return 'bg-[#4D7C0F]'
     if (intensity > 0.5) return 'bg-[#65A30D]'
@@ -386,11 +386,28 @@ export default function PublicProfile() {
                   {/* Contribution Heatmap */}
                   {githubStats?.submissionCalendar && (
                     <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
-                      <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest mb-4 border-b border-slate-100 pb-3 flex items-center gap-2">
-                        <Activity className="w-4 h-4 text-slate-400" /> Contribution Activity
-                      </h3>
+                      <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                        <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                          <Activity className="w-4 h-4 text-[#65A30D]" /> Contribution Activity
+                        </h3>
+                        <div className="flex items-center gap-1.5 text-[#65A30D] font-extrabold text-[10px] bg-[#84CC16]/10 px-2 py-1 rounded-md border border-[#84CC16]/20">
+                          <Zap className="w-3 h-3" />
+                          {Object.values(githubStats.submissionCalendar || {}).reduce((a: number, b: number) => a + b, 0)} contributions
+                        </div>
+                      </div>
                       <div className="p-4 bg-slate-50 border border-slate-100 rounded-md">
                         <ContributionHeatmap data={githubStats.submissionCalendar} type="github" />
+                      </div>
+                      <div className="flex items-center gap-2 mt-3 justify-end">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Less</span>
+                        <div className="flex gap-[3px]">
+                          <div className="w-[11px] h-[11px] rounded-[2px] bg-slate-100" />
+                          <div className="w-[11px] h-[11px] rounded-[2px] bg-[#D9F99D]" />
+                          <div className="w-[11px] h-[11px] rounded-[2px] bg-[#84CC16]" />
+                          <div className="w-[11px] h-[11px] rounded-[2px] bg-[#65A30D]" />
+                          <div className="w-[11px] h-[11px] rounded-[2px] bg-[#4D7C0F]" />
+                        </div>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">More</span>
                       </div>
                     </div>
                   )}
@@ -521,11 +538,28 @@ export default function PublicProfile() {
                   {/* Heatmap */}
                   {githubStats?.submissionCalendar ? (
                     <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
-                      <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest mb-4 pb-3 border-b border-slate-100 flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-slate-400" /> Contribution Heatmap
-                      </h3>
+                      <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                        <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-[#65A30D]" /> Contribution Heatmap
+                        </h3>
+                        <div className="flex items-center gap-1.5 text-[#65A30D] font-extrabold text-[10px] bg-[#84CC16]/10 px-2 py-1 rounded-md border border-[#84CC16]/20">
+                          <Zap className="w-3 h-3" />
+                          {Object.values(githubStats.submissionCalendar || {}).reduce((a: number, b: number) => a + b, 0)} contributions
+                        </div>
+                      </div>
                       <div className="p-4 bg-slate-50 border border-slate-100 rounded-md">
                         <ContributionHeatmap data={githubStats.submissionCalendar} type="github" />
+                      </div>
+                      <div className="flex items-center gap-2 mt-3 justify-end">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Less</span>
+                        <div className="flex gap-[3px]">
+                          <div className="w-[11px] h-[11px] rounded-[2px] bg-slate-100" />
+                          <div className="w-[11px] h-[11px] rounded-[2px] bg-[#D9F99D]" />
+                          <div className="w-[11px] h-[11px] rounded-[2px] bg-[#84CC16]" />
+                          <div className="w-[11px] h-[11px] rounded-[2px] bg-[#65A30D]" />
+                          <div className="w-[11px] h-[11px] rounded-[2px] bg-[#4D7C0F]" />
+                        </div>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">More</span>
                       </div>
                     </div>
                   ) : (
