@@ -139,7 +139,7 @@ export function ApplyJobModal({ job, open, onOpenChange, applicationData }: Appl
         setSelectedCertifications([])
       }
     }
-  }, [open, applicationData, skills.length]) // specific dependency on length to trigger when data loads
+  }, [open, applicationData, skills])
 
   // Helper to get full objects for submission
   const getSelectedObjects = () => {

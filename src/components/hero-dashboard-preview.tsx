@@ -149,7 +149,7 @@ function SkillBar({ name, percentage, delay = 0 }: { name: string, percentage: n
 }
 
 // Interactive Mini Chart Bar
-function ChartBar({ height, delay = 0, index = 0 }: { height: number, delay?: number, index?: number }) {
+function ChartBar({ height, delay = 0 }: { height: number, delay?: number }) {
   const [isHovered, setIsHovered] = useState(false)
   
   return (
@@ -261,8 +261,6 @@ export function HeroDashboardPreview() {
     { name: 'ai-chatbot', score: 723, tech: 'Python' },
     { name: 'e-commerce', score: 612, tech: 'React' },
   ]
-  
-  const [totalClicks, setTotalClicks] = useState(0)
 
   return (
     <motion.div 

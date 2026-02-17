@@ -11,7 +11,6 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useAuthStore()
   const router = useRouter()
-  const pathname = usePathname()
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {

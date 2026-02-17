@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
+import Image from 'next/image'
 import { 
   Clock, 
   CheckCircle2, 
@@ -145,12 +146,13 @@ export function ApplicationTimeline({
         {/* Job Info */}
         {application.job && (
           <div className="flex items-start gap-4">
-            <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
+            <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center overflow-hidden relative">
               {application.job.companyLogo ? (
-                <img 
+                <Image 
                   src={application.job.companyLogo} 
-                  alt={application.job.company}
-                  className="h-full w-full object-cover rounded-lg"
+                  alt={application.job.company || 'Company'}
+                  fill
+                  className="object-cover"
                 />
               ) : (
                 <Building className="h-6 w-6 text-muted-foreground" />

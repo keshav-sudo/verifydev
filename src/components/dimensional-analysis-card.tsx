@@ -264,12 +264,10 @@ function DimensionRow({ dimension, score }: { dimension: string; score: Dimensio
 function CompactDimensionalCard({
   matrix,
   experienceLevel,
-  trustLevel,
   className,
 }: {
   matrix: DimensionMatrix
   experienceLevel: string
-  trustLevel: string
   className?: string
 }) {
   return (

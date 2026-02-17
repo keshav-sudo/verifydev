@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useRef, useEffect, useCallback, useState } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react'
+import Image from 'next/image';
 
 interface PinnedScrollCanvasProps {
   baseUrl?: string;
@@ -172,11 +173,15 @@ export default function PinnedScrollCanvas({
         <div className="relative w-full max-w-4xl aspect-video rounded-3xl overflow-hidden bg-zinc-900 border-[1px] border-white/20 shadow-[0_0_80px_rgba(173,255,47,0.15)] ring-1 ring-white/10 group">
             
             {!isLoaded && (
-                <img 
-                    src={getFrameUrl(0)} 
-                    alt="Loading..."
-                    className="absolute inset-0 w-full h-full object-cover z-0"
-                />
+                <div className="absolute inset-0 w-full h-full z-0">
+                  <Image 
+                      src={getFrameUrl(0)} 
+                      alt="Loading..."
+                      fill
+                      className="object-cover"
+                      priority
+                  />
+                </div>
             )}
 
             <canvas
