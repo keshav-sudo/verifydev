@@ -244,7 +244,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           ref={scrollRef}
           className="w-full overflow-y-auto"
         >
-          <div className="max-w-[1800px] mx-auto px-4 sm:px-5 lg:px-6 py-4 lg:py-5">
+          <div className={cn(
+            "w-full h-full p-0"
+          )}>
             {children}
           </div>
         </div>

@@ -16,13 +16,17 @@ import {
   ShieldCheck, FileCheck, TestTube,
   Wrench, Rocket, Activity,
   Gauge,
-  CheckSquare, Square, Users, Search
+  CheckSquare, Square, Users, Search, Calendar
 } from 'lucide-react'
 import {
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
   ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts'
 import { Input } from '@/components/ui/input'
+import AIInsightSection from '@/components/project/AIInsightSection'
+import TrustAnalysisSection from '@/components/project/TrustAnalysisSection'
+import SkillEvidenceModal from '@/components/project/SkillEvidenceModal'
+import CommitHeatmap from '@/components/project/CommitHeatmap'
 
 // ============================================
 // CONSTANTS & HELPERS
@@ -118,6 +122,8 @@ export default function ProjectDetail() {
   const id = params?.id as string
   const [activeTab, setActiveTab] = useState('overview')
   const [skillSearch, setSkillSearch] = useState('')
+  const [selectedSkill, setSelectedSkill] = useState<any>(null)
+  const [isEvidenceModalOpen, setIsEvidenceModalOpen] = useState(false)
 
   const { data: project, isLoading, error } = useQuery({
     queryKey: ['project', id],
@@ -146,6 +152,9 @@ export default function ProjectDetail() {
   const infraSignals = fa.infraSignals || {}
   const verdict = fa.verdict || {}
   const commits = gitDetails?.totalCommits || project.commits || 0
+  const aiInsight = project.aiInsight || null
+  const intelligenceVerdict = project.intelligenceVerdict || null
+  const evolutionSignals = fa.evolutionSignals || null
 
   const languagesData = Object.entries(project.languages || {}).map(([name, bytes]) => ({ name, value: bytes as number, percentage: 0 }))
   const totalBytes = languagesData.reduce((sum, l) => sum + l.value, 0)
@@ -153,6 +162,11 @@ export default function ProjectDetail() {
   languagesData.sort((a, b) => b.value - a.value)
 
   const filteredSkills = verifiedSkills.filter((s: any) => s.name.toLowerCase().includes(skillSearch.toLowerCase()))
+
+  const handleSkillClick = (skill: any) => {
+    setSelectedSkill(skill)
+    setIsEvidenceModalOpen(true)
+  }
 
   return (
     <TooltipProvider>
@@ -220,7 +234,8 @@ export default function ProjectDetail() {
               {[
                 { id: 'overview', label: 'Overview', icon: Eye },
                 { id: 'skills', label: 'Skills & Tech', icon: Sparkles, count: verifiedSkills.length },
-                { id: 'git', label: 'Git Insights', icon: Github },
+                { id: 'ai-insight', label: 'AI Insight', icon: Brain },
+                { id: 'git', label: 'Git Activity', icon: Github },
                 { id: 'architecture', label: 'Architecture', icon: Layers },
                 { id: 'quality', label: 'Health & Trust', icon: ShieldCheck },
               ].map(tab => (
@@ -362,7 +377,11 @@ export default function ProjectDetail() {
                 <div className="p-5">
                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                       {filteredSkills.map((skill: any, i: number) => (
-                         <div key={i} className="flex flex-col p-3 rounded-md border border-slate-200 bg-slate-50 hover:bg-white transition-colors hover:shadow-sm">
+                         <div 
+                           key={i} 
+                           className="flex flex-col p-3 rounded-md border border-slate-200 bg-slate-50 hover:bg-white transition-colors hover:shadow-sm cursor-pointer"
+                           onClick={() => handleSkillClick(skill)}
+                         >
                            <div className="flex justify-between items-start mb-2">
                              <div className="min-w-0 pr-2">
                                <h4 className="text-sm font-extrabold text-slate-900 truncate">{skill.name}</h4>
@@ -383,6 +402,9 @@ export default function ProjectDetail() {
                                    <CheckSquare className="w-2.5 h-2.5 text-[#84CC16] shrink-0" /> {e}
                                  </p>
                                ))}
+                               {skill.evidence.length > 2 && (
+                                 <p className="text-[9px] text-blue-600 font-bold">+{skill.evidence.length - 2} more evidence</p>
+                               )}
                              </div>
                            )}
                          </div>
@@ -394,34 +416,63 @@ export default function ProjectDetail() {
             </TabsContent>
 
             {/* ═══════════════════════════════════════════════════════ */}
-            {/* TAB: GIT INSIGHTS                                     */}
+            {/* TAB: AI INSIGHT                                       */}
+            {/* ═══════════════════════════════════════════════════════ */}
+            <TabsContent value="ai-insight" className="space-y-4">
+              {(aiInsight || intelligenceVerdict) ? (
+                <AIInsightSection 
+                  aiInsight={aiInsight} 
+                  intelligenceVerdict={intelligenceVerdict}
+                  overallScore={overallScore}
+                />
+              ) : (
+                <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-10 text-center">
+                  <Brain className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-black text-slate-900 mb-2">AI Analysis in Progress</h3>
+                  <p className="text-sm text-slate-600 font-medium">
+                    Our AI is analyzing this project. Check back in a few minutes for detailed insights.
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* ═══════════════════════════════════════════════════════ */}
+            {/* TAB: GIT ACTIVITY                                     */}
             {/* ═══════════════════════════════════════════════════════ */}
             <TabsContent value="git" className="space-y-4">
                {gitDetails ? (
-                 <div className="bg-white border border-slate-200 rounded-lg shadow-sm">
-                    <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
-                      <h2 className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-slate-900"><Users className="h-4 w-4 text-blue-500" />Git Contributors</h2>
-                      <span className="text-[9px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-sm">{gitDetails.totalContributors} Total</span>
-                    </div>
-                    <div className="p-5">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        {(gitDetails.contributors || []).slice(0, 12).map((c: any, i: number) => (
-                           <div key={i} className="flex items-center gap-3 p-2.5 border border-slate-100 bg-slate-50 rounded-md hover:border-slate-300 transition-colors">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={c.avatarUrl} alt={c.login} className="w-8 h-8 rounded-sm border border-slate-200 bg-white" />
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-extrabold text-xs text-slate-900 truncate">{c.login}</h4>
-                                <div className="flex items-center gap-2 mt-0.5 text-[9px] font-bold">
-                                  <span className="text-slate-500"><GitCommit className="w-2.5 h-2.5 inline mr-0.5" />{c.commits}</span>
-                                  <span className="text-emerald-600">+{formatNumber(c.additions)}</span>
-                                  <span className="text-red-500">-{formatNumber(c.deletions)}</span>
-                                </div>
-                              </div>
-                           </div>
-                        ))}
+                 <>
+                   {/* Commit Heatmap */}
+                   {gitDetails.commitFrequency && (
+                     <CommitHeatmap commitFrequency={gitDetails.commitFrequency} />
+                   )}
+
+                   {/* Contributors */}
+                   <div className="bg-white border border-slate-200 rounded-lg shadow-sm">
+                      <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+                        <h2 className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-slate-900"><Users className="h-4 w-4 text-blue-500" />Git Contributors</h2>
+                        <span className="text-[9px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-sm">{gitDetails.totalContributors} Total</span>
                       </div>
-                    </div>
-                 </div>
+                      <div className="p-5">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          {(gitDetails.contributors || []).slice(0, 12).map((c: any, i: number) => (
+                             <div key={i} className="flex items-center gap-3 p-2.5 border border-slate-100 bg-slate-50 rounded-md hover:border-slate-300 transition-colors">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={c.avatarUrl} alt={c.login} className="w-8 h-8 rounded-sm border border-slate-200 bg-white" />
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-extrabold text-xs text-slate-900 truncate">{c.login}</h4>
+                                  <div className="flex items-center gap-2 mt-0.5 text-[9px] font-bold">
+                                    <span className="text-slate-500"><GitCommit className="w-2.5 h-2.5 inline mr-0.5" />{c.commits}</span>
+                                    <span className="text-emerald-600">+{formatNumber(c.additions)}</span>
+                                    <span className="text-red-500">-{formatNumber(c.deletions)}</span>
+                                  </div>
+                                </div>
+                             </div>
+                          ))}
+                        </div>
+                      </div>
+                   </div>
+                 </>
                ) : (
                  <div className="text-center py-10 bg-white rounded-lg border border-slate-200 text-slate-500 text-xs font-bold">Git details are processing or unavailable.</div>
                )}
@@ -481,82 +532,66 @@ export default function ProjectDetail() {
             {/* TAB: HEALTH & TRUST                                   */}
             {/* ═══════════════════════════════════════════════════════ */}
             <TabsContent value="quality" className="space-y-4">
-              <div className="grid lg:grid-cols-2 gap-4">
-                 
-                 {/* Quality Metrics Render */}
-                 <div className="bg-white border border-slate-200 rounded-lg shadow-sm">
-                    <div className="px-5 py-3 border-b border-slate-100">
-                      <h2 className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-slate-900"><FileCheck className="h-4 w-4 text-emerald-500" />Code Health</h2>
-                    </div>
-                    <div className="p-5 space-y-4">
-                      
-                      <div className="grid grid-cols-3 gap-2 mb-4">
-                         <div className="text-center p-2 bg-slate-50 border border-slate-100 rounded-sm">
-                           <p className="text-lg font-black text-slate-900">{metrics.codeQuality || 0}</p>
-                           <p className="text-[8px] font-extrabold text-slate-500 uppercase tracking-widest mt-0.5">Quality</p>
-                         </div>
-                         <div className="text-center p-2 bg-slate-50 border border-slate-100 rounded-sm">
-                           <p className="text-lg font-black text-slate-900">{metrics.documentation || 0}</p>
-                           <p className="text-[8px] font-extrabold text-slate-500 uppercase tracking-widest mt-0.5">Docs</p>
-                         </div>
-                         <div className="text-center p-2 bg-slate-50 border border-slate-100 rounded-sm">
-                           <p className="text-lg font-black text-slate-900">{metrics.testCoverage || 0}</p>
-                           <p className="text-[8px] font-extrabold text-slate-500 uppercase tracking-widest mt-0.5">Tests</p>
-                         </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-1.5">
-                        {[
-                          { label: 'README', val: codeQuality.hasReadme },
-                          { label: 'License', val: codeQuality.hasLicense },
-                          { label: 'Dockerfile', val: codeQuality.hasDockerfile },
-                          { label: 'CI/CD', val: codeQuality.hasCI },
-                          { label: 'Env Example', val: codeQuality.hasEnvExample },
-                          { label: 'Docker Compose', val: codeQuality.hasDockerCompose }
-                        ].map((chk, i) => (
-                          <div key={i} className={cn("flex items-center gap-2 px-2.5 py-1.5 rounded-sm border text-[10px] font-bold", chk.val ? 'bg-emerald-50/50 border-emerald-200 text-slate-900' : 'bg-slate-50 border-slate-200 text-slate-400')}>
-                            <span className="flex-1 truncate uppercase tracking-wider">{chk.label}</span>
-                            {chk.val ? <CheckSquare className="w-3 h-3 text-emerald-600" /> : <Square className="w-3 h-3 text-slate-300" />}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+              
+              {/* Code Health */}
+              <div className="bg-white border border-slate-200 rounded-lg shadow-sm">
+                 <div className="px-5 py-3 border-b border-slate-100">
+                   <h2 className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-slate-900"><FileCheck className="h-4 w-4 text-emerald-500" />Code Health</h2>
                  </div>
+                 <div className="p-5 space-y-4">
+                   
+                   <div className="grid grid-cols-3 gap-2 mb-4">
+                      <div className="text-center p-2 bg-slate-50 border border-slate-100 rounded-sm">
+                        <p className="text-lg font-black text-slate-900">{metrics.codeQuality || 0}</p>
+                        <p className="text-[8px] font-extrabold text-slate-500 uppercase tracking-widest mt-0.5">Quality</p>
+                      </div>
+                      <div className="text-center p-2 bg-slate-50 border border-slate-100 rounded-sm">
+                        <p className="text-lg font-black text-slate-900">{metrics.documentation || 0}</p>
+                        <p className="text-[8px] font-extrabold text-slate-500 uppercase tracking-widest mt-0.5">Docs</p>
+                      </div>
+                      <div className="text-center p-2 bg-slate-50 border border-slate-100 rounded-sm">
+                        <p className="text-lg font-black text-slate-900">{metrics.testCoverage || 0}</p>
+                        <p className="text-[8px] font-extrabold text-slate-500 uppercase tracking-widest mt-0.5">Tests</p>
+                      </div>
+                   </div>
 
-                 {/* Trust Analysis */}
-                 <div className="bg-white border border-slate-200 rounded-lg shadow-sm">
-                    <div className="px-5 py-3 border-b border-slate-100">
-                      <h2 className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-slate-900"><ShieldCheck className="h-4 w-4 text-blue-500" />Trust & Auth</h2>
-                    </div>
-                    <div className="p-5">
-                       <div className="grid grid-cols-2 gap-3 items-center mb-4">
-                         <div className={cn("text-center p-3 border rounded-md", trustAnalysis.level === 'LOW' ? "bg-red-50 border-red-200" : "bg-slate-50 border-slate-200")}>
-                            <p className={cn("text-xl font-black", trustAnalysis.level === 'LOW' ? "text-red-600" : "text-slate-900")}>{trustAnalysis.level || '—'}</p>
-                            <p className="text-[8px] font-extrabold uppercase tracking-widest text-slate-500 mt-1">Trust Level</p>
-                         </div>
-                         <div className="flex justify-center">
-                           <CircularScore value={trustAnalysis.score || 0} size={70} strokeWidth={4} label="Score" />
-                         </div>
+                   <div className="grid grid-cols-2 gap-1.5">
+                     {[
+                       { label: 'README', val: codeQuality.hasReadme },
+                       { label: 'License', val: codeQuality.hasLicense },
+                       { label: 'Dockerfile', val: codeQuality.hasDockerfile },
+                       { label: 'CI/CD', val: codeQuality.hasCI },
+                       { label: 'Env Example', val: codeQuality.hasEnvExample },
+                       { label: 'Docker Compose', val: codeQuality.hasDockerCompose }
+                     ].map((chk, i) => (
+                       <div key={i} className={cn("flex items-center gap-2 px-2.5 py-1.5 rounded-sm border text-[10px] font-bold", chk.val ? 'bg-emerald-50/50 border-emerald-200 text-slate-900' : 'bg-slate-50 border-slate-200 text-slate-400')}>
+                         <span className="flex-1 truncate uppercase tracking-wider">{chk.label}</span>
+                         {chk.val ? <CheckSquare className="w-3 h-3 text-emerald-600" /> : <Square className="w-3 h-3 text-slate-300" />}
                        </div>
-                       
-                       {trustAnalysis.authenticityFlags && trustAnalysis.authenticityFlags.length > 0 && (
-                         <div className="space-y-1.5">
-                           <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-500 mb-1">Alerts</p>
-                           {trustAnalysis.authenticityFlags.map((flag: string, i: number) => (
-                             <div key={i} className="flex items-start gap-1.5 p-2 rounded-sm bg-red-50/50 border border-red-100 text-[9px] font-bold text-red-800">
-                               <AlertTriangle className="w-3 h-3 shrink-0 text-red-500" />
-                               <span className="leading-tight">{flag}</span>
-                             </div>
-                           ))}
-                         </div>
-                       )}
-                    </div>
+                     ))}
+                   </div>
                  </div>
               </div>
+
+              {/* Trust Analysis Section */}
+              {trustAnalysis && (
+                <TrustAnalysisSection 
+                  trustAnalysis={trustAnalysis} 
+                  evolutionSignals={evolutionSignals}
+                />
+              )}
             </TabsContent>
 
           </Tabs>
         </div>
+
+        {/* Skill Evidence Modal */}
+        <SkillEvidenceModal 
+          isOpen={isEvidenceModalOpen}
+          onClose={() => setIsEvidenceModalOpen(false)}
+          skill={selectedSkill}
+          repoUrl={project.repoUrl}
+        />
       </div>
     </TooltipProvider>
   )
