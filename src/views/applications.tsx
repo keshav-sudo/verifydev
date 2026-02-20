@@ -31,14 +31,14 @@ import {
 type StatusFilter = 'ALL' | 'PENDING' | 'REVIEWING' | 'SHORTLISTED' | 'INTERVIEW' | 'OFFER' | 'ACCEPTED' | 'REJECTED' | 'WITHDRAWN'
 
 const statusConfig: Record<string, { label: string; color: string; bg: string; border: string; icon: any }> = {
-  PENDING:     { label: 'Pending',     color: 'text-amber-600',   bg: 'bg-amber-50',   border: 'border-amber-200', icon: Timer },
-  REVIEWING:   { label: 'Reviewing',   color: 'text-blue-600',    bg: 'bg-blue-50',    border: 'border-blue-200',  icon: Eye },
-  SHORTLISTED: { label: 'Shortlisted', color: 'text-purple-600',  bg: 'bg-purple-50',  border: 'border-purple-200', icon: Star },
-  INTERVIEW:   { label: 'Interview',   color: 'text-orange-600',  bg: 'bg-orange-50',  border: 'border-orange-200', icon: MessageSquare },
-  OFFER:       { label: 'Offer',       color: 'text-[#65A30D]',   bg: 'bg-[#ADFF2F]/10', border: 'border-[#ADFF2F]/30', icon: CheckCircle2 },
-  ACCEPTED:    { label: 'Accepted',    color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200', icon: CheckCircle2 },
-  REJECTED:    { label: 'Rejected',    color: 'text-red-600',     bg: 'bg-red-50',     border: 'border-red-200',    icon: XCircle },
-  WITHDRAWN:   { label: 'Withdrawn',   color: 'text-slate-500',   bg: 'bg-slate-50',   border: 'border-slate-200',  icon: XCircle },
+  PENDING: { label: 'Pending', color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200', icon: Timer },
+  REVIEWING: { label: 'Reviewing', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200', icon: Eye },
+  SHORTLISTED: { label: 'Shortlisted', color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200', icon: Star },
+  INTERVIEW: { label: 'Interview', color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200', icon: MessageSquare },
+  OFFER: { label: 'Offer', color: 'text-[#65A30D]', bg: 'bg-[#ADFF2F]/10', border: 'border-[#ADFF2F]/30', icon: CheckCircle2 },
+  ACCEPTED: { label: 'Accepted', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200', icon: CheckCircle2 },
+  REJECTED: { label: 'Rejected', color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200', icon: XCircle },
+  WITHDRAWN: { label: 'Withdrawn', color: 'text-slate-500', bg: 'bg-slate-50', border: 'border-slate-200', icon: XCircle },
 }
 
 function AppCardSkeleton() {
@@ -87,7 +87,9 @@ export default function Applications() {
 
   const filtered = useMemo(() => {
     let list = applications
-    if (activeStatus !== 'ALL') list = list.filter(a => a.status === activeStatus)
+    if (activeStatus !== 'ALL') {
+      list = list.filter(a => (a.status || '').toUpperCase() === activeStatus)
+    }
     if (search) {
       const s = search.toLowerCase()
       list = list.filter(a => (a as any).job?.title?.toLowerCase().includes(s) || (a as any).job?.companyName?.toLowerCase().includes(s))
@@ -100,7 +102,10 @@ export default function Applications() {
 
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = { ALL: applications.length }
-    applications.forEach((a: any) => { counts[a.status] = (counts[a.status] || 0) + 1 })
+    applications.forEach((a: any) => {
+      const s = (a.status || 'PENDING').toUpperCase()
+      counts[s] = (counts[s] || 0) + 1
+    })
     return counts
   }, [applications])
 
@@ -207,10 +212,12 @@ export default function Applications() {
 
           <AnimatePresence>
             {filtered.map((app: any) => {
-              const conf = statusConfig[app.status] || statusConfig['PENDING']
+              // Normalize status to uppercase to handle backend inconsistencies
+              const normalizedStatus = (app.status || 'PENDING').toUpperCase()
+              const conf = statusConfig[normalizedStatus] || statusConfig['PENDING']
               const StatusIcon = conf.icon
               const job = app.job || {}
-              const canWithdraw = !['REJECTED', 'WITHDRAWN', 'ACCEPTED'].includes(app.status)
+              const canWithdraw = !['REJECTED', 'WITHDRAWN', 'ACCEPTED'].includes(normalizedStatus)
 
               return (
                 <motion.div

@@ -28,7 +28,9 @@ import {
 } from 'lucide-react'
 
 function formatLastSeen(d: string) {
+  if (!d) return ''
   const date = new Date(d)
+  if (isNaN(date.getTime())) return ''
   if (isToday(date)) return format(date, 'h:mm a')
   if (isYesterday(date)) return 'Yesterday'
   return format(date, 'MMM d')
@@ -199,9 +201,27 @@ export default function Messages() {
 
   // Get other participant info
   const getOtherName = (room: RoomWithDetails) => {
+    // 1. Explicit other participant (e.g. from websocket or specific response)
     if (room.otherParticipant?.name) return room.otherParticipant.name
-    if (currentUserId === room.candidateId) return room.recruiterName || 'Recruiter'
-    return room.candidateName || 'Developer'
+
+    // 2. Try finding in participants array
+    if (room.participants && room.participants.length > 0) {
+      if (currentRole === 'recruiter') {
+        const candidate = room.participants.find(p => p.role === 'candidate')
+        if (candidate?.name) return candidate.name
+      } else {
+        const recruiter = room.participants.find(p => p.role === 'recruiter')
+        if (recruiter?.name) return recruiter.name
+      }
+    }
+
+    // 3. Role-based logic (most reliable)
+    if (currentRole === 'recruiter') {
+      return room.candidateName || 'Candidate'
+    }
+
+    // 4. Fallback / Developer logic
+    return room.recruiterName || 'Recruiter'
   }
 
   const selectedRoom = useMemo(() => (rooms as RoomWithDetails[]).find(r => r.roomId === selectedRoomId), [rooms, selectedRoomId])
@@ -347,8 +367,8 @@ export default function Messages() {
 
                     {allMessages.map((msg, i) => {
                       const isMine = msg.visitorId === currentUserId || msg.senderRole === currentRole
-                      const showDate = i === 0 || new Date(msg.createdAt).toDateString() !== new Date(allMessages[i-1].createdAt).toDateString()
-                      const prevSameSender = i > 0 && allMessages[i-1].visitorId === msg.visitorId
+                      const showDate = i === 0 || new Date(msg.createdAt).toDateString() !== new Date(allMessages[i - 1].createdAt).toDateString()
+                      const prevSameSender = i > 0 && allMessages[i - 1].visitorId === msg.visitorId
 
                       return (
                         <div key={msg.id}>

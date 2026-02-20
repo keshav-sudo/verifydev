@@ -4,17 +4,17 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { get, post } from '@/api/client'
-import { formatSalary, formatDate } from '@/lib/utils'
+import { formatSalary, formatDate, cn } from '@/lib/utils'
 import { toast } from '@/hooks/use-toast'
 import { ApplyJobModal } from '@/components/job/ApplyJobModal'
 import { useAuthStore } from '@/store/auth-store'
 import type { Job } from '@/types'
+import { motion } from 'framer-motion'
 import {
   ArrowLeft,
   MapPin,
@@ -27,6 +27,8 @@ import {
   CheckCircle,
   Loader2,
   Sparkles,
+  ExternalLink,
+  Target
 } from 'lucide-react'
 
 const jobTypeLabels: Record<string, string> = {
@@ -65,14 +67,11 @@ export default function JobDetail() {
   })
 
   // Start Preparation for Quick Apply Data
-  // Fetch everything needed to construct the payload
   const { data: projectsData } = useQuery({
     queryKey: ['projects'],
     queryFn: () => get<{ projects: any[] }>('/v1/projects'),
     enabled: !!user,
   })
-
-
 
   const { data: experienceData } = useQuery({
     queryKey: ['experiences'],
@@ -108,18 +107,12 @@ export default function JobDetail() {
       if (!saved) return null
       const prefs = JSON.parse(saved)
 
-      // Safety check for array existence
       const projects = projectsData?.projects || []
       const work = experienceData?.work || []
       const certs = experienceData?.certifications || []
 
       const selectedProjects = projects.filter((p: any) => prefs.selectedProjects?.includes(p.id))
-      // For skills, we need strings, but if the API returns objects (which it does), we map to names.
-      // If prefs saves names (it does), we just pass names.
-      // However, validation might check if they exist? No, backend just saves them.
-      // Let's trust prefs.selectedSkills directly if they are strings.
       const selectedSkills = prefs.selectedSkills || []
-
       const selectedWork = work.filter((e: any) => prefs.selectedExperience?.includes(e.id))
       const selectedCerts = certs.filter((e: any) => prefs.selectedCertifications?.includes(e.id))
 
@@ -172,7 +165,7 @@ export default function JobDetail() {
     }
   }
 
-  // Get application data for Modal (if not quick apply, but we want to pass defaults)
+  // Get application data for Modal
   const manualApplicationData = (() => {
     const payload = getQuickApplyPayload()
     if (!payload) return undefined
@@ -186,300 +179,357 @@ export default function JobDetail() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Loading job details...</p>
+        </div>
       </div>
     )
   }
 
-  if (isError) {
+  if (isError || !job) {
     return (
-      <div className="text-center py-24">
-        <h2 className="text-2xl font-bold mb-2 text-red-500">Error loading job</h2>
-        <p className="text-muted-foreground mb-4">{(error as any)?.message || 'Failed to load job details'}</p>
-        <Button asChild>
-          <Link href="/jobs">Back to Jobs</Link>
-        </Button>
-      </div>
-    )
-  }
-
-  if (!job) {
-    return (
-      <div className="text-center py-24">
-        <h2 className="text-2xl font-bold mb-2">Job not found</h2>
-        <Button asChild>
-          <Link href="/jobs">Back to Jobs</Link>
-        </Button>
+      <div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="w-16 h-16 rounded-lg bg-white border border-slate-200 flex items-center justify-center mx-auto mb-4 shadow-sm">
+            <Briefcase className="h-6 w-6 text-slate-300" />
+          </div>
+          <h1 className="text-sm font-extrabold text-slate-900 uppercase tracking-widest mb-2">Job Not Found</h1>
+          <p className="text-xs text-slate-500 font-medium mb-6">The job post you are looking for does not exist or has been removed.</p>
+          <Link href="/jobs" className="px-6 py-2 bg-slate-900 text-white rounded-lg text-xs font-extrabold uppercase tracking-widest hover:bg-slate-800 transition-colors">
+            Back to Jobs
+          </Link>
+        </div>
       </div>
     )
   }
 
   return (
-    <>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/jobs">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold">{job.title}</h1>
-            <p className="text-muted-foreground mt-1">{job.organization?.name || 'Verified Company'}</p>
-          </div>
+    <div className="min-h-screen bg-[#F0F2F5] font-['Plus_Jakarta_Sans'] pb-20 relative">
+      {/* Background Grid */}
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] opacity-30 pointer-events-none" />
 
-          <div className="flex items-center gap-4">
-            {user && (
-              <div className="flex items-center gap-2 mr-2">
-                <Switch
-                  id="quick-apply"
-                  checked={quickApplyEnabled}
-                  onCheckedChange={(checked) => {
-                    setQuickApplyEnabled(checked)
-                    // Optionally update localStorage? No, keep it per session or just reflect preference
-                    // If user changes here, maybe we should warn? But just local state is safer effectively overriding for this session/page view
-                    // But usually users expect this to persist.
-                    // Let's update localStorage to keep it consistent
-                    const saved = localStorage.getItem('jobPreferences')
-                    if (saved) {
-                      const prefs = JSON.parse(saved)
-                      prefs.quickApplyEnabled = checked
-                      localStorage.setItem('jobPreferences', JSON.stringify(prefs))
-                    }
-                  }}
-                />
-                <Label htmlFor="quick-apply" className="cursor-pointer flex items-center gap-1.5 text-sm font-medium">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  Quick Apply
-                </Label>
-              </div>
-            )}
-            <Button onClick={handleApply} disabled={quickApplyMutation.isPending} size="lg" className="gap-2">
-              {quickApplyMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <CheckCircle className="h-4 w-4" />
-              )}
-              {quickApplyEnabled ? 'Quick Apply' : 'Apply Now'}
-            </Button>
-          </div>
+      <div className="w-full max-w-[1536px] mx-auto px-4 md:px-6 lg:px-8 py-8 relative z-10">
+
+        {/* Back Navigation */}
+        <div className="mb-6">
+          <Link href="/jobs" className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-900 uppercase tracking-widest transition-colors group">
+            <div className="p-1.5 rounded-md bg-white border border-slate-200 shadow-sm group-hover:border-slate-300 transition-colors">
+              <ArrowLeft className="w-3.5 h-3.5" />
+            </div>
+            Back to Jobs
+          </Link>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Description */}
-            <Card className="border border-border/50">
-              <CardHeader>
-                <CardTitle>Job Description</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="prose prose-invert prose-sm max-w-none">
-                  <p className="whitespace-pre-wrap">{job.description}</p>
+        {/* DARK HERO SECTION */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full bg-[#0A0A0A] rounded-xl p-8 lg:p-10 shadow-xl border border-slate-800 relative overflow-hidden mb-8"
+        >
+          {/* Ambient Glows */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-[#ADFF2F]/5 rounded-full blur-[100px] pointer-events-none" />
+          <div className="absolute bottom-0 left-20 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px] pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+            <div className="space-y-4">
+              <div className="flex items-start gap-4">
+                <div className="h-14 w-14 rounded-xl bg-white/10 border border-white/5 flex items-center justify-center backdrop-blur-md shrink-0">
+                  <Briefcase className="w-7 h-7 text-[#ADFF2F]" />
                 </div>
-              </CardContent>
-            </Card>
+                <div>
+                  <h1 className="text-2xl lg:text-3xl font-black text-white tracking-tight leading-tight mb-2">{job.title}</h1>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="flex items-center gap-1.5 text-sm font-bold text-slate-300">
+                      <Building className="w-4 h-4 text-slate-400" />
+                      {job.organization?.name || 'Verified Company'}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-[3px] bg-[#ADFF2F]/10 border border-[#ADFF2F]/20 text-[#ADFF2F] text-[9px] font-extrabold uppercase tracking-widest">
+                      Verified
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+              {user && (
+                <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm">
+                  <Switch
+                    id="quick-apply"
+                    checked={quickApplyEnabled}
+                    onCheckedChange={(checked) => {
+                      setQuickApplyEnabled(checked)
+                      const saved = localStorage.getItem('jobPreferences')
+                      if (saved) {
+                        const prefs = JSON.parse(saved)
+                        prefs.quickApplyEnabled = checked
+                        localStorage.setItem('jobPreferences', JSON.stringify(prefs))
+                      }
+                    }}
+                    className="data-[state=checked]:bg-[#ADFF2F]"
+                  />
+                  <Label htmlFor="quick-apply" className="text-[10px] font-extrabold text-white uppercase tracking-widest cursor-pointer flex items-center gap-2 select-none">
+                    <Sparkles className="w-3.5 h-3.5 text-[#ADFF2F]" /> Quick Apply
+                  </Label>
+                </div>
+              )}
+              <Button
+                onClick={handleApply}
+                disabled={quickApplyMutation.isPending}
+                className="h-11 px-8 bg-[#ADFF2F] hover:bg-[#9AE62A] text-slate-900 text-xs font-extrabold uppercase tracking-widest rounded-lg shadow-[0_0_20px_rgba(173,255,47,0.2)] hover:shadow-[0_0_30px_rgba(173,255,47,0.3)] transition-all transform active:scale-95"
+              >
+                {quickApplyMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="h-4 w-4 mr-2" />
+                    {quickApplyEnabled ? 'Quick Apply' : 'Apply Now'}
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* MAIN LAYOUT */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+          {/* LEFT CONTENT (8 Cols) */}
+          <div className="lg:col-span-8 space-y-6">
+
+            {/* Description */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:p-8"
+            >
+              <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest mb-6 pb-4 border-b border-slate-100 flex items-center gap-2">
+                <ExternalLink className="w-4 h-4 text-slate-400" /> Job Description
+              </h3>
+              <div className="prose prose-sm max-w-none text-slate-600 leading-relaxed font-medium">
+                <p className="whitespace-pre-wrap">{job.description}</p>
+              </div>
+            </motion.div>
 
             {/* Requirements */}
-            <Card className="border border-border/50">
-              <CardHeader>
-                <CardTitle>Requirements</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {(() => {
-                    const reqs = job.requirements
-                    const reqArray = typeof reqs === 'string' 
-                      ? reqs.split('\n').map(r => r.trim()).filter(Boolean)
-                      : (Array.isArray(reqs) ? reqs : [])
-                    
-                    if (reqArray.length === 0) return <p className="text-muted-foreground italic">No specific requirements listed.</p>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:p-8"
+            >
+              <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest mb-6 pb-4 border-b border-slate-100 flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-[#65A30D]" /> Requirements
+              </h3>
+              <ul className="space-y-4">
+                {(() => {
+                  const reqs = job.requirements
+                  const reqArray = typeof reqs === 'string'
+                    ? reqs.split('\n').map(r => r.trim()).filter(Boolean)
+                    : (Array.isArray(reqs) ? reqs : [])
 
-                    return reqArray.map((req, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                        <span className="text-sm">{req}</span>
-                      </li>
-                    ))
-                  })()}
-                </ul>
-              </CardContent>
-            </Card>
+                  if (reqArray.length === 0) return <p className="text-xs text-slate-400 font-bold uppercase tracking-widest italic">No specific requirements listed.</p>
+
+                  return reqArray.map((req, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <div className="mt-0.5 min-w-[16px]"><CheckCircle className="w-4 h-4 text-[#65A30D]" /></div>
+                      <span className="text-sm font-medium text-slate-600 leading-relaxed">{req}</span>
+                    </li>
+                  ))
+                })()}
+              </ul>
+            </motion.div>
 
             {/* Responsibilities */}
-             <Card className="border border-border/50">
-              <CardHeader>
-                <CardTitle>Responsibilities</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {(() => {
-                    const resps = job.responsibilities
-                    const respArray = typeof resps === 'string' 
-                      ? resps.split('\n').map(r => r.trim()).filter(Boolean)
-                      : (Array.isArray(resps) ? resps : [])
-                    
-                    if (respArray.length === 0) return <p className="text-muted-foreground italic">No specific responsibilities listed.</p>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:p-8"
+            >
+              <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest mb-6 pb-4 border-b border-slate-100 flex items-center gap-2">
+                <Target className="w-4 h-4 text-blue-500" /> Responsibilities
+              </h3>
+              <ul className="space-y-4">
+                {(() => {
+                  const resps = job.responsibilities
+                  const respArray = typeof resps === 'string'
+                    ? resps.split('\n').map(r => r.trim()).filter(Boolean)
+                    : (Array.isArray(resps) ? resps : [])
 
-                    return respArray.map((resp: string, index: number) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                        <span className="text-sm">{resp}</span>
-                      </li>
-                    ))
-                  })()}
-                </ul>
-              </CardContent>
-            </Card>
+                  if (respArray.length === 0) return <p className="text-xs text-slate-400 font-bold uppercase tracking-widest italic">No specific responsibilities listed.</p>
+
+                  return respArray.map((resp: string, index: number) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <div className="mt-0.5 min-w-[16px]"><div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 ml-1" /></div>
+                      <span className="text-sm font-medium text-slate-600 leading-relaxed">{resp}</span>
+                    </li>
+                  ))
+                })()}
+              </ul>
+            </motion.div>
 
             {/* Skills */}
-            <Card className="border border-border/50">
-              <CardHeader>
-                <CardTitle>Required Skills</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {job.requiredSkills.map((skill: string) => (
-                    <Badge key={skill} variant="secondary" className="text-sm">
-                      {skill}
-                    </Badge>
-                  ))}
-                  {job.preferredSkills?.map((skill: string) => (
-                    <Badge key={skill} variant="outline" className="text-sm border-dashed">
-                      {skill} (Preferred)
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:p-8"
+            >
+              <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest mb-6 pb-4 border-b border-slate-100 flex items-center gap-2">
+                <Zap className="w-4 h-4 text-amber-500" /> Required Skills
+              </h3>
+              <div className="flex flex-wrap gap-2.5">
+                {job.requiredSkills.map((skill: string) => (
+                  <Badge key={skill} variant="secondary" className="px-3 py-1.5 bg-slate-50 border border-slate-100 text-slate-700 text-xs font-extrabold uppercase tracking-widest hover:border-slate-300 transition-colors">
+                    {skill}
+                  </Badge>
+                ))}
+                {job.preferredSkills?.map((skill: string) => (
+                  <Badge key={skill} variant="outline" className="px-3 py-1.5 border-dashed border-slate-300 text-slate-500 text-xs font-bold uppercase tracking-widest hover:border-slate-400 transition-colors">
+                    {skill} (Preferred)
+                  </Badge>
+                ))}
+              </div>
+            </motion.div>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Job Info */}
-            <Card className="border border-border/50">
-              <CardHeader>
-                <CardTitle>Job Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                    <DollarSign className="h-5 w-5 text-primary" />
+          {/* RIGHT SIDEBAR (4 Cols) */}
+          <div className="lg:col-span-4 space-y-6">
+
+            {/* Job Overview Card */}
+            <motion.div
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white rounded-xl border border-slate-200 shadow-sm p-6"
+            >
+              <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest mb-6 pb-4 border-b border-slate-100">
+                Job Overview
+              </h3>
+              <div className="space-y-5">
+
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                    <DollarSign className="w-5 h-5 text-emerald-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Salary</p>
-                    <p className="font-semibold">
-                      {formatSalary(job.salaryMin, job.salaryMax, job.salaryCurrency)}
-                    </p>
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Salary</div>
+                    <div className="text-sm font-black text-slate-900">{formatSalary(job.salaryMin, job.salaryMax, job.salaryCurrency)}</div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                    <MapPin className="h-5 w-5 text-muted-foreground" />
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
+                    <MapPin className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Location</p>
-                    <p className="font-semibold">{job.location}</p>
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Location</div>
+                    <div className="text-sm font-black text-slate-900">{job.location}</div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                    <Briefcase className="h-5 w-5 text-muted-foreground" />
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-center shrink-0">
+                    <Briefcase className="w-5 h-5 text-violet-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Job Type</p>
-                    <p className="font-semibold">{jobTypeLabels[job.type]}</p>
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Job Type</div>
+                    <div className="text-sm font-black text-slate-900">{jobTypeLabels[job.type]}</div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                    <Users className="h-5 w-5 text-muted-foreground" />
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0">
+                    <Users className="w-5 h-5 text-amber-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Experience</p>
-                    <p className="font-semibold">
-                      {experienceLevelLabels[job.level]}
-                    </p>
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Experience</div>
+                    <div className="text-sm font-black text-slate-900">{experienceLevelLabels[job.level]}</div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                    <Zap className="h-5 w-5 text-muted-foreground" />
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-orange-50 border border-orange-100 flex items-center justify-center shrink-0">
+                    <Zap className="w-5 h-5 text-orange-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Category</p>
-                    <p className="font-semibold">{job.category}</p>
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Category</div>
+                    <div className="text-sm font-black text-slate-900">{job.category}</div>
                   </div>
                 </div>
 
                 {job.minAuraScore && (
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <Zap className="h-5 w-5 text-primary" />
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-[#ADFF2F]/10 border border-[#ADFF2F]/20 flex items-center justify-center shrink-0">
+                      <Sparkles className="w-5 h-5 text-[#65A30D]" />
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">
-                        Minimum Aura Score
-                      </p>
-                      <p className="font-semibold text-primary">{job.minAuraScore}</p>
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Min Aura Score</div>
+                      <div className="text-sm font-black text-[#65A30D]">{job.minAuraScore}</div>
                     </div>
                   </div>
                 )}
 
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                    <Clock className="h-5 w-5 text-muted-foreground" />
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
+                    <Clock className="w-5 h-5 text-slate-500" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Posted</p>
-                    <p className="font-semibold">{formatDate(job.createdAt)}</p>
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Posted</div>
+                    <div className="text-sm font-black text-slate-900">{formatDate(job.createdAt)}</div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+
+              </div>
+            </motion.div>
 
             {/* Company Card */}
-            <Card className="border border-border/50">
-              <CardHeader>
-                <CardTitle>About the Company</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
-                    <Building className="h-6 w-6 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="font-semibold">{job.organization?.name || 'Verified Company'}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {job.applicationsCount} applicants
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Apply Button */}
-            <Button
-              className="w-full"
-              size="lg"
-              onClick={handleApply}
-              disabled={quickApplyMutation.isPending}
+            <motion.div
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-white rounded-xl border border-slate-200 shadow-sm p-6"
             >
-              {quickApplyMutation.isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <CheckCircle className="h-4 w-4 mr-2" />
-              )}
-              {quickApplyEnabled ? 'Quick Apply' : 'Apply for this Job'}
-            </Button>
+              <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest mb-6 pb-4 border-b border-slate-100">
+                About the Company
+              </h3>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="h-14 w-14 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
+                  <Building className="h-7 w-7 text-slate-400" />
+                </div>
+                <div>
+                  <p className="font-extrabold text-slate-900">{job.organization?.name || 'Verified Company'}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                    {job.applicationsCount} applicants
+                  </p>
+                </div>
+              </div>
+
+              <Button
+                className="w-full bg-slate-900 text-white hover:bg-slate-800 text-xs font-extrabold uppercase tracking-widest h-10 rounded-lg"
+                onClick={handleApply}
+                disabled={quickApplyMutation.isPending}
+              >
+                {quickApplyMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Zap className="h-4 w-4 mr-2" />
+                )}
+                {quickApplyEnabled ? 'Quick Apply' : 'Apply for this Job'}
+              </Button>
+            </motion.div>
+
           </div>
         </div>
+
       </div>
 
       {/* Apply Modal */}
@@ -491,6 +541,6 @@ export default function JobDetail() {
           applicationData={manualApplicationData}
         />
       )}
-    </>
+    </div>
   )
 }

@@ -1,8 +1,8 @@
 ﻿"use client"
 
-import Settings from '@/views/settings'
+import RecruiterSettings from '@/views/recruiter/settings'
 
 export default function RecruiterSettingsPage() {
-  return <Settings />
+  return <RecruiterSettings />
 }
 
