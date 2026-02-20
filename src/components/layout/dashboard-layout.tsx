@@ -10,9 +10,8 @@ import { useRef, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/auth-store'
-import { cn } from '@/lib/utils'
-// import { Button } from '@/components/ui/button'
-// import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { cn, getInitials } from '@/lib/utils'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   LayoutGrid,
   FolderGit2,
@@ -140,13 +139,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
               {/* User Profile Dropdown */}
               <div className="hidden lg:flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-full bg-white/10 cursor-pointer hover:bg-white/20 transition-colors" onClick={() => router.push('/profile')}>
-                {/* <Avatar className="w-7 h-7 rounded-full border-2 border-white/10">
-                  <AvatarImage src={user?.avatarUrl} />
+                <Avatar className="w-7 h-7 rounded-full border-2 border-white/10">
+                  <AvatarImage src={user?.avatarUrl || undefined} />
                   <AvatarFallback className="bg-black text-white text-[10px] font-bold">
                     {getInitials(user?.name || '')}
                   </AvatarFallback>
-                </Avatar> */}
-                <div className="w-7 h-7 rounded-full border-2 border-white/10 bg-gray-500"></div>
+                </Avatar>
                 <div className="text-left">
                   <div className="text-xs font-semibold text-white leading-none">{user?.name?.split(' ')[0] || 'User'}</div>
                   <div className="text-[10px] text-gray-400 mt-0.5">{user?.auraLevel || 'Developer'}</div>
@@ -175,13 +173,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Mobile Menu Header */}
           <div className="flex items-center justify-between p-3 border-b border-gray-200">
             <div className="flex items-center gap-2">
-              {/* <Avatar className="w-8 h-8 rounded-full">
-                <AvatarImage src={user?.avatarUrl} />
+              <Avatar className="w-8 h-8 rounded-full">
+                <AvatarImage src={user?.avatarUrl || undefined} />
                 <AvatarFallback className="bg-black text-white text-xs font-bold">
                   {getInitials(user?.name || '')}
                 </AvatarFallback>
-              </Avatar> */}
-              <div className="w-8 h-8 rounded-full bg-gray-500"></div>
+              </Avatar>
               <div>
                 <div className="text-xs font-bold text-gray-900">{user?.name || 'User'}</div>
                 <div className="text-[10px] text-gray-500">{user?.email}</div>

@@ -215,7 +215,7 @@ export default function Profile() {
 
   const [skills, setSkills] = useState<VerifiedSkill[]>([])
   const [experiences, setExperiences] = useState<{ work: Experience[], education: Experience[], certifications: Experience[] }>({ work: [], education: [], certifications: [] })
-  const [, setLeetcodeStats] = useState<LeetcodeStats | null>(null)
+  const [leetcodeStats, setLeetcodeStats] = useState<LeetcodeStats | null>(null)
   const [githubStats, setGithubStats] = useState<{ username: string, submissionCalendar: Record<string, number> } | null>(null)
   const [activeTab, setActiveTab] = useState('overview')
 
@@ -321,7 +321,7 @@ export default function Profile() {
   }
 
   const breakdown = aura?.breakdown || { profile: 15, projects: 35, skills: 30, activity: 10, github: 10 }
-  const TABS = ['overview', 'skills', 'projects', 'github', 'experience']
+  const TABS = ['overview', 'skills', 'projects', 'github', ...(leetcodeStats ? ['leetcode'] as const : []), 'experience']
 
   const handleShareProfile = useCallback(() => {
     navigator.clipboard.writeText(profileUrl).then(() => {
@@ -845,6 +845,110 @@ export default function Profile() {
                       </div>
                     )}
                   </div>
+                </motion.div>
+              )}
+
+              {activeTab === 'leetcode' && leetcodeStats && (
+                <motion.div key="leetcode" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-6">
+                  {/* LeetCode Stats Overview */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {[
+                      { label: 'Total Solved', value: leetcodeStats.totalSolved, color: 'text-[#FFA116]' },
+                      { label: 'Easy', value: leetcodeStats.easySolved, color: 'text-emerald-500' },
+                      { label: 'Medium', value: leetcodeStats.mediumSolved, color: 'text-amber-500' },
+                      { label: 'Hard', value: leetcodeStats.hardSolved, color: 'text-red-500' },
+                    ].map((stat, i) => (
+                      <div key={i} className="bg-white rounded-lg p-5 shadow-sm border border-slate-200 flex flex-col">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-widest">{stat.label}</span>
+                        </div>
+                        <div className={cn("text-2xl font-black", stat.color)}>{stat.value}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Ranking & Acceptance */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white rounded-lg p-5 shadow-sm border border-slate-200">
+                      <div className="text-[9px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">Global Ranking</div>
+                      <div className="text-3xl font-black text-slate-900">#{formatNumber(leetcodeStats.ranking)}</div>
+                    </div>
+                    <div className="bg-white rounded-lg p-5 shadow-sm border border-slate-200">
+                      <div className="text-[9px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">Acceptance Rate</div>
+                      <div className="text-3xl font-black text-slate-900">{leetcodeStats.acceptanceRate?.toFixed(1)}%</div>
+                    </div>
+                  </div>
+
+                  {/* LeetCode Profile Link */}
+                  {leetcodeStats.username && (
+                    <div className="bg-[#0A0A0A] rounded-lg p-5 border border-slate-800 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-[#FFA116]/20 flex items-center justify-center">
+                          <Code className="w-5 h-5 text-[#FFA116]" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-extrabold text-white">@{leetcodeStats.username}</div>
+                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">LeetCode Profile</div>
+                        </div>
+                      </div>
+                      <a href={`https://leetcode.com/u/${leetcodeStats.username}`} target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-md bg-[#FFA116]/20 text-[#FFA116] text-[10px] font-extrabold uppercase tracking-widest hover:bg-[#FFA116]/30 transition-colors flex items-center gap-1.5">
+                        <ExternalLink className="w-3 h-3" /> View on LeetCode
+                      </a>
+                    </div>
+                  )}
+
+                  {/* Difficulty Breakdown Bar */}
+                  <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
+                    <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest mb-4 pb-3 border-b border-slate-100 flex items-center gap-2">
+                      <Target className="w-4 h-4 text-[#FFA116]" /> Problem Breakdown
+                    </h3>
+                    <div className="space-y-4">
+                      {[
+                        { label: 'Easy', solved: leetcodeStats.easySolved, total: 800, color: 'bg-emerald-500' },
+                        { label: 'Medium', solved: leetcodeStats.mediumSolved, total: 1700, color: 'bg-amber-500' },
+                        { label: 'Hard', solved: leetcodeStats.hardSolved, total: 750, color: 'bg-red-500' },
+                      ].map((diff) => (
+                        <div key={diff.label}>
+                          <div className="flex justify-between items-center mb-1.5">
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{diff.label}</span>
+                            <span className="text-[10px] font-black text-slate-900">{diff.solved}</span>
+                          </div>
+                          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div className={cn("h-full rounded-full transition-all duration-700", diff.color)} style={{ width: `${Math.min(100, (diff.solved / diff.total) * 100)}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Submission Heatmap */}
+                  {leetcodeStats.submissionCalendar && Object.keys(leetcodeStats.submissionCalendar).length > 0 && (
+                    <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
+                      <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                        <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                          <Activity className="w-4 h-4 text-[#65A30D]" /> Submission Activity
+                        </h3>
+                        <div className="flex items-center gap-1.5 text-[#65A30D] font-extrabold text-[10px] bg-[#84CC16]/10 px-2 py-1 rounded-md border border-[#84CC16]/20">
+                          <Zap className="w-3 h-3" />
+                          {Object.values(leetcodeStats.submissionCalendar).reduce((a: number, b: number) => a + b, 0)} submissions
+                        </div>
+                      </div>
+                      <div className="p-4 bg-slate-50 border border-slate-100 rounded-md">
+                        <ContributionHeatmap data={leetcodeStats.submissionCalendar} type="leetcode" />
+                      </div>
+                      <div className="flex items-center gap-2 mt-3 justify-end">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Less</span>
+                        <div className="flex gap-[3px]">
+                          <div className="w-[11px] h-[11px] rounded-[2px] bg-slate-100" />
+                          <div className="w-[11px] h-[11px] rounded-[2px] bg-[#D9F99D]" />
+                          <div className="w-[11px] h-[11px] rounded-[2px] bg-[#84CC16]" />
+                          <div className="w-[11px] h-[11px] rounded-[2px] bg-[#65A30D]" />
+                          <div className="w-[11px] h-[11px] rounded-[2px] bg-[#4D7C0F]" />
+                        </div>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">More</span>
+                      </div>
+                    </div>
+                  )}
                 </motion.div>
               )}
 
